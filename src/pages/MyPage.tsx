@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Play, Clock, CheckCircle, AlertCircle, BarChart3, Calendar, Settings, LogOut, User, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/AuthContext'
 
 const decks = [
   { id: 'ds', name: 'Data Structures', new: 15, learning: 8, review: 42, color: 'border-l-primary' },
@@ -16,6 +17,7 @@ const recentActivity = [
 ]
 
 export function MyPage() {
+  const { logout } = useAuth()
   const totalDue = decks.reduce((acc, d) => acc + d.review + d.learning, 0)
   const totalNew = decks.reduce((acc, d) => acc + d.new, 0)
 
@@ -45,10 +47,8 @@ export function MyPage() {
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/logout">
-                <LogOut className="h-4 w-4" />
-              </Link>
+            <Button variant="ghost" size="sm" onClick={logout}>
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>

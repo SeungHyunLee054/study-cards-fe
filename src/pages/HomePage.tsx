@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { BookOpen, ChevronRight, Check } from 'lucide-react'
+import { BookOpen, ChevronRight, Check, User, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/AuthContext'
 
 const features = [
   'Anki 알고리즘 기반 간격 반복',
@@ -10,6 +11,8 @@ const features = [
 ]
 
 export function HomePage() {
+  const { isLoggedIn, isLoading, logout } = useAuth()
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Header */}
@@ -20,15 +23,32 @@ export function HomePage() {
             <span className="text-xl font-semibold">Study Cards</span>
           </div>
           <div className="flex gap-4 items-center">
-            <Link
-              to="/login"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              Log in
-            </Link>
-            <Button size="sm" asChild>
-              <Link to="/signup">Get Started</Link>
-            </Button>
+            {isLoading ? null : isLoggedIn ? (
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/mypage">
+                    <User className="h-4 w-4 mr-1" />
+                    마이페이지
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" onClick={logout}>
+                  <LogOut className="h-4 w-4 mr-1" />
+                  로그아웃
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  로그인
+                </Link>
+                <Button size="sm" asChild>
+                  <Link to="/signup">시작하기</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
