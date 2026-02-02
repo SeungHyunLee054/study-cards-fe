@@ -1,14 +1,20 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signIn as apiSignIn, signUp as apiSignUp, signOut as apiSignOut } from '@/api/auth'
+import { fetchUserProfile } from '@/api/users'
 import type { SignInRequest, SignUpRequest, UserResponse } from '@/types/auth'
+import type { UserProfileResponse } from '@/types/user'
 
 interface AuthContextType {
   isLoggedIn: boolean
   isLoading: boolean
+  user: UserProfileResponse | null
+  isAdmin: boolean
   login: (request: SignInRequest) => Promise<void>
   signup: (request: SignUpRequest) => Promise<UserResponse>
   logout: () => Promise<void>
+  setLoggedIn: (value: boolean) => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -17,18 +23,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<UserProfileResponse | null>(null)
+
+  const isAdmin = user?.roles?.includes('ROLE_ADMIN') ?? false
+
+  const refreshUser = useCallback(async () => {
+    try {
+      const profile = await fetchUserProfile()
+      setUser(profile)
+    } catch {
+      setUser(null)
+    }
+  }, [])
 
   // 초기 로그인 상태 확인
   useEffect(() => {
-    const token = localStorage.getItem('accessToken')
-    setIsLoggedIn(!!token)
-    setIsLoading(false)
+    async function initAuth() {
+      const token = localStorage.getItem('accessToken')
+      if (token) {
+        setIsLoggedIn(true)
+        try {
+          const profile = await fetchUserProfile()
+          setUser(profile)
+        } catch {
+          // 토큰이 유효하지 않으면 로그아웃 처리
+          localStorage.removeItem('accessToken')
+          setIsLoggedIn(false)
+          setUser(null)
+        }
+      }
+      setIsLoading(false)
+    }
+
+    initAuth()
   }, [])
 
   // 강제 로그아웃 이벤트 리스너 (토큰 갱신 실패 시)
   useEffect(() => {
     const handleLogout = () => {
       setIsLoggedIn(false)
+      setUser(null)
       navigate('/login')
     }
 
@@ -40,6 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const response = await apiSignIn(request)
     localStorage.setItem('accessToken', response.accessToken)
     setIsLoggedIn(true)
+    // 로그인 후 사용자 정보 로드
+    try {
+      const profile = await fetchUserProfile()
+      setUser(profile)
+    } catch {
+      // 사용자 정보 로드 실패해도 로그인은 유지
+    }
   }, [])
 
   const signup = useCallback(async (request: SignUpRequest) => {
@@ -54,11 +95,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     localStorage.removeItem('accessToken')
     setIsLoggedIn(false)
+    setUser(null)
     navigate('/')
   }, [navigate])
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, isLoading, login, signup, logout }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        isLoading,
+        user,
+        isAdmin,
+        login,
+        signup,
+        logout,
+        setLoggedIn: setIsLoggedIn,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
