@@ -2,12 +2,11 @@ import { useState } from 'react'
 import { Check, X, RotateCcw } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { DifficultyGauge } from '@/components/DifficultyGauge'
 import { cn } from '@/lib/utils'
-import type { Card as CardType } from '@/types/card'
+import type { CardResponse } from '@/types/card'
 
 interface CardDeckProps {
-  card: CardType | null
+  card: CardResponse | null
   isFlipped: boolean
   onFlip: () => void
   onCorrect: () => void
@@ -31,7 +30,7 @@ export function CardDeck({
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="flex items-center justify-center h-64">
-          <p className="text-muted-foreground">No cards to study</p>
+          <p className="text-muted-foreground">학습할 카드가 없습니다</p>
         </CardContent>
       </Card>
     )
@@ -44,11 +43,15 @@ export function CardDeck({
     setTimeout(() => setIsAnimating(false), 300)
   }
 
+  // 질문/답변 표시 (한글 우선, 없으면 영문)
+  const question = card.questionKo || card.questionEn
+  const answer = card.answerKo || card.answerEn
+
   return (
     <div className="w-full max-w-md mx-auto space-y-4">
       <div className="flex justify-between items-center text-sm text-muted-foreground">
         <span>
-          Card {currentIndex + 1} of {totalCards}
+          카드 {currentIndex + 1} / {totalCards}
         </span>
         <span className="px-2 py-1 rounded bg-secondary">{card.category}</span>
       </div>
@@ -67,17 +70,15 @@ export function CardDeck({
             isFlipped && 'bg-primary/5'
           )}
         >
-          <CardHeader>
-            <DifficultyGauge efFactor={card.efFactor} />
-          </CardHeader>
+          <CardHeader />
           <CardContent className="flex items-center justify-center min-h-32">
             <p className="text-lg text-center">
-              {isFlipped ? card.answer : card.question}
+              {isFlipped ? answer : question}
             </p>
           </CardContent>
           <CardFooter className="justify-center">
             <p className="text-xs text-muted-foreground">
-              {isFlipped ? 'Answer' : 'Click to reveal answer'}
+              {isFlipped ? '정답' : '클릭하여 정답 확인'}
             </p>
           </CardFooter>
         </Card>
@@ -92,24 +93,23 @@ export function CardDeck({
             className="flex-1 max-w-32"
           >
             <X className="mr-2 h-5 w-5" />
-            Wrong
+            오답
           </Button>
           <Button
             variant="outline"
             size="lg"
             onClick={handleFlip}
-            className="max-w-12"
           >
-            <RotateCcw className="h-5 w-5" />
+            <RotateCcw className="h-5 w-5 mr-1" />
+            뒤집기
           </Button>
           <Button
-            variant="success"
             size="lg"
             onClick={onCorrect}
-            className="flex-1 max-w-32"
+            className="flex-1 max-w-32 bg-green-600 hover:bg-green-700"
           >
             <Check className="mr-2 h-5 w-5" />
-            Correct
+            정답
           </Button>
         </div>
       )}

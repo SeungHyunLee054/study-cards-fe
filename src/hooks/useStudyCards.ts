@@ -1,19 +1,22 @@
-import { useState, useCallback } from 'react'
-import type { Card, StudyResult, Difficulty } from '@/types/card'
-import { fetchDueCards, submitStudyResult } from '@/api/cards'
+import { useState, useCallback, useRef } from 'react'
+import { AxiosError } from 'axios'
+import type { CardResponse } from '@/types/card'
+import { fetchStudyCards } from '@/api/cards'
 
 interface UseStudyCardsReturn {
-  cards: Card[]
-  currentCard: Card | null
+  cards: CardResponse[]
+  currentCard: CardResponse | null
   currentIndex: number
   isLoading: boolean
   error: string | null
   isFlipped: boolean
-  loadCards: () => Promise<void>
+  isRateLimited: boolean
+  loadCards: (category?: string) => Promise<void>
   flipCard: () => void
-  answerCard: (isCorrect: boolean, difficulty?: Difficulty) => Promise<void>
+  answerCard: (isCorrect: boolean) => void
   nextCard: () => void
   prevCard: () => void
+  clearRateLimitError: () => void
   progress: {
     total: number
     completed: number
@@ -22,31 +25,45 @@ interface UseStudyCardsReturn {
 }
 
 export function useStudyCards(): UseStudyCardsReturn {
-  const [cards, setCards] = useState<Card[]>([])
+  const [cards, setCards] = useState<CardResponse[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isFlipped, setIsFlipped] = useState(false)
+  const [isRateLimited, setIsRateLimited] = useState(false)
   const [completed, setCompleted] = useState(0)
   const [correct, setCorrect] = useState(0)
+  const isLoadingRef = useRef(false)
 
   const currentCard = cards[currentIndex] ?? null
 
-  const loadCards = useCallback(async () => {
+  const loadCards = useCallback(async (category?: string) => {
+    if (isLoadingRef.current) return
+    isLoadingRef.current = true
     setIsLoading(true)
     setError(null)
+    setIsRateLimited(false)
     try {
-      const data = await fetchDueCards()
+      const data = await fetchStudyCards(category)
       setCards(data)
       setCurrentIndex(0)
       setIsFlipped(false)
       setCompleted(0)
       setCorrect(0)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load cards')
+      if (err instanceof AxiosError && err.response?.status === 429) {
+        setIsRateLimited(true)
+      } else {
+        setError(err instanceof Error ? err.message : '카드를 불러오는데 실패했습니다.')
+      }
     } finally {
       setIsLoading(false)
+      isLoadingRef.current = false
     }
+  }, [])
+
+  const clearRateLimitError = useCallback(() => {
+    setIsRateLimited(false)
   }, [])
 
   const flipCard = useCallback(() => {
@@ -54,32 +71,24 @@ export function useStudyCards(): UseStudyCardsReturn {
   }, [])
 
   const answerCard = useCallback(
-    async (isCorrect: boolean, difficulty: Difficulty = 'medium') => {
+    (isCorrect: boolean) => {
       if (!currentCard) return
 
-      try {
-        const result: StudyResult = {
-          cardId: currentCard.id,
-          isCorrect,
-          difficulty,
-        }
-        const updatedCard = await submitStudyResult(result)
+      // TODO: 유저별 EF Factor 구현 후 API 호출 활성화
+      // const request: StudyAnswerRequest = {
+      //   cardId: currentCard.id,
+      //   isCorrect,
+      // }
+      // await submitStudyAnswer(request)
 
-        setCards((prev) =>
-          prev.map((c) => (c.id === updatedCard.id ? updatedCard : c))
-        )
+      setCompleted((prev) => prev + 1)
+      if (isCorrect) {
+        setCorrect((prev) => prev + 1)
+      }
 
-        setCompleted((prev) => prev + 1)
-        if (isCorrect) {
-          setCorrect((prev) => prev + 1)
-        }
-
-        if (currentIndex < cards.length - 1) {
-          setCurrentIndex((prev) => prev + 1)
-          setIsFlipped(false)
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to submit answer')
+      if (currentIndex < cards.length - 1) {
+        setCurrentIndex((prev) => prev + 1)
+        setIsFlipped(false)
       }
     },
     [currentCard, currentIndex, cards.length]
@@ -106,11 +115,13 @@ export function useStudyCards(): UseStudyCardsReturn {
     isLoading,
     error,
     isFlipped,
+    isRateLimited,
     loadCards,
     flipCard,
     answerCard,
     nextCard,
     prevCard,
+    clearRateLimitError,
     progress: {
       total: cards.length,
       completed,
