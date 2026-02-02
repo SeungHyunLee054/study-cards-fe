@@ -2,6 +2,7 @@
 export interface SignUpRequest {
   email: string
   password: string
+  passwordConfirm: string
   nickname: string
 }
 
@@ -26,3 +27,18 @@ export interface SignInResponse {
   tokenType: string
   expiresIn: number
 }
+
+// 비밀번호 재설정 요청
+export interface PasswordResetRequest {
+  email: string
+}
+
+// 비밀번호 재설정 검증 요청
+export interface PasswordResetVerifyRequest {
+  email: string
+  code: string
+  newPassword: string
+}
+
+// OAuth Provider
+export type OAuthProvider = 'google' | 'kakao' | 'naver'
