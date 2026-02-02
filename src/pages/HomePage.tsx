@@ -1,17 +1,47 @@
-import { Link } from 'react-router-dom'
-import { BookOpen, ChevronRight, Check, User, LogOut } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { BookOpen, ChevronRight, Check, RotateCcw, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
-
-const features = [
-  'Anki 알고리즘 기반 간격 반복',
-  '1,000+ CS 플래시카드',
-  '하루 5개 무료 학습',
-  '실시간 진행도 추적',
-]
+import { cn } from '@/lib/utils'
+import { fetchCardCount } from '@/api/cards'
 
 export function HomePage() {
-  const { isLoggedIn, isLoading, logout } = useAuth()
+  const navigate = useNavigate()
+  const { isLoggedIn, isLoading } = useAuth()
+  const [isFlipped, setIsFlipped] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
+  const [cardCount, setCardCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!isLoading && isLoggedIn) {
+      navigate('/mypage', { replace: true })
+    }
+  }, [isLoggedIn, isLoading, navigate])
+
+  useEffect(() => {
+    fetchCardCount()
+      .then(setCardCount)
+      .catch(() => setCardCount(null))
+  }, [])
+
+  const handleAnswerClick = () => {
+    setShowGuide(true)
+    setIsFlipped(false)
+    setTimeout(() => setShowGuide(false), 3000)
+  }
+
+  const features = [
+    'Anki 알고리즘 기반 간격 반복',
+    `${cardCount?.toLocaleString() ?? '...'} 플래시카드`,
+    '하루 15개 무료 학습',
+    '실시간 진행도 추적',
+  ]
+
+  // 로그인 상태면 리다이렉트 중이므로 아무것도 표시하지 않음
+  if (isLoading || isLoggedIn) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -23,32 +53,15 @@ export function HomePage() {
             <span className="text-xl font-semibold">Study Cards</span>
           </div>
           <div className="flex gap-4 items-center">
-            {isLoading ? null : isLoggedIn ? (
-              <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/mypage">
-                    <User className="h-4 w-4 mr-1" />
-                    마이페이지
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" onClick={logout}>
-                  <LogOut className="h-4 w-4 mr-1" />
-                  로그아웃
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  로그인
-                </Link>
-                <Button size="sm" asChild>
-                  <Link to="/signup">시작하기</Link>
-                </Button>
-              </>
-            )}
+            <Link
+              to="/login"
+              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              로그인
+            </Link>
+            <Button size="sm" asChild>
+              <Link to="/signup">시작하기</Link>
+            </Button>
           </div>
         </div>
       </header>
@@ -58,11 +71,11 @@ export function HomePage() {
         <section className="max-w-6xl mx-auto px-6 py-24 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm mb-8">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            <span className="text-gray-600">Now with 1,000+ CS cards</span>
+            <span className="text-gray-600">Now with {cardCount?.toLocaleString() ?? '...'} cards</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold leading-tight text-gray-900">
-            Master CS with
+            Master anything with
             <br />
             <span className="text-primary">
               Spaced Repetition
@@ -70,7 +83,7 @@ export function HomePage() {
           </h1>
 
           <p className="mt-6 text-xl text-gray-600 max-w-2xl mx-auto">
-            jwasham의 코딩 인터뷰 대학 플래시카드로 학습하세요.
+            플래시카드로 효율적으로 학습하세요.
             과학적으로 검증된 기억법으로 영구 기억을 만듭니다.
           </p>
 
@@ -82,7 +95,7 @@ export function HomePage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/about">Learn More</Link>
+              <Link to="/about">About</Link>
             </Button>
           </div>
         </section>
@@ -106,60 +119,97 @@ export function HomePage() {
 
         {/* Card Preview */}
         <section className="max-w-6xl mx-auto px-6 py-16">
-          <div className="relative max-w-lg mx-auto">
-            <div className="p-8 rounded-2xl bg-white border border-gray-200 shadow-xl">
-              <div className="flex justify-between items-center mb-6">
-                <span className="text-xs text-gray-500 uppercase tracking-wider">
-                  Data Structures
-                </span>
-                <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary">
-                  EF: 2.5
-                </span>
-              </div>
+          <div className="relative max-w-md mx-auto space-y-4">
+            <div className="flex justify-between items-center text-sm text-gray-500">
+              <span>카드 1 / 15</span>
+              <span className="px-2 py-1 rounded bg-gray-100">일반</span>
+            </div>
 
-              <p className="text-xl font-medium text-gray-900">
-                What is the time complexity of accessing an element in a hash table?
-              </p>
-
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <p className="text-gray-600">
-                  O(1) average case - constant time lookup using the hash function
+            <div
+              className={cn(
+                'p-8 rounded-2xl border border-gray-200 shadow-xl cursor-pointer transition-all duration-300',
+                isFlipped ? 'bg-primary/5' : 'bg-white'
+              )}
+              onClick={() => setIsFlipped(!isFlipped)}
+            >
+              <div className="flex items-center justify-center min-h-32">
+                <p className={cn(
+                  'text-lg text-center',
+                  isFlipped ? 'text-gray-700' : 'text-gray-900'
+                )}>
+                  {isFlipped
+                    ? '기억이 사라지기 직전에 복습하여 장기 기억으로 전환하는 학습 방법입니다.'
+                    : '간격 반복(Spaced Repetition)이란 무엇인가요?'}
                 </p>
               </div>
 
-              <div className="mt-8 flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
-                >
-                  Wrong
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 border-green-200 text-green-600 hover:bg-green-50"
-                >
-                  Correct
-                </Button>
+              <div className="text-center">
+                <p className="text-xs text-gray-400">
+                  {isFlipped ? '정답' : '클릭하여 정답 확인'}
+                </p>
               </div>
             </div>
+
+            {isFlipped && (
+              <div className="flex gap-4 justify-center">
+                <Button
+                  variant="destructive"
+                  size="lg"
+                  className="flex-1 max-w-32"
+                  onClick={handleAnswerClick}
+                >
+                  <X className="mr-2 h-5 w-5" />
+                  오답
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setIsFlipped(false)}
+                >
+                  <RotateCcw className="h-5 w-5 mr-1" />
+                  뒤집기
+                </Button>
+                <Button
+                  size="lg"
+                  className="flex-1 max-w-32 bg-green-600 hover:bg-green-700"
+                  onClick={handleAnswerClick}
+                >
+                  <Check className="mr-2 h-5 w-5" />
+                  정답
+                </Button>
+              </div>
+            )}
+
+            {showGuide && (
+              <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-center animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <p className="text-sm text-primary font-medium">
+                  지금 바로 학습을 시작해보세요!
+                </p>
+                <Button size="sm" className="mt-2" asChild>
+                  <Link to="/study">학습 시작하기</Link>
+                </Button>
+              </div>
+            )}
           </div>
         </section>
 
         {/* Stats */}
         <section className="max-w-4xl mx-auto px-6 py-16">
           <div className="grid grid-cols-3 gap-8">
-            {[
-              { value: '1,000+', label: 'Flash Cards' },
-              { value: '5/day', label: 'Free Tier' },
-              { value: '∞', label: 'With Account' },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-4xl font-bold text-primary">
-                  {stat.value}
-                </div>
-                <div className="mt-2 text-sm text-gray-500">{stat.label}</div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary">
+                {cardCount?.toLocaleString() ?? '...'}
               </div>
-            ))}
+              <div className="mt-2 text-sm text-gray-500">Flash Cards</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary">15/day</div>
+              <div className="mt-2 text-sm text-gray-500">Free Tier</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-primary">∞</div>
+              <div className="mt-2 text-sm text-gray-500">With Account</div>
+            </div>
           </div>
         </section>
 
@@ -171,7 +221,7 @@ export function HomePage() {
               무료로 시작하세요. 가입하면 무제한 학습이 가능합니다.
             </p>
             <Button size="lg" className="mt-6" asChild>
-              <Link to="/study">Start Free Trial</Link>
+              <Link to="/signup">회원가입</Link>
             </Button>
           </div>
         </section>
