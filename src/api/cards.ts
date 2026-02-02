@@ -1,37 +1,161 @@
-import type { Card, StudyResult } from '@/types/card'
+import { apiClient, publicClient } from './client'
+import { AxiosError } from 'axios'
+import type {
+  CardResponse,
+  StudyAnswerRequest,
+  StudyResultResponse,
+  UserCardResponse,
+  UserCardCreateRequest,
+  UserCardUpdateRequest,
+  Category,
+} from '@/types/card'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
-
-export async function fetchCards(category?: string): Promise<Card[]> {
-  const url = category
-    ? `${API_BASE_URL}/cards?category=${category}`
-    : `${API_BASE_URL}/cards`
-
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error('Failed to fetch cards')
+// 학습할 카드 조회 (비로그인도 가능, 로그인 시 토큰 포함)
+export async function fetchStudyCards(category?: string): Promise<CardResponse[]> {
+  try {
+    // 로그인 상태면 apiClient 사용 (rate limit 우회)
+    const client = localStorage.getItem('accessToken') ? apiClient : publicClient
+    const response = await client.get<CardResponse[]>('/api/cards/study', {
+      params: category ? { category } : undefined,
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      // 429 에러는 그대로 전달 (Rate Limit 처리용)
+      if (error.response?.status === 429) {
+        throw error
+      }
+      throw new Error(error.response?.data?.message || '학습 카드를 불러오는데 실패했습니다.')
+    }
+    throw error
   }
-  return response.json()
 }
 
-export async function fetchDueCards(): Promise<Card[]> {
-  const response = await fetch(`${API_BASE_URL}/cards/due`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch due cards')
+// 전체 카드 조회
+export async function fetchCards(category?: string): Promise<CardResponse[]> {
+  try {
+    const response = await publicClient.get<CardResponse[]>('/api/cards', {
+      params: category ? { category } : undefined,
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '카드를 불러오는데 실패했습니다.')
+    }
+    throw error
   }
-  return response.json()
 }
 
-export async function submitStudyResult(result: StudyResult): Promise<Card> {
-  const response = await fetch(`${API_BASE_URL}/study`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(result),
-  })
-  if (!response.ok) {
-    throw new Error('Failed to submit study result')
+// 카드 개수 조회
+export async function fetchCardCount(): Promise<number> {
+  try {
+    const response = await publicClient.get<number>('/api/cards/count')
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '카드 개수를 불러오는데 실패했습니다.')
+    }
+    throw error
   }
-  return response.json()
+}
+
+// 단일 카드 조회
+export async function fetchCard(id: number): Promise<CardResponse> {
+  try {
+    const response = await publicClient.get<CardResponse>(`/api/cards/${id}`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '카드를 불러오는데 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+// 학습 답변 제출 (TODO: 백엔드 StudyController 구현 후 활성화)
+export async function submitStudyAnswer(request: StudyAnswerRequest): Promise<StudyResultResponse> {
+  try {
+    const response = await apiClient.post<StudyResultResponse>('/api/study/answer', request)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '답변 제출에 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+// 기존 함수 (호환성 유지)
+export async function fetchDueCards(): Promise<CardResponse[]> {
+  return fetchStudyCards()
+}
+
+export async function submitStudyResult(result: StudyAnswerRequest): Promise<StudyResultResponse> {
+  return submitStudyAnswer(result)
+}
+
+// 사용자 카드 목록 조회
+export async function getUserCards(category?: Category): Promise<UserCardResponse[]> {
+  try {
+    const response = await apiClient.get<UserCardResponse[]>('/api/user/cards', {
+      params: category ? { category } : undefined,
+    })
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '내 카드를 불러오는데 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+// 사용자 카드 단일 조회
+export async function getUserCard(id: number): Promise<UserCardResponse> {
+  try {
+    const response = await apiClient.get<UserCardResponse>(`/api/user/cards/${id}`)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '카드를 불러오는데 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+// 사용자 카드 생성
+export async function createUserCard(data: UserCardCreateRequest): Promise<UserCardResponse> {
+  try {
+    const response = await apiClient.post<UserCardResponse>('/api/user/cards', data)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '카드 생성에 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+// 사용자 카드 수정
+export async function updateUserCard(id: number, data: UserCardUpdateRequest): Promise<UserCardResponse> {
+  try {
+    const response = await apiClient.put<UserCardResponse>(`/api/user/cards/${id}`, data)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '카드 수정에 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+// 사용자 카드 삭제
+export async function deleteUserCard(id: number): Promise<void> {
+  try {
+    await apiClient.delete(`/api/user/cards/${id}`)
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '카드 삭제에 실패했습니다.')
+    }
+    throw error
+  }
 }

@@ -5,6 +5,9 @@ import type {
   SignInRequest,
   SignInResponse,
   UserResponse,
+  PasswordResetRequest,
+  PasswordResetVerifyRequest,
+  OAuthProvider,
 } from '@/types/auth'
 
 export async function signUp(request: SignUpRequest): Promise<UserResponse> {
@@ -52,4 +55,31 @@ export async function refreshToken(): Promise<SignInResponse> {
     }
     throw error
   }
+}
+
+export async function requestPasswordReset(request: PasswordResetRequest): Promise<void> {
+  try {
+    await publicClient.post('/api/auth/password-reset/request', request)
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '비밀번호 재설정 요청에 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+export async function verifyPasswordReset(request: PasswordResetVerifyRequest): Promise<void> {
+  try {
+    await publicClient.post('/api/auth/password-reset/verify', request)
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '비밀번호 재설정에 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+export function getOAuthLoginUrl(provider: OAuthProvider): string {
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8081'
+  return `${baseUrl}/oauth2/authorization/${provider}`
 }
