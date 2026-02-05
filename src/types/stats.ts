@@ -3,7 +3,7 @@ export interface StatsOverview {
   totalStudied: number
   newCards: number
   streak: number
-  accuracyRate: number  // 전체 정답률 (0.0 ~ 1.0)
+  accuracyRate: number  // 전체 정답률 (0 ~ 100)
 }
 
 export interface DeckStats {
@@ -11,7 +11,7 @@ export interface DeckStats {
   newCount: number
   learningCount: number
   reviewCount: number
-  masteryRate: number  // 카테고리별 마스터리율 (0.0 ~ 1.0)
+  masteryRate: number  // 카테고리별 마스터리율 (0 ~ 100)
 }
 
 export interface RecentActivity {

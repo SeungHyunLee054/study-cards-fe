@@ -26,7 +26,7 @@ function getCategoryColor(category: string) {
 }
 
 function formatPercent(value: number): string {
-  return `${Math.round(value * 100)}%`
+  return `${Math.round(value)}%`
 }
 
 function formatDate(dateStr: string): string {
@@ -261,7 +261,7 @@ export function StatsPage() {
               <div className="divide-y divide-gray-100">
                 {decks.map((deck: DeckStats) => {
                   const colors = getCategoryColor(deck.category)
-                  const masteryPercent = (deck.masteryRate ?? 0) * 100
+                  const masteryPercent = deck.masteryRate ?? 0
                   return (
                     <div key={deck.category} className="p-5">
                       <div className="flex justify-between items-center mb-2">
