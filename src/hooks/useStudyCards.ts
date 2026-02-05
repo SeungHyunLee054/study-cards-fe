@@ -1,17 +1,27 @@
 import { useState, useCallback, useRef } from 'react'
 import { AxiosError } from 'axios'
-import type { CardResponse } from '@/types/card'
-import { fetchStudyCards } from '@/api/cards'
+import type { StudyCard, StudyCardResponse } from '@/types/card'
+import {
+  fetchStudyCards,
+  fetchUserStudyCards,
+  fetchTodayStudyCards,
+  fetchAllStudyCards,
+  fetchCard,
+  submitStudyAnswer,
+} from '@/api/cards'
+
+type StudyMode = 'all' | 'review' | 'myCards' | 'session-review'
 
 interface UseStudyCardsReturn {
-  cards: CardResponse[]
-  currentCard: CardResponse | null
+  cards: StudyCard[]
+  currentCard: StudyCard | null
   currentIndex: number
   isLoading: boolean
   error: string | null
   isFlipped: boolean
   isRateLimited: boolean
-  loadCards: (category?: string) => Promise<void>
+  studyMode: StudyMode
+  loadCards: (category?: string, mode?: StudyMode, cardIds?: number[]) => Promise<void>
   flipCard: () => void
   answerCard: (isCorrect: boolean) => void
   nextCard: () => void
@@ -25,7 +35,7 @@ interface UseStudyCardsReturn {
 }
 
 export function useStudyCards(): UseStudyCardsReturn {
-  const [cards, setCards] = useState<CardResponse[]>([])
+  const [cards, setCards] = useState<StudyCard[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -33,19 +43,43 @@ export function useStudyCards(): UseStudyCardsReturn {
   const [isRateLimited, setIsRateLimited] = useState(false)
   const [completed, setCompleted] = useState(0)
   const [correct, setCorrect] = useState(0)
+  const [studyMode, setStudyMode] = useState<StudyMode>('all')
   const isLoadingRef = useRef(false)
 
   const currentCard = cards[currentIndex] ?? null
 
-  const loadCards = useCallback(async (category?: string) => {
+  const loadCards = useCallback(async (category?: string, mode: StudyMode = 'all', cardIds?: number[]) => {
     if (isLoadingRef.current) return
     isLoadingRef.current = true
     setIsLoading(true)
     setError(null)
     setIsRateLimited(false)
+    setStudyMode(mode)
+
+    const isLoggedIn = !!localStorage.getItem('accessToken')
+
     try {
-      const data = await fetchStudyCards(category)
-      setCards(data)
+      let data: StudyCard[] | StudyCardResponse[]
+
+      if (mode === 'session-review' && cardIds && cardIds.length > 0) {
+        // 세션 복습: cardIds로 개별 카드 조회
+        const cardPromises = cardIds.map((id) => fetchCard(id))
+        const cards = await Promise.all(cardPromises)
+        data = cards as StudyCard[]
+      } else if (mode === 'myCards') {
+        // 내 카드만 학습
+        data = await fetchUserStudyCards(category)
+      } else if (mode === 'review' && isLoggedIn) {
+        // SM-2 기반 오늘 복습할 카드 (로그인 필수)
+        data = await fetchTodayStudyCards(category)
+      } else {
+        // 전체 학습 (로그인 시 내 카드 포함, 비로그인 시 공용 카드만)
+        data = isLoggedIn
+          ? await fetchAllStudyCards(category)
+          : await fetchStudyCards(category)
+      }
+
+      setCards(data as StudyCard[])
       setCurrentIndex(0)
       setIsFlipped(false)
       setCompleted(0)
@@ -74,12 +108,17 @@ export function useStudyCards(): UseStudyCardsReturn {
     (isCorrect: boolean) => {
       if (!currentCard) return
 
-      // TODO: 유저별 EF Factor 구현 후 API 호출 활성화
-      // const request: StudyAnswerRequest = {
-      //   cardId: currentCard.id,
-      //   isCorrect,
-      // }
-      // await submitStudyAnswer(request)
+      // 로그인 상태일 때만 학습 결과 저장
+      const accessToken = localStorage.getItem('accessToken')
+      if (accessToken) {
+        submitStudyAnswer({
+          cardId: currentCard.id,
+          isCorrect,
+        }).catch((err) => {
+          // 학습 결과 저장 실패해도 UI는 계속 진행
+          console.error('학습 결과 저장 실패:', err)
+        })
+      }
 
       setCompleted((prev) => prev + 1)
       if (isCorrect) {
@@ -116,6 +155,7 @@ export function useStudyCards(): UseStudyCardsReturn {
     error,
     isFlipped,
     isRateLimited,
+    studyMode,
     loadCards,
     flipCard,
     answerCard,

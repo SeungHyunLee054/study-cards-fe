@@ -3,26 +3,32 @@ import { Link } from 'react-router-dom'
 import { Plus, Pencil, Trash2, BookOpen, ArrowLeft, Loader2, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CardForm } from '@/components/CardForm'
-import {
-  getUserCards,
-  createUserCard,
-  updateUserCard,
-  deleteUserCard,
-} from '@/api/cards'
-import type { Category, UserCardResponse, UserCardCreateRequest } from '@/types/card'
-
-const CATEGORIES: (Category | 'ALL')[] = ['ALL', 'CS', 'ENGLISH', 'SQL', 'JAPANESE']
+import { getUserCards, createUserCard, updateUserCard, deleteUserCard } from '@/api/cards'
+import { fetchCategories } from '@/api/categories'
+import type { UserCardResponse, UserCardCreateRequest } from '@/types/card'
+import type { CategoryResponse } from '@/types/category'
 
 export function MyCardsPage() {
   const [cards, setCards] = useState<UserCardResponse[]>([])
+  const [categories, setCategories] = useState<CategoryResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState<Category | 'ALL'>('ALL')
+  const [selectedCategory, setSelectedCategory] = useState('ALL')
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<UserCardResponse | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
 
+  // 카테고리 목록 로드
+  useEffect(() => {
+    fetchCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]))
+      .finally(() => setIsCategoriesLoading(false))
+  }, [])
+
+  // 카드 목록 로드
   useEffect(() => {
     loadCards()
   }, [selectedCategory])
@@ -31,8 +37,8 @@ export function MyCardsPage() {
     try {
       setIsLoading(true)
       setError(null)
-      const category = selectedCategory === 'ALL' ? undefined : selectedCategory
-      const data = await getUserCards(category)
+      const categoryCode = selectedCategory === 'ALL' ? undefined : selectedCategory
+      const data = await getUserCards(categoryCode)
       setCards(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : '카드를 불러오는데 실패했습니다')
@@ -138,21 +144,38 @@ export function MyCardsPage() {
         {/* Filter */}
         <div className="mb-6 flex items-center gap-3">
           <Filter className="h-4 w-4 text-gray-500" />
-          <div className="flex gap-2">
-            {CATEGORIES.map((cat) => (
+          {isCategoriesLoading ? (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              로딩 중...
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => setSelectedCategory('ALL')}
                 className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                  selectedCategory === cat
+                  selectedCategory === 'ALL'
                     ? 'bg-primary text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {cat === 'ALL' ? '전체' : cat}
+                전체
               </button>
-            ))}
-          </div>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.code)}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    selectedCategory === cat.code
+                      ? 'bg-primary text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Cards List */}
@@ -169,7 +192,7 @@ export function MyCardsPage() {
             <p className="text-gray-600 mb-4">
               {selectedCategory === 'ALL'
                 ? '첫 번째 학습 카드를 만들어보세요!'
-                : `${selectedCategory} 카테고리에 카드가 없습니다`}
+                : `해당 카테고리에 카드가 없습니다`}
             </p>
             <Button onClick={() => setIsFormOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
@@ -187,22 +210,22 @@ export function MyCardsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <span className="px-2 py-0.5 text-xs font-medium rounded bg-primary/10 text-primary">
-                        {card.category}
+                        {card.category.name}
                       </span>
                       <span className="text-xs text-gray-400">
                         EF: {card.efFactor.toFixed(2)}
                       </span>
                     </div>
                     <div className="mb-3">
-                      <p className="font-medium text-gray-900">{card.questionEn}</p>
-                      {card.questionKo && (
-                        <p className="text-sm text-gray-500 mt-1">{card.questionKo}</p>
+                      <p className="font-medium text-gray-900">{card.question}</p>
+                      {card.questionSub && (
+                        <p className="text-sm text-gray-500 mt-1">{card.questionSub}</p>
                       )}
                     </div>
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-gray-700">{card.answerEn}</p>
-                      {card.answerKo && (
-                        <p className="text-sm text-gray-500 mt-1">{card.answerKo}</p>
+                      <p className="text-gray-700">{card.answer}</p>
+                      {card.answerSub && (
+                        <p className="text-sm text-gray-500 mt-1">{card.answerSub}</p>
                       )}
                     </div>
                   </div>
@@ -266,6 +289,7 @@ export function MyCardsPage() {
         isOpen={isFormOpen}
         onClose={closeForm}
         onSubmit={handleCreateCard}
+        categories={categories}
         isLoading={isSubmitting}
       />
 
@@ -275,6 +299,7 @@ export function MyCardsPage() {
         onClose={closeForm}
         onSubmit={handleUpdateCard}
         initialData={editingCard}
+        categories={categories}
         isLoading={isSubmitting}
       />
     </div>

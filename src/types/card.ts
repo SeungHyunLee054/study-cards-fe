@@ -1,14 +1,48 @@
+import type { CategoryResponse } from './category'
+
+// Spring Page 응답 타입
+export interface PageResponse<T> {
+  content: T[]
+  totalElements: number
+  totalPages: number
+  number: number // 현재 페이지 (0-based)
+  size: number
+  first: boolean
+  last: boolean
+  empty: boolean
+}
+
+// 카드 타입 (PUBLIC: 공용 카드, CUSTOM: 사용자 카드)
+export type CardType = 'PUBLIC' | 'CUSTOM'
+
 // 카드 응답 (백엔드 CardResponse 기준)
 export interface CardResponse {
   id: number
-  questionEn: string
-  questionKo: string
-  answerEn: string
-  answerKo: string
+  question: string
+  questionSub: string | null
+  answer: string
+  answerSub: string | null
   efFactor: number
-  category: string
+  category: CategoryResponse
+  cardType: CardType
   createdAt: string
 }
+
+// 사용자 카드 응답 (백엔드 UserCardResponse 기준)
+export interface UserCardResponse {
+  id: number
+  question: string
+  questionSub: string | null
+  answer: string
+  answerSub: string | null
+  efFactor: number
+  category: CategoryResponse
+  cardType: CardType
+  createdAt: string
+}
+
+// 학습용 카드 공통 타입 (CardResponse | UserCardResponse)
+export type StudyCard = CardResponse | UserCardResponse
 
 // 학습 답변 요청 (백엔드 StudyAnswerRequest 기준)
 export interface StudyAnswerRequest {
@@ -16,72 +50,38 @@ export interface StudyAnswerRequest {
   isCorrect: boolean
 }
 
-// 학습 결과 응답
+// 학습 결과 응답 (백엔드 StudyResultResponse 기준)
 export interface StudyResultResponse {
   cardId: number
   isCorrect: boolean
-  nextReviewAt?: string
+  nextReviewDate: string | null
+  newEfFactor: number | null
 }
 
-// StudyCard는 CardResponse의 별칭 (호환성)
-export type StudyCard = CardResponse
-
-// 기존 Card 타입 (호환성 유지)
-export interface Card {
+// 오늘의 학습 카드 응답 (백엔드 StudyCardResponse 기준)
+export interface StudyCardResponse {
   id: number
   question: string
+  questionSub: string | null
   answer: string
-  efFactor: number
-  category: string
-  nextReviewAt?: string
-  interval?: number
-  repetitions?: number
+  answerSub: string | null
+  category: CategoryResponse
 }
-
-export interface StudySession {
-  id: number
-  cardId: number
-  isCorrect: boolean
-  studiedAt: string
-}
-
-export type Difficulty = 'easy' | 'medium' | 'hard'
-
-export interface StudyResult {
-  cardId: number
-  isCorrect: boolean
-  difficulty: Difficulty
-}
-
-// 카드 카테고리 타입
-export type Category = 'CS' | 'ENGLISH' | 'SQL' | 'JAPANESE'
 
 // 사용자 카드 생성 요청
 export interface UserCardCreateRequest {
-  questionEn: string
-  questionKo?: string
-  answerEn: string
-  answerKo?: string
-  category: Category
+  question: string
+  questionSub?: string
+  answer: string
+  answerSub?: string
+  category: string
 }
 
 // 사용자 카드 수정 요청
 export interface UserCardUpdateRequest {
-  questionEn: string
-  questionKo?: string
-  answerEn: string
-  answerKo?: string
-  category: Category
-}
-
-// 사용자 카드 응답
-export interface UserCardResponse {
-  id: number
-  questionEn: string
-  questionKo: string | null
-  answerEn: string
-  answerKo: string | null
-  efFactor: number
+  question: string
+  questionSub?: string
+  answer: string
+  answerSub?: string
   category: string
-  createdAt: string
 }

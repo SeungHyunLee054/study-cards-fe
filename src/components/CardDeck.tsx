@@ -3,10 +3,10 @@ import { Check, X, RotateCcw } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import type { CardResponse } from '@/types/card'
+import type { StudyCard } from '@/types/card'
 
 interface CardDeckProps {
-  card: CardResponse | null
+  card: StudyCard | null
   isFlipped: boolean
   onFlip: () => void
   onCorrect: () => void
@@ -43,17 +43,13 @@ export function CardDeck({
     setTimeout(() => setIsAnimating(false), 300)
   }
 
-  // 질문/답변 표시 (한글 우선, 없으면 영문)
-  const question = card.questionKo || card.questionEn
-  const answer = card.answerKo || card.answerEn
-
   return (
     <div className="w-full max-w-md mx-auto space-y-4">
       <div className="flex justify-between items-center text-sm text-muted-foreground">
         <span>
           카드 {currentIndex + 1} / {totalCards}
         </span>
-        <span className="px-2 py-1 rounded bg-secondary">{card.category}</span>
+        <span className="px-2 py-1 rounded bg-secondary">{card.category.name}</span>
       </div>
 
       <div
@@ -71,10 +67,16 @@ export function CardDeck({
           )}
         >
           <CardHeader />
-          <CardContent className="flex items-center justify-center min-h-32">
+          <CardContent className="flex flex-col items-center justify-center min-h-32 gap-2">
             <p className="text-lg text-center">
-              {isFlipped ? answer : question}
+              {isFlipped ? card.answer : card.question}
             </p>
+            {isFlipped && card.answerSub && (
+              <p className="text-sm text-muted-foreground text-center">{card.answerSub}</p>
+            )}
+            {!isFlipped && card.questionSub && (
+              <p className="text-sm text-muted-foreground text-center">{card.questionSub}</p>
+            )}
           </CardContent>
           <CardFooter className="justify-center">
             <p className="text-xs text-muted-foreground">

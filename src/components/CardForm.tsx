@@ -3,53 +3,68 @@ import { X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { Category, UserCardResponse, UserCardCreateRequest } from '@/types/card'
-
-const CATEGORIES: Category[] = ['CS', 'ENGLISH', 'SQL', 'JAPANESE']
+import type { UserCardResponse, UserCardCreateRequest } from '@/types/card'
+import type { CategoryResponse } from '@/types/category'
 
 interface CardFormProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (data: UserCardCreateRequest) => Promise<void>
   initialData?: UserCardResponse | null
+  categories?: CategoryResponse[]
   isLoading?: boolean
 }
 
-export function CardForm({ isOpen, onClose, onSubmit, initialData, isLoading }: CardFormProps) {
-  const [questionEn, setQuestionEn] = useState('')
-  const [questionKo, setQuestionKo] = useState('')
-  const [answerEn, setAnswerEn] = useState('')
-  const [answerKo, setAnswerKo] = useState('')
-  const [category, setCategory] = useState<Category>('CS')
+export function CardForm({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialData,
+  categories = [],
+  isLoading,
+}: CardFormProps) {
+  const [question, setQuestion] = useState('')
+  const [questionSub, setQuestionSub] = useState('')
+  const [answer, setAnswer] = useState('')
+  const [answerSub, setAnswerSub] = useState('')
+  const [category, setCategory] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const isEdit = !!initialData
 
+  // 폼 데이터 초기화 (initialData나 isOpen 변경 시에만)
   useEffect(() => {
     if (initialData) {
-      setQuestionEn(initialData.questionEn)
-      setQuestionKo(initialData.questionKo || '')
-      setAnswerEn(initialData.answerEn)
-      setAnswerKo(initialData.answerKo || '')
-      setCategory(initialData.category as Category)
+      setQuestion(initialData.question)
+      setQuestionSub(initialData.questionSub || '')
+      setAnswer(initialData.answer)
+      setAnswerSub(initialData.answerSub || '')
+      setCategory(initialData.category.code)
     } else {
-      setQuestionEn('')
-      setQuestionKo('')
-      setAnswerEn('')
-      setAnswerKo('')
-      setCategory('CS')
+      setQuestion('')
+      setQuestionSub('')
+      setAnswer('')
+      setAnswerSub('')
+      setCategory((prev) => prev || categories[0]?.code || '')
     }
     setErrors({})
   }, [initialData, isOpen])
 
+  // 카테고리 로드 시 기본값 설정
+  useEffect(() => {
+    if (!initialData && !category && categories.length > 0) {
+      setCategory(categories[0].code)
+    }
+  }, [categories, initialData, category])
+
   function validate(): boolean {
     const newErrors: Record<string, string> = {}
 
-    if (!questionEn.trim()) {
-      newErrors.questionEn = '질문(영어)을 입력해주세요'
+    if (!question.trim()) {
+      newErrors.question = '질문을 입력해주세요'
     }
-    if (!answerEn.trim()) {
-      newErrors.answerEn = '답변(영어)을 입력해주세요'
+    if (!answer.trim()) {
+      newErrors.answer = '답변을 입력해주세요'
     }
     if (!category) {
       newErrors.category = '카테고리를 선택해주세요'
@@ -65,10 +80,10 @@ export function CardForm({ isOpen, onClose, onSubmit, initialData, isLoading }: 
     if (!validate()) return
 
     const data: UserCardCreateRequest = {
-      questionEn: questionEn.trim(),
-      questionKo: questionKo.trim() || undefined,
-      answerEn: answerEn.trim(),
-      answerKo: answerKo.trim() || undefined,
+      question: question.trim(),
+      questionSub: questionSub.trim() || undefined,
+      answer: answer.trim(),
+      answerSub: answerSub.trim() || undefined,
       category,
     }
 
@@ -100,13 +115,14 @@ export function CardForm({ isOpen, onClose, onSubmit, initialData, isLoading }: 
             <select
               id="category"
               value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
+              onChange={(e) => setCategory(e.target.value)}
               className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               disabled={isLoading}
             >
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
+              <option value="">카테고리 선택</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.code}>
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -116,54 +132,54 @@ export function CardForm({ isOpen, onClose, onSubmit, initialData, isLoading }: 
           </div>
 
           <div>
-            <Label htmlFor="questionEn">질문 (영어) *</Label>
+            <Label htmlFor="question">질문 *</Label>
             <Input
-              id="questionEn"
-              value={questionEn}
-              onChange={(e) => setQuestionEn(e.target.value)}
-              placeholder="영어로 질문을 입력하세요"
+              id="question"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="질문을 입력하세요"
               className="mt-1"
               disabled={isLoading}
             />
-            {errors.questionEn && (
-              <p className="mt-1 text-sm text-red-600">{errors.questionEn}</p>
+            {errors.question && (
+              <p className="mt-1 text-sm text-red-600">{errors.question}</p>
             )}
           </div>
 
           <div>
-            <Label htmlFor="questionKo">질문 (한국어)</Label>
+            <Label htmlFor="questionSub">질문 (보조)</Label>
             <Input
-              id="questionKo"
-              value={questionKo}
-              onChange={(e) => setQuestionKo(e.target.value)}
-              placeholder="한국어로 질문을 입력하세요 (선택)"
+              id="questionSub"
+              value={questionSub}
+              onChange={(e) => setQuestionSub(e.target.value)}
+              placeholder="보조 질문을 입력하세요 (선택)"
               className="mt-1"
               disabled={isLoading}
             />
           </div>
 
           <div>
-            <Label htmlFor="answerEn">답변 (영어) *</Label>
+            <Label htmlFor="answer">답변 *</Label>
             <Input
-              id="answerEn"
-              value={answerEn}
-              onChange={(e) => setAnswerEn(e.target.value)}
-              placeholder="영어로 답변을 입력하세요"
+              id="answer"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="답변을 입력하세요"
               className="mt-1"
               disabled={isLoading}
             />
-            {errors.answerEn && (
-              <p className="mt-1 text-sm text-red-600">{errors.answerEn}</p>
+            {errors.answer && (
+              <p className="mt-1 text-sm text-red-600">{errors.answer}</p>
             )}
           </div>
 
           <div>
-            <Label htmlFor="answerKo">답변 (한국어)</Label>
+            <Label htmlFor="answerSub">답변 (보조)</Label>
             <Input
-              id="answerKo"
-              value={answerKo}
-              onChange={(e) => setAnswerKo(e.target.value)}
-              placeholder="한국어로 답변을 입력하세요 (선택)"
+              id="answerSub"
+              value={answerSub}
+              onChange={(e) => setAnswerSub(e.target.value)}
+              placeholder="보조 답변을 입력하세요 (선택)"
               className="mt-1"
               disabled={isLoading}
             />
