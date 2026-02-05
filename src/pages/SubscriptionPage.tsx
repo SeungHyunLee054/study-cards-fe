@@ -1,0 +1,323 @@
+import { useState, useEffect } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { BookOpen, ArrowLeft, Loader2, CreditCard, Check, Sparkles } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { BillingCycleToggle } from '@/components/BillingCycleToggle'
+import { CurrentSubscription } from '@/components/CurrentSubscription'
+import { InvoiceList } from '@/components/InvoiceList'
+import { useAuth } from '@/contexts/AuthContext'
+import {
+  fetchPlans,
+  fetchMySubscription,
+  createCheckoutSession,
+  cancelSubscription,
+  fetchInvoices,
+} from '@/api/subscriptions'
+import { requestBillingAuth, requestPayment } from '@/lib/tosspayments'
+import type {
+  PlanResponse,
+  SubscriptionResponse,
+  InvoiceResponse,
+  BillingCycle,
+} from '@/types/subscription'
+
+export function SubscriptionPage() {
+  const { isLoading: authLoading, isLoggedIn } = useAuth()
+  const [searchParams] = useSearchParams()
+
+  const [plan, setPlan] = useState<PlanResponse | null>(null)
+  const [subscription, setSubscription] = useState<SubscriptionResponse | null>(null)
+  const [invoices, setInvoices] = useState<InvoiceResponse[]>([])
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('MONTHLY')
+
+  const [isLoading, setIsLoading] = useState(true)
+  const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    const success = searchParams.get('success')
+    if (success === 'true') {
+      setSuccessMessage('결제가 완료되었습니다.')
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    loadData()
+  }, [isLoggedIn])
+
+  async function loadData() {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const plansData = await fetchPlans()
+      // 구매 가능한 플랜 (PREMIUM)만 선택
+      const paidPlan = plansData.find(p => p.isPurchasable) || plansData.find(p => p.plan === 'PREMIUM') || plansData[0]
+      setPlan(paidPlan)
+
+      if (isLoggedIn) {
+        const [subscriptionData, invoicesData] = await Promise.all([
+          fetchMySubscription(),
+          fetchInvoices(),
+        ])
+        setSubscription(subscriptionData)
+        setInvoices(invoicesData)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '데이터를 불러오는데 실패했습니다')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function handleSubscribe() {
+    if (!plan) return
+
+    if (!isLoggedIn) {
+      window.location.href = '/login?redirect=/subscription'
+      return
+    }
+
+    try {
+      setIsCheckingOut(true)
+      setError(null)
+
+      const checkout = await createCheckoutSession({
+        plan: plan.plan,
+        billingCycle,
+      })
+
+      const baseUrl = window.location.origin
+      const successUrl = `${baseUrl}/subscription/success?orderId=${checkout.orderId}`
+      const failUrl = `${baseUrl}/subscription/fail`
+
+      if (billingCycle === 'MONTHLY') {
+        // 월간 정기 결제: 카드 등록 후 빌링키 발급
+        await requestBillingAuth({
+          customerKey: checkout.customerKey,
+          successUrl,
+          failUrl,
+        })
+      } else {
+        // 연간 단건 결제: 바로 결제창
+        await requestPayment({
+          amount: checkout.amount,
+          orderId: checkout.orderId,
+          orderName: checkout.orderName,
+          successUrl,
+          failUrl,
+        })
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '결제 처리 중 오류가 발생했습니다')
+    } finally {
+      setIsCheckingOut(false)
+    }
+  }
+
+  async function handleCancelSubscription() {
+    if (!confirm('정말 구독을 취소하시겠습니까? 현재 결제 기간이 끝날 때까지 서비스를 이용할 수 있습니다.')) {
+      return
+    }
+
+    try {
+      setIsCancelling(true)
+      setError(null)
+      const updated = await cancelSubscription()
+      setSubscription(updated)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '구독 취소에 실패했습니다')
+    } finally {
+      setIsCancelling(false)
+    }
+  }
+
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  const isSubscribed = subscription?.isActive
+  const price = plan ? (billingCycle === 'MONTHLY' ? plan.monthlyPrice : plan.yearlyPrice) : 0
+  const monthlyPrice = billingCycle === 'YEARLY' ? Math.round(price / 12) : price
+
+  return (
+    <div className="min-h-screen bg-white text-gray-900">
+      {/* Header */}
+      <header className="border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+          <Link to="/" className="flex items-center gap-2">
+            <BookOpen className="h-6 w-6 text-primary" />
+            <span className="text-xl font-semibold">Study Cards</span>
+          </Link>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/mypage">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              마이페이지
+            </Link>
+          </Button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-6 py-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
+            <CreditCard className="h-8 w-8" />
+            구독 관리
+          </h1>
+          <p className="mt-2 text-gray-600">
+            프리미엄으로 더 많은 기능을 이용하세요
+          </p>
+        </div>
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 text-green-700">
+            {successMessage}
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
+            {error}
+          </div>
+        )}
+
+        {/* Current Subscription */}
+        {subscription && subscription.status !== 'EXPIRED' && (
+          <div className="mb-8">
+            <CurrentSubscription
+              subscription={subscription}
+              onCancel={handleCancelSubscription}
+              isCancelling={isCancelling}
+            />
+          </div>
+        )}
+
+        {/* Plan Comparison */}
+        {!isSubscribed && plan && (
+          <div className="mb-8">
+            {/* Billing Cycle Toggle */}
+            <div className="mb-6">
+              <BillingCycleToggle value={billingCycle} onChange={setBillingCycle} />
+            </div>
+
+            {/* Comparison Table */}
+            <div className="rounded-2xl border border-gray-200 overflow-hidden overflow-x-auto">
+              <table className="w-full min-w-[500px]">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="text-left p-4 font-medium text-gray-600 w-1/4 border-r border-gray-200">기능</th>
+                    <th className="text-center p-4 font-medium text-gray-600 w-1/4 border-r border-gray-200">비로그인</th>
+                    <th className="text-center p-4 font-medium text-gray-600 w-1/4 border-r border-gray-200">로그인</th>
+                    <th className="text-center p-4 font-medium text-gray-600 w-1/4 bg-primary/5">
+                      <div className="flex items-center justify-center gap-1">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        <span className="text-primary">{plan.displayName || '프리미엄'}</span>
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  <tr>
+                    <td className="p-4 text-gray-700 border-r border-gray-200">하루 학습 카드</td>
+                    <td className="p-4 text-center text-gray-500 border-r border-gray-200">15개</td>
+                    <td className="p-4 text-center text-gray-500 border-r border-gray-200">100개</td>
+                    <td className="p-4 text-center bg-primary/5 font-medium text-primary">무제한</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 text-gray-700 border-r border-gray-200">진행도 저장</td>
+                    <td className="p-4 text-center border-r border-gray-200">
+                      <span className="text-gray-300">-</span>
+                    </td>
+                    <td className="p-4 text-center border-r border-gray-200">
+                      <Check className="h-5 w-5 text-green-500 mx-auto" />
+                    </td>
+                    <td className="p-4 text-center bg-primary/5">
+                      <Check className="h-5 w-5 text-green-500 mx-auto" />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 text-gray-700 border-r border-gray-200">AI 생성 카드 이용</td>
+                    <td className="p-4 text-center border-r border-gray-200">
+                      <span className="text-gray-300">-</span>
+                    </td>
+                    <td className="p-4 text-center border-r border-gray-200">
+                      <span className="text-gray-300">-</span>
+                    </td>
+                    <td className="p-4 text-center bg-primary/5">
+                      <Check className="h-5 w-5 text-green-500 mx-auto" />
+                    </td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="p-4 font-medium text-gray-900 border-r border-gray-200">가격</td>
+                    <td className="p-4 text-center font-medium text-gray-900 border-r border-gray-200">무료</td>
+                    <td className="p-4 text-center font-medium text-gray-900 border-r border-gray-200">무료</td>
+                    <td className="p-4 text-center bg-primary/5">
+                      <div className="font-bold text-primary">
+                        {monthlyPrice.toLocaleString()}원/월
+                      </div>
+                      {billingCycle === 'YEARLY' && (
+                        <div className="text-xs text-gray-500">
+                          연 {price.toLocaleString()}원
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Subscribe Button */}
+            <div className="mt-6 text-center">
+              {isLoggedIn ? (
+                <Button
+                  size="lg"
+                  onClick={handleSubscribe}
+                  disabled={isCheckingOut}
+                  className="px-8"
+                >
+                  {isCheckingOut ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      처리 중...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      {plan.displayName || '프리미엄'} 구독하기
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button size="lg" asChild className="px-8">
+                  <Link to="/login?redirect=/subscription">
+                    로그인하고 구독하기
+                  </Link>
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Invoices */}
+        {isLoggedIn && invoices.length > 0 && (
+          <InvoiceList invoices={invoices} />
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-200 py-8 mt-16">
+        <div className="max-w-4xl mx-auto px-6 text-center text-sm text-gray-500">
+          <p>© 2025 Study Cards. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  )
+}
