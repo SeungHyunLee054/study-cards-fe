@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BookOpen, ChevronRight, Check, RotateCcw, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import { fetchCardCount } from '@/api/cards'
@@ -74,7 +75,7 @@ export function HomePage() {
             <span className="text-gray-600">Now with {cardCount?.toLocaleString() ?? '...'} cards</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight text-gray-900">
+          <h1 className="text-5xl md:text-7xl font-bold text-gray-900" style={{ lineHeight: 1.4 }}>
             Master anything with
             <br />
             <span className="text-primary">
@@ -119,35 +120,48 @@ export function HomePage() {
 
         {/* Card Preview */}
         <section className="max-w-6xl mx-auto px-6 py-16">
-          <div className="relative max-w-md mx-auto space-y-4">
-            <div className="flex justify-between items-center text-sm text-gray-500">
+          <div className="w-full max-w-md mx-auto space-y-4">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-700">카드 예시</h3>
+              <p className="text-sm text-gray-500 mt-1">클릭해서 카드를 뒤집어보세요</p>
+            </div>
+            <div className="flex justify-between items-center text-sm text-muted-foreground">
               <span>카드 1 / 15</span>
-              <span className="px-2 py-1 rounded bg-gray-100">일반</span>
+              <span className="px-2 py-1 rounded bg-secondary">일반</span>
             </div>
 
             <div
               className={cn(
-                'p-8 rounded-2xl border border-gray-200 shadow-xl cursor-pointer transition-all duration-300',
-                isFlipped ? 'bg-primary/5' : 'bg-white'
+                'relative cursor-pointer perspective-1000',
+                'transition-transform duration-300'
               )}
               onClick={() => setIsFlipped(!isFlipped)}
             >
-              <div className="flex items-center justify-center min-h-32">
-                <p className={cn(
-                  'text-lg text-center',
-                  isFlipped ? 'text-gray-700' : 'text-gray-900'
-                )}>
-                  {isFlipped
-                    ? '기억이 사라지기 직전에 복습하여 장기 기억으로 전환하는 학습 방법입니다.'
-                    : '간격 반복(Spaced Repetition)이란 무엇인가요?'}
-                </p>
-              </div>
-
-              <div className="text-center">
-                <p className="text-xs text-gray-400">
-                  {isFlipped ? '정답' : '클릭하여 정답 확인'}
-                </p>
-              </div>
+              <Card
+                className={cn(
+                  'min-h-64 transition-all duration-300',
+                  isFlipped && 'bg-primary/5'
+                )}
+              >
+                <CardHeader />
+                <CardContent className="flex flex-col items-center justify-center min-h-32 gap-2">
+                  <p className="text-lg text-center">
+                    {isFlipped
+                      ? '기억이 사라지기 직전에 복습하여 장기 기억으로 전환하는 학습 방법입니다.'
+                      : '간격 반복(Spaced Repetition)이란 무엇인가요?'}
+                  </p>
+                  {isFlipped && (
+                    <p className="text-sm text-muted-foreground text-center">
+                      Spaced Repetition
+                    </p>
+                  )}
+                </CardContent>
+                <CardFooter className="justify-center">
+                  <p className="text-xs text-muted-foreground">
+                    {isFlipped ? '정답' : '클릭하여 정답 확인'}
+                  </p>
+                </CardFooter>
+              </Card>
             </div>
 
             {isFlipped && (
@@ -230,7 +244,7 @@ export function HomePage() {
       {/* Footer */}
       <footer className="border-t border-gray-200 py-8">
         <div className="max-w-6xl mx-auto px-6 text-center text-sm text-gray-500">
-          <p>© 2025 Study Cards. Built with React + Vite.</p>
+          <p>© 2025 Study Cards. All rights reserved.</p>
         </div>
       </footer>
     </div>

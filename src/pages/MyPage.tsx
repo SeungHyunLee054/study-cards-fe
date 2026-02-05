@@ -1,19 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Play, Clock, CheckCircle, AlertCircle, BarChart3, Calendar, Settings, LogOut, User, BookOpen, Loader2, CreditCard, Shield } from 'lucide-react'
+import { Play, Clock, CheckCircle, AlertCircle, BarChart3, Calendar, Settings, LogOut, User, BookOpen, Loader2, NotebookText, Shield, LayoutDashboard, History, Sparkles, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CategoryTree } from '@/components/CategoryTree'
+import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { useAuth } from '@/contexts/AuthContext'
 import { fetchStats } from '@/api/stats'
-import type { StatsResponse, DeckStats } from '@/types/stats'
-
-const DECK_COLORS = [
-  'border-l-primary',
-  'border-l-green-500',
-  'border-l-purple-500',
-  'border-l-orange-500',
-  'border-l-blue-500',
-  'border-l-pink-500',
-]
+import { fetchCategoryTree } from '@/api/categories'
+import type { StatsResponse } from '@/types/stats'
+import type { CategoryTreeResponse } from '@/types/category'
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
@@ -33,32 +28,33 @@ function formatDate(dateStr: string): string {
   return `${diffDays}일 전`
 }
 
-function getDeckColor(index: number): string {
-  return DECK_COLORS[index % DECK_COLORS.length]
-}
-
 export function MyPage() {
-  const { logout, isAdmin } = useAuth()
+  const { logout, isAdmin, user } = useAuth()
   const [stats, setStats] = useState<StatsResponse | null>(null)
+  const [categoryTree, setCategoryTree] = useState<CategoryTreeResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function loadStats() {
+    async function loadData() {
       try {
         setIsLoading(true)
         setError(null)
-        const data = await fetchStats()
-        setStats(data)
+        const [statsData, treeData] = await Promise.all([
+          fetchStats(),
+          fetchCategoryTree(),
+        ])
+        setStats(statsData)
+        setCategoryTree(treeData)
       } catch (err) {
-        setError('통계를 불러오는데 실패했습니다')
-        console.error('Failed to fetch stats:', err)
+        setError('데이터를 불러오는데 실패했습니다')
+        console.error('Failed to fetch data:', err)
       } finally {
         setIsLoading(false)
       }
     }
 
-    loadStats()
+    loadData()
   }, [])
   const overview = stats?.overview
   const decks = stats?.deckStats ?? []
@@ -86,10 +82,21 @@ export function MyPage() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <User className="h-4 w-4" />
+              {user?.nickname && <span>{user.nickname}</span>}
             </div>
             <Button variant="ghost" size="sm" asChild>
+              <Link to="/dashboard">
+                <LayoutDashboard className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/sessions">
+                <History className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
               <Link to="/my-cards">
-                <CreditCard className="h-4 w-4" />
+                <NotebookText className="h-4 w-4" />
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
@@ -98,12 +105,25 @@ export function MyPage() {
               </Link>
             </Button>
             {isAdmin && (
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/admin/cards" className="text-purple-600">
-                  <Shield className="h-4 w-4" />
-                </Link>
-              </Button>
+              <>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin/cards" className="text-purple-600">
+                    <Shield className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/admin/generation" className="text-purple-600">
+                    <Sparkles className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </>
             )}
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/subscription">
+                <CreditCard className="h-4 w-4" />
+              </Link>
+            </Button>
+            <NotificationDropdown />
             <Button variant="ghost" size="sm" asChild>
               <Link to="/settings">
                 <Settings className="h-4 w-4" />
@@ -197,32 +217,7 @@ export function MyPage() {
                 <h2 className="text-lg font-semibold text-gray-900">내 덱</h2>
               </div>
               <div className="p-6">
-                {decks.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">아직 덱이 없습니다</p>
-                ) : (
-                  <div className="space-y-3">
-                    {decks.map((deck: DeckStats, index: number) => (
-                      <div
-                        key={deck.category}
-                        className={`p-4 rounded-lg border-l-4 ${getDeckColor(index)} bg-gray-50 hover:bg-gray-100 transition-colors`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium text-gray-900">{deck.category}</div>
-                            <div className="mt-1 flex gap-4 text-sm">
-                              <span className="text-primary">{deck.newCount} 새 카드</span>
-                              <span className="text-orange-600">{deck.learningCount} 학습 중</span>
-                              <span className="text-green-600">{deck.reviewCount} 복습</span>
-                            </div>
-                          </div>
-                          <Button size="sm" variant="outline" asChild>
-                            <Link to={`/study?deck=${encodeURIComponent(deck.category)}`}>학습</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <CategoryTree tree={categoryTree} deckStats={decks} />
               </div>
             </div>
           </div>
@@ -265,7 +260,7 @@ export function MyPage() {
       {/* Footer */}
       <footer className="border-t border-gray-200 py-8 mt-16">
         <div className="max-w-6xl mx-auto px-6 text-center text-sm text-gray-500">
-          <p>© 2025 Study Cards. React + Vite로 제작되었습니다.</p>
+          <p>© 2025 Study Cards. All rights reserved.</p>
         </div>
       </footer>
     </div>

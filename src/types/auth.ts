@@ -11,8 +11,9 @@ export interface UserResponse {
   id: number
   email: string
   nickname: string
-  streak: number
-  masteryRate: number
+  roles: ('ROLE_USER' | 'ROLE_ADMIN')[]
+  streak?: number
+  masteryRate?: number
 }
 
 // 로그인 요청
