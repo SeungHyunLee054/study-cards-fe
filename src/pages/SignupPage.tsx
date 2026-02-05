@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BookOpen, Eye, EyeOff, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import type { OAuthProvider } from '@/types/auth'
 
 export function SignupPage() {
   const navigate = useNavigate()
-  const { signup } = useAuth()
+  const { signup, isLoggedIn, isLoading: authLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [nickname, setNickname] = useState('')
@@ -20,6 +20,13 @@ export function SignupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [agreeTerms, setAgreeTerms] = useState(false)
+
+  // 이미 로그인된 경우 리다이렉트
+  useEffect(() => {
+    if (!authLoading && isLoggedIn) {
+      navigate('/mypage', { replace: true })
+    }
+  }, [authLoading, isLoggedIn, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

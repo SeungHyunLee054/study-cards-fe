@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { BookOpen, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,7 @@ import type { OAuthProvider } from '@/types/auth'
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login } = useAuth()
+  const { login, isLoggedIn, isLoading: authLoading } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -20,6 +20,13 @@ export function LoginPage() {
 
   // 회원가입 후 리다이렉트 메시지
   const successMessage = location.state?.message as string | undefined
+
+  // 이미 로그인된 경우 리다이렉트
+  useEffect(() => {
+    if (!authLoading && isLoggedIn) {
+      navigate('/mypage', { replace: true })
+    }
+  }, [authLoading, isLoggedIn, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
