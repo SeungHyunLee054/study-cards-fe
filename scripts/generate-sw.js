@@ -64,6 +64,14 @@ self.addEventListener('notificationclick', (event) => {
 })
 `
 
-const outputPath = path.join(__dirname, '../public/firebase-messaging-sw.js')
+const publicDir = path.join(__dirname, '../public')
+const outputPath = path.join(publicDir, 'firebase-messaging-sw.js')
+
+// public 폴더가 없으면 생성
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir, { recursive: true })
+  console.log('📁 public directory created')
+}
+
 fs.writeFileSync(outputPath, swContent)
 console.log('✅ firebase-messaging-sw.js generated successfully')
