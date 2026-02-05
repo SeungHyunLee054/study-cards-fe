@@ -41,7 +41,11 @@ src/
 ├── api/                    # API 레이어
 │   ├── client.ts           # Axios 인스턴스 (인터셉터 포함)
 │   ├── auth.ts             # 인증 API
-│   └── cards.ts            # 카드 API
+│   ├── cards.ts            # 카드/학습/사용자카드 API
+│   ├── categories.ts       # 카테고리 API
+│   ├── users.ts            # 사용자 정보 API
+│   ├── stats.ts            # 통계 API
+│   └── admin.ts            # 관리자 API
 │
 ├── contexts/               # React Context
 │   └── AuthContext.tsx     # 전역 인증 상태
