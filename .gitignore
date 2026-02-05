@@ -34,5 +34,8 @@ pnpm-debug.log*
 .env.production.local
 *.local
 
+# Firebase (빌드 시 생성됨)
+public/firebase-messaging-sw.js
+
 # Claude
 .claude
