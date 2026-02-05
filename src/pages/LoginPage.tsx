@@ -36,7 +36,18 @@ export function LoginPage() {
     try {
       await login({ email, password })
       navigate('/mypage')
-    } catch (err) {
+    } catch (err: any) {
+      // 이메일 미인증 에러 처리
+      if (err.code === 'EMAIL_NOT_VERIFIED') {
+        navigate('/verify-email', {
+          state: {
+            email: err.email || email,
+            fromLogin: true,
+            message: '이메일 인증이 필요합니다. 가입 시 받은 인증 코드를 입력해주세요.'
+          }
+        })
+        return
+      }
       setError(err instanceof Error ? err.message : '로그인에 실패했습니다.')
     } finally {
       setIsLoading(false)

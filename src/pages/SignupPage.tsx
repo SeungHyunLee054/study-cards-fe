@@ -35,7 +35,13 @@ export function SignupPage() {
 
     try {
       await signup({ email, password, passwordConfirm: confirmPassword, nickname })
-      navigate('/login', { state: { message: '회원가입이 완료되었습니다. 로그인해주세요.' } })
+      // 이메일 인증 페이지로 리다이렉트
+      navigate('/verify-email', {
+        state: {
+          email,
+          message: '회원가입이 완료되었습니다. 이메일로 발송된 인증 코드를 입력해주세요.'
+        }
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : '회원가입에 실패했습니다.')
     } finally {

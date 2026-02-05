@@ -41,5 +41,16 @@ export interface PasswordResetVerifyRequest {
   newPassword: string
 }
 
+// 이메일 인증 요청
+export interface EmailVerificationRequest {
+  email: string
+}
+
+// 이메일 인증 검증 요청
+export interface EmailVerificationVerifyRequest {
+  email: string
+  code: string
+}
+
 // OAuth Provider
 export type OAuthProvider = 'google' | 'kakao' | 'naver'

@@ -7,6 +7,8 @@ import type {
   UserResponse,
   PasswordResetRequest,
   PasswordResetVerifyRequest,
+  EmailVerificationRequest,
+  EmailVerificationVerifyRequest,
   OAuthProvider,
 } from '@/types/auth'
 
@@ -28,6 +30,14 @@ export async function signIn(request: SignInRequest): Promise<SignInResponse> {
     return response.data
   } catch (error) {
     if (error instanceof AxiosError) {
+      const code = error.response?.data?.code
+      // EMAIL_NOT_VERIFIED 에러 처리
+      if (error.response?.status === 403 && code === 'EMAIL_NOT_VERIFIED') {
+        const err = new Error(error.response?.data?.message || '이메일 인증이 필요합니다.')
+        ;(err as any).code = 'EMAIL_NOT_VERIFIED'
+        ;(err as any).email = request.email
+        throw err
+      }
       throw new Error(error.response?.data?.message || '로그인에 실패했습니다.')
     }
     throw error
@@ -74,6 +84,42 @@ export async function verifyPasswordReset(request: PasswordResetVerifyRequest): 
   } catch (error) {
     if (error instanceof AxiosError) {
       throw new Error(error.response?.data?.message || '비밀번호 재설정에 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+export async function requestEmailVerification(request: EmailVerificationRequest): Promise<void> {
+  try {
+    await publicClient.post('/api/auth/email-verification/request', request)
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      const code = error.response?.data?.code
+      if (code === 'TOO_MANY_ATTEMPTS') {
+        throw new Error('인증 코드 요청 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.')
+      }
+      throw new Error(error.response?.data?.message || '인증 코드 발송에 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+export async function verifyEmailVerification(request: EmailVerificationVerifyRequest): Promise<void> {
+  try {
+    await publicClient.post('/api/auth/email-verification/verify', request)
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      const code = error.response?.data?.code
+      if (code === 'INVALID_CODE') {
+        throw new Error('잘못된 인증 코드입니다.')
+      }
+      if (code === 'EXPIRED_CODE') {
+        throw new Error('인증 코드가 만료되었습니다. 새 코드를 요청해주세요.')
+      }
+      if (code === 'TOO_MANY_ATTEMPTS') {
+        throw new Error('인증 시도 횟수를 초과했습니다. 새 코드를 요청해주세요.')
+      }
+      throw new Error(error.response?.data?.message || '이메일 인증에 실패했습니다.')
     }
     throw error
   }

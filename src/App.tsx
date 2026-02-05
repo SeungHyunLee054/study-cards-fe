@@ -7,6 +7,7 @@ import { StudyPage } from '@/pages/StudyPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { SignupPage } from '@/pages/SignupPage'
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
+import { EmailVerificationPage } from '@/pages/EmailVerificationPage'
 import { StatsPage } from '@/pages/StatsPage'
 import { OAuthCallbackPage } from '@/pages/OAuthCallbackPage'
 import { PrivacyPage } from '@/pages/PrivacyPage'
@@ -31,6 +32,7 @@ function AppRoutes() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/verify-email" element={<EmailVerificationPage />} />
         <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/my-cards" element={<MyCardsPage />} />
