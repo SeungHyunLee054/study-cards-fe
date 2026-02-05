@@ -1,30 +1,28 @@
-import type { Category } from './card'
+import type { CategoryResponse } from './category'
 
 export interface AdminCardCreateRequest {
-  questionEn: string
-  questionKo?: string
-  answerEn: string
-  answerKo?: string
-  category: Category
-  efFactor?: number
+  question: string
+  questionSub?: string
+  answer: string
+  answerSub?: string
+  category: string
 }
 
 export interface AdminCardUpdateRequest {
-  questionEn?: string
-  questionKo?: string
-  answerEn?: string
-  answerKo?: string
-  category?: Category
-  efFactor?: number
+  question: string
+  questionSub?: string
+  answer: string
+  answerSub?: string
+  category: string
 }
 
 export interface AdminCardResponse {
   id: number
-  questionEn: string
-  questionKo: string | null
-  answerEn: string
-  answerKo: string | null
+  question: string
+  questionSub: string | null
+  answer: string
+  answerSub: string | null
   efFactor: number
-  category: string
+  category: CategoryResponse
   createdAt: string
 }
