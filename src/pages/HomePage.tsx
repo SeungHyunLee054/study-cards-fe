@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BookOpen, ChevronRight, Check, RotateCcw, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,13 @@ export function HomePage() {
   const [isFlipped, setIsFlipped] = useState(false)
   const [showGuide, setShowGuide] = useState(false)
   const [cardCount, setCardCount] = useState<number | null>(null)
+  const guideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (guideTimerRef.current) clearTimeout(guideTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!isLoading && isLoggedIn) {
@@ -29,7 +36,7 @@ export function HomePage() {
   const handleAnswerClick = () => {
     setShowGuide(true)
     setIsFlipped(false)
-    setTimeout(() => setShowGuide(false), 3000)
+    guideTimerRef.current = setTimeout(() => setShowGuide(false), 3000)
   }
 
   const features = [

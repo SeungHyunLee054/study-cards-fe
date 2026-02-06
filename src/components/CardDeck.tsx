@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Check, X, RotateCcw } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,13 @@ export function CardDeck({
   totalCards,
 }: CardDeckProps) {
   const [isAnimating, setIsAnimating] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   if (!card) {
     return (
@@ -40,7 +47,7 @@ export function CardDeck({
     if (isAnimating) return
     setIsAnimating(true)
     onFlip()
-    setTimeout(() => setIsAnimating(false), 300)
+    timerRef.current = setTimeout(() => setIsAnimating(false), 300)
   }
 
   return (
