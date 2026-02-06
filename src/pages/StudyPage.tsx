@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Filter, Loader2, User, CalendarCheck, BookOpen } from 'lucide-react'
 import { CardDeck } from '@/components/CardDeck'
@@ -10,10 +10,8 @@ import type { CategoryResponse } from '@/types/category'
 
 type StudyMode = 'all' | 'review' | 'myCards' | 'session-review'
 
-// StrictMode 중복 호출 방지
-let lastLoadTime = 0
-
 export function StudyPage() {
+  const lastLoadTimeRef = useRef(0)
   const [searchParams, setSearchParams] = useSearchParams()
   const category = searchParams.get('deck') || undefined
   const modeParam = (searchParams.get('mode') as StudyMode) || 'all'
@@ -48,8 +46,8 @@ export function StudyPage() {
 
   useEffect(() => {
     const now = Date.now()
-    if (now - lastLoadTime < 100) return // 100ms 내 중복 호출 방지
-    lastLoadTime = now
+    if (now - lastLoadTimeRef.current < 100) return // 100ms 내 중복 호출 방지
+    lastLoadTimeRef.current = now
 
     if (selectedMode === 'session-review') {
       // sessionStorage에서 cardIds 가져오기
