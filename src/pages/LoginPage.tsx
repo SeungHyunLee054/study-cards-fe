@@ -39,11 +39,19 @@ export function LoginPage() {
     } catch (err: any) {
       // 이메일 미인증 에러 처리
       if (err.code === 'EMAIL_NOT_VERIFIED') {
+        const verificationData = {
+          email: err.email || email,
+          fromLogin: true,
+          message: '이메일 인증이 필요합니다. 가입 시 받은 인증 코드를 입력해주세요.',
+          createdAt: Date.now()
+        }
+        sessionStorage.setItem('pendingEmailVerification', JSON.stringify(verificationData))
+
         navigate('/verify-email', {
           state: {
-            email: err.email || email,
+            email: verificationData.email,
             fromLogin: true,
-            message: '이메일 인증이 필요합니다. 가입 시 받은 인증 코드를 입력해주세요.'
+            message: verificationData.message
           }
         })
         return

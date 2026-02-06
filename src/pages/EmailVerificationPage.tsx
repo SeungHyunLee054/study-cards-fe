@@ -8,20 +8,58 @@ import { requestEmailVerification, verifyEmailVerification } from '@/api/auth'
 
 type Step = 'input' | 'success'
 
+interface VerificationData {
+  email: string
+  message?: string
+  fromLogin?: boolean
+  createdAt: number
+}
+
 export function EmailVerificationPage() {
   const navigate = useNavigate()
   const location = useLocation()
+
+  // location.state 우선, 없으면 sessionStorage에서 복원
+  const getVerificationData = (): VerificationData | null => {
+    if (location.state?.email) {
+      return {
+        email: location.state.email as string,
+        message: location.state.message as string | undefined,
+        fromLogin: location.state.fromLogin as boolean | undefined,
+        createdAt: Date.now()
+      }
+    }
+
+    const stored = sessionStorage.getItem('pendingEmailVerification')
+    if (stored) {
+      try {
+        return JSON.parse(stored)
+      } catch {
+        sessionStorage.removeItem('pendingEmailVerification')
+        return null
+      }
+    }
+    return null
+  }
+
+  const verificationData = getVerificationData()
+  const email = verificationData?.email
+  const message = verificationData?.message
+  const fromLogin = verificationData?.fromLogin
+
+  // 저장된 시점 기준으로 남은 시간 계산
+  const calculateTimeLeft = () => {
+    if (!verificationData?.createdAt) return 300
+    const elapsed = Math.floor((Date.now() - verificationData.createdAt) / 1000)
+    return Math.max(0, 300 - elapsed)
+  }
+
   const [step, setStep] = useState<Step>('input')
   const [code, setCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [timeLeft, setTimeLeft] = useState(300) // 5분 = 300초
-  const [canResend, setCanResend] = useState(false)
-
-  // navigation state에서 이메일과 메시지 가져오기
-  const email = location.state?.email as string | undefined
-  const message = location.state?.message as string | undefined
-  const fromLogin = location.state?.fromLogin as boolean | undefined
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft)
+  const [canResend, setCanResend] = useState(() => calculateTimeLeft() <= 0)
 
   // 이메일이 없으면 회원가입 페이지로 리다이렉트
   useEffect(() => {
@@ -75,6 +113,7 @@ export function EmailVerificationPage() {
 
     try {
       await verifyEmailVerification({ email, code })
+      sessionStorage.removeItem('pendingEmailVerification')
       setStep('success')
     } catch (err) {
       setError(err instanceof Error ? err.message : '이메일 인증에 실패했습니다.')
@@ -91,6 +130,16 @@ export function EmailVerificationPage() {
 
     try {
       await requestEmailVerification({ email })
+
+      // sessionStorage 업데이트
+      const newData: VerificationData = {
+        email,
+        message: verificationData?.message,
+        fromLogin: verificationData?.fromLogin,
+        createdAt: Date.now()
+      }
+      sessionStorage.setItem('pendingEmailVerification', JSON.stringify(newData))
+
       setTimeLeft(300) // 타이머 리셋
       setCanResend(false)
       setCode('')

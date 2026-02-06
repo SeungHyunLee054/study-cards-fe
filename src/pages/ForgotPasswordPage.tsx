@@ -8,16 +8,46 @@ import { requestPasswordReset, verifyPasswordReset } from '@/api/auth'
 
 type Step = 'email' | 'verify'
 
+interface PasswordResetData {
+  email: string
+  createdAt: number
+}
+
 export function ForgotPasswordPage() {
   const navigate = useNavigate()
-  const [step, setStep] = useState<Step>('email')
-  const [email, setEmail] = useState('')
+
+  // sessionStorage에서 복원
+  const getStoredData = (): PasswordResetData | null => {
+    const stored = sessionStorage.getItem('pendingPasswordReset')
+    if (stored) {
+      try {
+        const data = JSON.parse(stored)
+        // 5분(300초) 초과 시 만료 처리
+        if (Date.now() - data.createdAt > 300 * 1000) {
+          sessionStorage.removeItem('pendingPasswordReset')
+          return null
+        }
+        return data
+      } catch {
+        sessionStorage.removeItem('pendingPasswordReset')
+        return null
+      }
+    }
+    return null
+  }
+
+  const storedData = getStoredData()
+
+  const [step, setStep] = useState<Step>(storedData ? 'verify' : 'email')
+  const [email, setEmail] = useState(storedData?.email || '')
   const [code, setCode] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(
+    storedData ? '인증 코드가 이메일로 전송되었습니다. 이메일을 확인해주세요.' : null
+  )
 
   const passwordRequirements = [
     { text: '8자 이상', met: newPassword.length >= 8 },
@@ -34,6 +64,14 @@ export function ForgotPasswordPage() {
 
     try {
       await requestPasswordReset({ email })
+
+      // sessionStorage에 저장
+      const resetData: PasswordResetData = {
+        email,
+        createdAt: Date.now()
+      }
+      sessionStorage.setItem('pendingPasswordReset', JSON.stringify(resetData))
+
       setSuccessMessage('인증 코드가 이메일로 전송되었습니다. 이메일을 확인해주세요.')
       setStep('verify')
     } catch (err) {
@@ -50,6 +88,7 @@ export function ForgotPasswordPage() {
 
     try {
       await verifyPasswordReset({ email, code, newPassword })
+      sessionStorage.removeItem('pendingPasswordReset')
       navigate('/login', { state: { message: '비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해주세요.' } })
     } catch (err) {
       setError(err instanceof Error ? err.message : '비밀번호 재설정에 실패했습니다.')
@@ -192,7 +231,9 @@ export function ForgotPasswordPage() {
             <button
               type="button"
               onClick={() => {
+                sessionStorage.removeItem('pendingPasswordReset')
                 setStep('email')
+                setEmail('')
                 setCode('')
                 setNewPassword('')
                 setError(null)

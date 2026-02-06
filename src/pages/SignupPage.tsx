@@ -35,11 +35,21 @@ export function SignupPage() {
 
     try {
       await signup({ email, password, passwordConfirm: confirmPassword, nickname })
+
+      // sessionStorage에 인증 정보 저장 (페이지 이동 후에도 유지)
+      const verificationData = {
+        email,
+        fromLogin: false,
+        message: '회원가입이 완료되었습니다. 이메일로 발송된 인증 코드를 입력해주세요.',
+        createdAt: Date.now()
+      }
+      sessionStorage.setItem('pendingEmailVerification', JSON.stringify(verificationData))
+
       // 이메일 인증 페이지로 리다이렉트
       navigate('/verify-email', {
         state: {
           email,
-          message: '회원가입이 완료되었습니다. 이메일로 발송된 인증 코드를 입력해주세요.'
+          message: verificationData.message
         }
       })
     } catch (err) {
