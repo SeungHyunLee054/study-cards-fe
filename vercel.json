@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.studycard.kr/api/:path*"
+    },
+    {
+      "source": "/oauth2/:path*",
+      "destination": "https://api.studycard.kr/oauth2/:path*"
+    }
+  ]
+}

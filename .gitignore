@@ -37,8 +37,5 @@ pnpm-debug.log*
 # Firebase (빌드 시 생성됨)
 public/firebase-messaging-sw.js
 
-# Vercel (빌드 시 생성됨)
-vercel.json
-
 # Claude
 .claude
