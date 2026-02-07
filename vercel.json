@@ -5,8 +5,8 @@
       "destination": "https://api.studycard.kr/api/:path*"
     },
     {
-      "source": "/oauth2/:path*",
-      "destination": "https://api.studycard.kr/oauth2/:path*"
+      "source": "/oauth2/authorization/:path*",
+      "destination": "https://api.studycard.kr/oauth2/authorization/:path*"
     }
   ]
 }
