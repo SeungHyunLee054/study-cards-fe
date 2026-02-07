@@ -4,8 +4,14 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// Vercel 환경변수는 이미 process.env에 주입되어 있음
-// 로컬에서는 .env 파일을 vite가 자동으로 로드
+// 로컬 환경에서는 dotenv로 .env 파일 로드
+// Vercel에서는 환경변수가 이미 주입되어 있어 dotenv 불필요
+try {
+  const dotenv = await import('dotenv')
+  dotenv.config({ path: path.join(__dirname, '../.env') })
+} catch (error) {
+  // Vercel에서는 dotenv가 없을 수 있음 (정상)
+}
 
 const apiBackendUrl = process.env.API_BACKEND_URL
 
