@@ -1,12 +1,11 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import dotenv from 'dotenv'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// .env 파일 로드
-dotenv.config({ path: path.join(__dirname, '../.env') })
+// Vercel 환경변수는 이미 process.env에 주입되어 있음
+// 로컬에서는 .env 파일을 vite가 자동으로 로드
 
 const vercelConfig = {
   rewrites: [
