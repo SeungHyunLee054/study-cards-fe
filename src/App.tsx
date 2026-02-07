@@ -33,7 +33,7 @@ function AppRoutes() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/verify-email" element={<EmailVerificationPage />} />
-        <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+        <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/my-cards" element={<MyCardsPage />} />
         <Route path="/study" element={<StudyPage />} />
