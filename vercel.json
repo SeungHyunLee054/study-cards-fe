@@ -7,6 +7,10 @@
     {
       "source": "/oauth2/authorization/:path*",
       "destination": "https://api.studycard.kr/oauth2/authorization/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
