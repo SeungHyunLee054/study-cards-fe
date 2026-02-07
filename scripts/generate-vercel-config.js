@@ -14,6 +14,10 @@ const vercelConfig = {
       source: '/api/:path*',
       destination: `${process.env.API_BACKEND_URL}/api/:path*`,
     },
+    {
+      source: '/oauth2/:path*',
+      destination: `${process.env.API_BACKEND_URL}/oauth2/:path*`,
+    },
   ],
 }
 

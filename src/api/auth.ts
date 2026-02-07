@@ -126,6 +126,6 @@ export async function verifyEmailVerification(request: EmailVerificationVerifyRe
 }
 
 export function getOAuthLoginUrl(provider: OAuthProvider): string {
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8081'
+  const baseUrl = import.meta.env.VITE_API_URL ?? ''
   return `${baseUrl}/oauth2/authorization/${provider}`
 }
