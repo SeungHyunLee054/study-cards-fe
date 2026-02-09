@@ -21,7 +21,7 @@ function getStatusLabel(status: SubscriptionResponse['status']): { label: string
   switch (status) {
     case 'ACTIVE':
       return { label: '활성', className: 'bg-green-100 text-green-700' }
-    case 'CANCELLED':
+    case 'CANCELED':
       return { label: '취소됨', className: 'bg-yellow-100 text-yellow-700' }
     case 'EXPIRED':
       return { label: '만료됨', className: 'bg-gray-100 text-gray-700' }

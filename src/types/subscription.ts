@@ -1,8 +1,16 @@
 export type PlanType = 'FREE' | 'BASIC' | 'PREMIUM'
-export type SubscriptionStatus = 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PENDING'
+export type SubscriptionStatus = 'ACTIVE' | 'CANCELED' | 'EXPIRED' | 'PENDING'
 export type BillingCycle = 'MONTHLY' | 'YEARLY'
 export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'CANCELED' | 'FAILED'
 export type PaymentType = 'INITIAL' | 'RENEWAL' | 'UPGRADE'
+
+export interface PageResponse<T> {
+  content: T[]
+  totalPages: number
+  totalElements: number
+  size: number
+  number: number
+}
 
 export interface PlanResponse {
   plan: PlanType
@@ -57,7 +65,12 @@ export interface InvoiceResponse {
   createdAt: string
 }
 
+export interface PaymentConfirmRequest {
+  paymentKey: string
+  orderId: string
+  amount: number
+}
+
 export interface CancelRequest {
   reason?: string
-  immediate?: boolean
 }

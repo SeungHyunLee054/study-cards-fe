@@ -6,8 +6,10 @@ import type {
   CheckoutRequest,
   CheckoutResponse,
   BillingConfirmRequest,
+  PaymentConfirmRequest,
   InvoiceResponse,
   CancelRequest,
+  PageResponse,
 } from '@/types/subscription'
 
 // 요금제 목록 조회 (인증 불필요)
@@ -27,6 +29,9 @@ export async function fetchPlans(): Promise<PlanResponse[]> {
 export async function fetchMySubscription(): Promise<SubscriptionResponse | null> {
   try {
     const response = await apiClient.get<SubscriptionResponse>('/api/subscriptions/me')
+    if (response.status === 204 || !response.data) {
+      return null
+    }
     return response.data
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -42,7 +47,7 @@ export async function fetchMySubscription(): Promise<SubscriptionResponse | null
 // 결제 세션 생성
 export async function createCheckoutSession(request: CheckoutRequest): Promise<CheckoutResponse> {
   try {
-    const response = await apiClient.post<CheckoutResponse>('/api/subscriptions/checkout', request)
+    const response = await apiClient.post<CheckoutResponse>('/api/payments/checkout', request)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -55,7 +60,20 @@ export async function createCheckoutSession(request: CheckoutRequest): Promise<C
 // 빌링 인증 확인 및 첫 결제
 export async function confirmBilling(request: BillingConfirmRequest): Promise<SubscriptionResponse> {
   try {
-    const response = await apiClient.post<SubscriptionResponse>('/api/subscriptions/confirm', request)
+    const response = await apiClient.post<SubscriptionResponse>('/api/payments/confirm-billing', request)
+    return response.data
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.message || '결제 확인에 실패했습니다.')
+    }
+    throw error
+  }
+}
+
+// 단건 결제 확인 (연간 구독)
+export async function confirmPayment(request: PaymentConfirmRequest): Promise<SubscriptionResponse> {
+  try {
+    const response = await apiClient.post<SubscriptionResponse>('/api/payments/confirm', request)
     return response.data
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -81,8 +99,8 @@ export async function cancelSubscription(request?: CancelRequest): Promise<Subsc
 // 결제 내역 조회
 export async function fetchInvoices(): Promise<InvoiceResponse[]> {
   try {
-    const response = await apiClient.get<InvoiceResponse[]>('/api/subscriptions/invoices')
-    return response.data
+    const response = await apiClient.get<PageResponse<InvoiceResponse>>('/api/payments/invoices')
+    return response.data.content
   } catch (error) {
     if (error instanceof AxiosError) {
       throw new Error(error.response?.data?.message || '결제 내역을 불러오는데 실패했습니다.')
