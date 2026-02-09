@@ -1,29 +1,47 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { BookOpen, Loader2, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { confirmBilling } from '@/api/subscriptions'
+import { confirmBilling, confirmPayment } from '@/api/subscriptions'
 
 export function SubscriptionSuccessPage() {
   const [searchParams] = useSearchParams()
+  const isProcessing = useRef(false)
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isSuccess, setIsSuccess] = useState(false)
 
   useEffect(() => {
-    // 빌링 인증 콜백 파라미터
+    if (isProcessing.current) return
+    isProcessing.current = true
+
     const authKey = searchParams.get('authKey')
-    const customerKey = searchParams.get('customerKey')
+    const paymentKey = searchParams.get('paymentKey')
     const orderId = searchParams.get('orderId')
 
-    if (!authKey || !customerKey || !orderId) {
+    if (authKey) {
+      // 월간 빌링 인증 콜백
+      const customerKey = searchParams.get('customerKey')
+      if (!customerKey || !orderId) {
+        setError('결제 정보가 올바르지 않습니다.')
+        setIsLoading(false)
+        return
+      }
+      handleConfirmBilling(authKey, customerKey, orderId)
+    } else if (paymentKey) {
+      // 연간 단건 결제 콜백
+      const amount = searchParams.get('amount')
+      if (!orderId || !amount) {
+        setError('결제 정보가 올바르지 않습니다.')
+        setIsLoading(false)
+        return
+      }
+      handleConfirmPayment(paymentKey, orderId, Number(amount))
+    } else {
       setError('결제 정보가 올바르지 않습니다.')
       setIsLoading(false)
-      return
     }
-
-    handleConfirmBilling(authKey, customerKey, orderId)
   }, [searchParams])
 
   async function handleConfirmBilling(
@@ -34,6 +52,22 @@ export function SubscriptionSuccessPage() {
     try {
       setIsLoading(true)
       await confirmBilling({ authKey, customerKey, orderId })
+      setIsSuccess(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '결제 확인에 실패했습니다')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function handleConfirmPayment(
+    paymentKey: string,
+    orderId: string,
+    amount: number
+  ) {
+    try {
+      setIsLoading(true)
+      await confirmPayment({ paymentKey, orderId, amount })
       setIsSuccess(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : '결제 확인에 실패했습니다')

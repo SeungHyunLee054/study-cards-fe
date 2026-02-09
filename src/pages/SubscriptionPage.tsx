@@ -90,10 +90,11 @@ export function SubscriptionPage() {
       })
 
       const baseUrl = window.location.origin
-      const successUrl = `${baseUrl}/subscription/success?orderId=${checkout.orderId}`
       const failUrl = `${baseUrl}/subscription/fail`
 
       if (billingCycle === 'MONTHLY') {
+        // 월간: 토스 빌링 인증은 orderId를 리다이렉트 파라미터로 전달하지 않으므로 미리 포함
+        const successUrl = `${baseUrl}/subscription/success?orderId=${checkout.orderId}`
         // 월간 정기 결제: 카드 등록 후 빌링키 발급
         await requestBillingAuth({
           customerKey: checkout.customerKey,
@@ -101,8 +102,10 @@ export function SubscriptionPage() {
           failUrl,
         })
       } else {
-        // 연간 단건 결제: 바로 결제창
+        // 연간 단건 결제: 토스가 orderId를 리다이렉트 파라미터로 자동 전달하므로 미리 포함하지 않음
+        const successUrl = `${baseUrl}/subscription/success`
         await requestPayment({
+          customerKey: checkout.customerKey,
           amount: checkout.amount,
           orderId: checkout.orderId,
           orderName: checkout.orderName,
