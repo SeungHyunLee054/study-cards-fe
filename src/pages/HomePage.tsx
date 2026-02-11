@@ -34,6 +34,7 @@ export function HomePage() {
   }, [])
 
   const handleAnswerClick = () => {
+    if (guideTimerRef.current) clearTimeout(guideTimerRef.current)
     setShowGuide(true)
     setIsFlipped(false)
     guideTimerRef.current = setTimeout(() => setShowGuide(false), 3000)
@@ -138,11 +139,15 @@ export function HomePage() {
             </div>
 
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="카드 뒤집기"
               className={cn(
                 'relative cursor-pointer perspective-1000',
                 'transition-transform duration-300'
               )}
               onClick={() => setIsFlipped(!isFlipped)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsFlipped(!isFlipped) } }}
             >
               <Card
                 className={cn(

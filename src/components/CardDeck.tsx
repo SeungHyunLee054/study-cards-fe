@@ -60,12 +60,16 @@ export function CardDeck({
       </div>
 
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={isFlipped ? `정답: ${card.answer}` : `문제: ${card.question}. 클릭하여 정답 확인`}
         className={cn(
           'relative cursor-pointer perspective-1000',
           'transition-transform duration-300',
           isAnimating && 'pointer-events-none'
         )}
         onClick={handleFlip}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleFlip() } }}
       >
         <Card
           className={cn(
