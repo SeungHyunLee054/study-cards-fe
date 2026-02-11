@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -136,8 +136,8 @@ function SessionCard({ session, onReviewSession }: SessionCardProps) {
       try {
         const data = await getSessionStats(session.id)
         setStats(data)
-      } catch (err) {
-        console.error('Failed to fetch session stats:', err)
+      } catch {
+        // 통계 로드 실패 시 무시
       } finally {
         setIsLoading(false)
       }
@@ -150,8 +150,8 @@ function SessionCard({ session, onReviewSession }: SessionCardProps) {
     try {
       const card = await fetchCard(cardId)
       setSelectedCard(card)
-    } catch (err) {
-      console.error('Failed to fetch card:', err)
+    } catch {
+      // 카드 로드 실패 시 무시
     } finally {
       setIsCardLoading(false)
     }
@@ -277,17 +277,7 @@ export function SessionHistoryPage() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
 
-  useEffect(() => {
-    loadSessions()
-  }, [page])
-
-  function handleReviewSession(cardIds: number[]) {
-    // cardIds를 sessionStorage에 저장하고 학습 페이지로 이동
-    sessionStorage.setItem('reviewCardIds', JSON.stringify(cardIds))
-    navigate('/study?mode=session-review')
-  }
-
-  async function loadSessions() {
+  const loadSessions = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -295,12 +285,21 @@ export function SessionHistoryPage() {
       setSessions(data.content)
       setTotalPages(data.totalPages)
       setTotalElements(data.totalElements)
-    } catch (err) {
+    } catch {
       setError('세션 기록을 불러오는데 실패했습니다')
-      console.error('Failed to fetch sessions:', err)
     } finally {
       setIsLoading(false)
     }
+  }, [page])
+
+  useEffect(() => {
+    loadSessions()
+  }, [loadSessions])
+
+  function handleReviewSession(cardIds: number[]) {
+    // cardIds를 sessionStorage에 저장하고 학습 페이지로 이동
+    sessionStorage.setItem('reviewCardIds', JSON.stringify(cardIds))
+    navigate('/study?mode=session-review')
   }
 
   return (

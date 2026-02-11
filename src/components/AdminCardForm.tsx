@@ -48,6 +48,7 @@ export function AdminCardForm({
       setCategory((prev) => prev || categories[0]?.code || '')
     }
     setErrors({})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, isOpen])
 
   // 카테고리 로드 시 기본값 설정

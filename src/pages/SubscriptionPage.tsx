@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { BookOpen, ArrowLeft, Loader2, CreditCard, Check, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -43,11 +43,7 @@ export function SubscriptionPage() {
     }
   }, [searchParams])
 
-  useEffect(() => {
-    loadData()
-  }, [isLoggedIn])
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -70,7 +66,11 @@ export function SubscriptionPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [isLoggedIn])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   async function handleSubscribe() {
     if (!plan) return

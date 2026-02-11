@@ -37,7 +37,13 @@ export function SubscriptionSuccessPage() {
         setIsLoading(false)
         return
       }
-      handleConfirmPayment(paymentKey, orderId, Number(amount))
+      const parsedAmount = Number(amount)
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        setError('유효하지 않은 결제 금액입니다.')
+        setIsLoading(false)
+        return
+      }
+      handleConfirmPayment(paymentKey, orderId, parsedAmount)
     } else {
       setError('결제 정보가 올바르지 않습니다.')
       setIsLoading(false)
