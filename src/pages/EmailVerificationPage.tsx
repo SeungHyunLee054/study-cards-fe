@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { requestEmailVerification, verifyEmailVerification } from '@/api/auth'
+import { EMAIL_VERIFICATION_TIMEOUT_SECONDS } from '@/lib/constants'
 
 type Step = 'input' | 'success'
 
@@ -49,9 +50,9 @@ export function EmailVerificationPage() {
 
   // 저장된 시점 기준으로 남은 시간 계산
   const calculateTimeLeft = () => {
-    if (!verificationData?.createdAt) return 300
+    if (!verificationData?.createdAt) return EMAIL_VERIFICATION_TIMEOUT_SECONDS
     const elapsed = Math.floor((Date.now() - verificationData.createdAt) / 1000)
-    return Math.max(0, 300 - elapsed)
+    return Math.max(0, EMAIL_VERIFICATION_TIMEOUT_SECONDS - elapsed)
   }
 
   const [step, setStep] = useState<Step>('input')
@@ -88,7 +89,7 @@ export function EmailVerificationPage() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [step, timeLeft])
+  }, [step])
 
   // 시간 포맷팅 (MM:SS)
   const formatTime = (seconds: number) => {
@@ -140,7 +141,7 @@ export function EmailVerificationPage() {
       }
       sessionStorage.setItem('pendingEmailVerification', JSON.stringify(newData))
 
-      setTimeLeft(300) // 타이머 리셋
+      setTimeLeft(EMAIL_VERIFICATION_TIMEOUT_SECONDS) // 타이머 리셋
       setCanResend(false)
       setCode('')
       setError(null)

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { requestPasswordReset, verifyPasswordReset } from '@/api/auth'
+import { PASSWORD_RESET_TIMEOUT_MS } from '@/lib/constants'
 
 type Step = 'email' | 'verify'
 
@@ -22,8 +23,8 @@ export function ForgotPasswordPage() {
     if (stored) {
       try {
         const data = JSON.parse(stored)
-        // 5분(300초) 초과 시 만료 처리
-        if (Date.now() - data.createdAt > 300 * 1000) {
+        // 5분 초과 시 만료 처리
+        if (Date.now() - data.createdAt > PASSWORD_RESET_TIMEOUT_MS) {
           sessionStorage.removeItem('pendingPasswordReset')
           return null
         }
