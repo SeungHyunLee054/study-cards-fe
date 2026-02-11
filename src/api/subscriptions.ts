@@ -1,5 +1,6 @@
 import { apiClient, publicClient } from './client'
 import { AxiosError } from 'axios'
+import type { PageResponse } from '@/types/card'
 import type {
   PlanResponse,
   SubscriptionResponse,
@@ -9,7 +10,6 @@ import type {
   PaymentConfirmRequest,
   InvoiceResponse,
   CancelRequest,
-  PageResponse,
 } from '@/types/subscription'
 
 // 요금제 목록 조회 (인증 불필요)
@@ -100,7 +100,7 @@ export async function cancelSubscription(request?: CancelRequest): Promise<Subsc
 export async function fetchInvoices(): Promise<InvoiceResponse[]> {
   try {
     const response = await apiClient.get<PageResponse<InvoiceResponse>>('/api/payments/invoices')
-    return response.data.content
+    return response.data?.content ?? []
   } catch (error) {
     if (error instanceof AxiosError) {
       throw new Error(error.response?.data?.message || '결제 내역을 불러오는데 실패했습니다.')

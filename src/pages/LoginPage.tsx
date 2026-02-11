@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/AuthContext'
 import { getOAuthLoginUrl } from '@/api/auth'
+import { AuthError } from '@/types/errors'
 import type { OAuthProvider } from '@/types/auth'
 
 export function LoginPage() {
@@ -36,9 +37,9 @@ export function LoginPage() {
     try {
       await login({ email, password })
       navigate('/mypage')
-    } catch (err: any) {
+    } catch (err) {
       // 이메일 미인증 에러 처리
-      if (err.code === 'EMAIL_NOT_VERIFIED') {
+      if (err instanceof AuthError && err.code === 'EMAIL_NOT_VERIFIED') {
         const verificationData = {
           email: err.email || email,
           fromLogin: true,

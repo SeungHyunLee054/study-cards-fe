@@ -1,5 +1,6 @@
 import { apiClient, publicClient } from './client'
 import { AxiosError } from 'axios'
+import { AuthError } from '@/types/errors'
 import type {
   SignUpRequest,
   SignInRequest,
@@ -33,10 +34,11 @@ export async function signIn(request: SignInRequest): Promise<SignInResponse> {
       const code = error.response?.data?.code
       // EMAIL_NOT_VERIFIED 에러 처리
       if (error.response?.status === 403 && code === 'EMAIL_NOT_VERIFIED') {
-        const err = new Error(error.response?.data?.message || '이메일 인증이 필요합니다.')
-        ;(err as any).code = 'EMAIL_NOT_VERIFIED'
-        ;(err as any).email = request.email
-        throw err
+        throw new AuthError(
+          error.response?.data?.message || '이메일 인증이 필요합니다.',
+          'EMAIL_NOT_VERIFIED',
+          request.email
+        )
       }
       throw new Error(error.response?.data?.message || '로그인에 실패했습니다.')
     }

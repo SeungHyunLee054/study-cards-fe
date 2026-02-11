@@ -1,10 +1,12 @@
 import axios from 'axios'
+import { API_TIMEOUT_MS } from '@/lib/constants'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
 // Axios 인스턴스 생성
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT_MS,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -89,6 +91,7 @@ apiClient.interceptors.response.use(
 // 인증 불필요한 요청용 인스턴스
 export const publicClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT_MS,
   headers: {
     'Content-Type': 'application/json',
   },
