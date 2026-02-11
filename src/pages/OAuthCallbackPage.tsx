@@ -20,6 +20,7 @@ export function OAuthCallbackPage() {
 
     if (token) {
       localStorage.setItem('accessToken', token)
+      window.history.replaceState({}, '', '/oauth2/callback')
       setLoggedIn(true)
       navigate('/mypage', { replace: true })
     } else {

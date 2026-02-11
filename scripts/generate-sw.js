@@ -31,8 +31,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification?.title || '알림'
   const notificationOptions = {
     body: payload.notification?.body || '',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
+    icon: '/favicon.png',
+    badge: '/favicon.png',
     tag: payload.data?.type || 'default',
     data: payload.data,
   }

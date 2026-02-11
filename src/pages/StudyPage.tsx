@@ -7,6 +7,7 @@ import { useStudyCards } from '@/hooks/useStudyCards'
 import { Button } from '@/components/ui/button'
 import { fetchCategories } from '@/api/categories'
 import type { CategoryResponse } from '@/types/category'
+import { STUDY_LOAD_DEBOUNCE_MS } from '@/lib/constants'
 
 type StudyMode = 'all' | 'review' | 'myCards' | 'session-review'
 
@@ -46,16 +47,26 @@ export function StudyPage() {
 
   useEffect(() => {
     const now = Date.now()
-    if (now - lastLoadTimeRef.current < 100) return // 100ms 내 중복 호출 방지
+    if (now - lastLoadTimeRef.current < STUDY_LOAD_DEBOUNCE_MS) return
     lastLoadTimeRef.current = now
 
     if (selectedMode === 'session-review') {
       // sessionStorage에서 cardIds 가져오기
       const storedIds = sessionStorage.getItem('reviewCardIds')
       if (storedIds) {
-        const cardIds = JSON.parse(storedIds) as number[]
-        sessionStorage.removeItem('reviewCardIds') // 사용 후 삭제
-        loadCards(undefined, 'session-review', cardIds)
+        try {
+          const cardIds = JSON.parse(storedIds) as number[]
+          if (Array.isArray(cardIds) && cardIds.length > 0) {
+            sessionStorage.removeItem('reviewCardIds')
+            loadCards(undefined, 'session-review', cardIds)
+          } else {
+            sessionStorage.removeItem('reviewCardIds')
+            loadCards(category, 'all')
+          }
+        } catch {
+          sessionStorage.removeItem('reviewCardIds')
+          loadCards(category, 'all')
+        }
       } else {
         // cardIds가 없으면 전체 학습으로 전환
         loadCards(category, 'all')
