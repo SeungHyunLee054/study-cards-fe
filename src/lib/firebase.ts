@@ -45,14 +45,15 @@ export async function requestFcmToken(): Promise<string | null> {
     // VAPID 키로 토큰 발급
     const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY
     if (!vapidKey) {
-      console.error('VAPID key is not configured')
+      if (import.meta.env.DEV) {
+        console.error('VAPID key is not configured')
+      }
       return null
     }
 
     const token = await getToken(messagingInstance, { vapidKey })
     return token
-  } catch (error) {
-    console.error('Failed to get FCM token:', error)
+  } catch {
     return null
   }
 }

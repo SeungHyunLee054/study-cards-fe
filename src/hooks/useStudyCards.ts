@@ -114,9 +114,8 @@ export function useStudyCards(): UseStudyCardsReturn {
         submitStudyAnswer({
           cardId: currentCard.id,
           isCorrect,
-        }).catch((err) => {
+        }).catch(() => {
           // 학습 결과 저장 실패해도 UI는 계속 진행
-          console.error('학습 결과 저장 실패:', err)
         })
       }
 

@@ -70,6 +70,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('auth:logout', handleLogout)
   }, [navigate])
 
+  // 크로스 탭 인증 동기화
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'accessToken') {
+        if (e.newValue) {
+          setIsLoggedIn(true)
+          refreshUser()
+        } else {
+          setIsLoggedIn(false)
+          setUser(null)
+          navigate('/login')
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [navigate, refreshUser])
+
   const login = useCallback(async (request: SignInRequest) => {
     const response = await apiSignIn(request)
     localStorage.setItem('accessToken', response.accessToken)

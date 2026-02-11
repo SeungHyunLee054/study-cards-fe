@@ -103,8 +103,8 @@ export function AdminGenerationPage() {
     try {
       const data = await fetchCategories()
       setCategories(data)
-    } catch (err) {
-      console.error('Failed to load categories:', err)
+    } catch {
+      // 카테고리 로드 실패 시 무시
     }
   }
 

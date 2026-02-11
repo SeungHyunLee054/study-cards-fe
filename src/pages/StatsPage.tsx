@@ -51,9 +51,8 @@ export function StatsPage() {
         setError(null)
         const data = await fetchStats()
         setStats(data)
-      } catch (err) {
+      } catch {
         setError('통계를 불러오는데 실패했습니다')
-        console.error('Failed to fetch stats:', err)
       } finally {
         setIsLoading(false)
       }

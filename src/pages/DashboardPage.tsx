@@ -68,9 +68,8 @@ export function DashboardPage() {
         setError(null)
         const data = await fetchDashboard()
         setDashboard(data)
-      } catch (err) {
+      } catch {
         setError('대시보드를 불러오는데 실패했습니다')
-        console.error('Failed to fetch dashboard:', err)
       } finally {
         setIsLoading(false)
       }
