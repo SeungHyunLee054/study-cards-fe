@@ -262,7 +262,7 @@ export function AdminCardsPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setSelectedCategory('ALL')}
-                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  className={`px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
                     selectedCategory === 'ALL'
                       ? 'bg-primary text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -274,7 +274,7 @@ export function AdminCardsPage() {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.code)}
-                    className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    className={`px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
                       selectedCategory === cat.code
                         ? 'bg-primary text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -337,7 +337,7 @@ export function AdminCardsPage() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => setEditingCard(card)}>
+                        <Button variant="ghost" size="sm" onClick={() => setEditingCard(card)} className="min-h-[44px] min-w-[44px]">
                           <Pencil className="h-4 w-4" />
                         </Button>
                         {deleteCardConfirmId === card.id ? (
@@ -347,6 +347,7 @@ export function AdminCardsPage() {
                               size="sm"
                               onClick={() => handleDeleteCard(card.id)}
                               disabled={isCardSubmitting}
+                              className="min-h-[44px]"
                             >
                               {isCardSubmitting ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -359,6 +360,7 @@ export function AdminCardsPage() {
                               size="sm"
                               onClick={() => setDeleteCardConfirmId(null)}
                               disabled={isCardSubmitting}
+                              className="min-h-[44px]"
                             >
                               취소
                             </Button>
@@ -368,6 +370,7 @@ export function AdminCardsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setDeleteCardConfirmId(card.id)}
+                            className="min-h-[44px] min-w-[44px]"
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
@@ -460,6 +463,7 @@ export function AdminCardsPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => setEditingCategory(cat)}
+                          className="min-h-[44px] min-w-[44px]"
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -470,6 +474,7 @@ export function AdminCardsPage() {
                               size="sm"
                               onClick={() => handleDeleteCategory(cat.id)}
                               disabled={isCategorySubmitting}
+                              className="min-h-[44px]"
                             >
                               {isCategorySubmitting ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -482,6 +487,7 @@ export function AdminCardsPage() {
                               size="sm"
                               onClick={() => setDeleteCategoryConfirmId(null)}
                               disabled={isCategorySubmitting}
+                              className="min-h-[44px]"
                             >
                               취소
                             </Button>
@@ -491,6 +497,7 @@ export function AdminCardsPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setDeleteCategoryConfirmId(cat.id)}
+                            className="min-h-[44px] min-w-[44px]"
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>

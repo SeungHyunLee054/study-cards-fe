@@ -103,7 +103,7 @@ export function AdminCardForm({
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-3 hover:bg-gray-100 rounded-lg transition-colors"
             disabled={isLoading}
           >
             <X className="h-5 w-5 text-gray-500" />
@@ -117,7 +117,7 @@ export function AdminCardForm({
               id="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="mt-1 w-full h-11 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               disabled={isLoading}
             >
               <option value="">카테고리 선택</option>

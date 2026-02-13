@@ -110,6 +110,7 @@ export function SignupPage() {
               onChange={(e) => setNickname(e.target.value)}
               required
               disabled={isLoading}
+              autoComplete="nickname"
             />
           </div>
 
@@ -123,6 +124,7 @@ export function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
+              autoComplete="email"
             />
           </div>
 
@@ -137,11 +139,12 @@ export function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700"
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -178,11 +181,12 @@ export function SignupPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700"
               >
                 {showConfirmPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -199,16 +203,16 @@ export function SignupPage() {
             )}
           </div>
 
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-3 min-h-[44px]">
             <input
               type="checkbox"
               id="agreeTerms"
               checked={agreeTerms}
               onChange={(e) => setAgreeTerms(e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              className="mt-1 h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
               disabled={isLoading}
             />
-            <label htmlFor="agreeTerms" className="text-sm text-gray-600">
+            <label htmlFor="agreeTerms" className="text-sm text-gray-600 cursor-pointer select-none">
               <Link to="/terms" className="text-primary hover:underline" target="_blank">이용약관</Link>
               {' '}및{' '}
               <Link to="/privacy" className="text-primary hover:underline" target="_blank">개인정보 처리방침</Link>
@@ -244,7 +248,7 @@ export function SignupPage() {
               disabled={isLoading}
               onClick={() => handleOAuthLogin('google')}
             >
-              <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 sm:mr-2" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -262,7 +266,7 @@ export function SignupPage() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Google
+              <span className="hidden sm:inline">Google</span>
             </Button>
             <Button
               variant="outline"
@@ -271,13 +275,13 @@ export function SignupPage() {
               disabled={isLoading}
               onClick={() => handleOAuthLogin('kakao')}
             >
-              <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 sm:mr-2" viewBox="0 0 24 24">
                 <path
                   fill="#000000"
                   d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z"
                 />
               </svg>
-              Kakao
+              <span className="hidden sm:inline">Kakao</span>
             </Button>
             <Button
               variant="outline"
@@ -286,13 +290,13 @@ export function SignupPage() {
               disabled={isLoading}
               onClick={() => handleOAuthLogin('naver')}
             >
-              <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 sm:mr-2" viewBox="0 0 24 24">
                 <path
                   fill="#03C75A"
                   d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727v12.845z"
                 />
               </svg>
-              Naver
+              <span className="hidden sm:inline">Naver</span>
             </Button>
           </div>
         </div>

@@ -244,7 +244,7 @@ export function SettingsPage() {
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="text-xl font-semibold">Study Cards</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
             <Link to="/mypage">
               <ArrowLeft className="h-4 w-4 mr-2" />
               마이페이지

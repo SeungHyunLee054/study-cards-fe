@@ -77,7 +77,7 @@ export function HomePage() {
 
       {/* Hero */}
       <main>
-        <section className="max-w-6xl mx-auto px-6 py-24 text-center">
+        <section className="max-w-6xl mx-auto px-6 py-12 sm:py-24 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm mb-8">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-gray-600">Now with {cardCount?.toLocaleString() ?? '...'} cards</span>
@@ -221,7 +221,7 @@ export function HomePage() {
 
         {/* Stats */}
         <section className="max-w-4xl mx-auto px-6 py-16">
-          <div className="grid grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="text-4xl font-bold text-primary">
                 {cardCount?.toLocaleString() ?? '...'}
@@ -241,7 +241,7 @@ export function HomePage() {
 
         {/* CTA */}
         <section className="max-w-4xl mx-auto px-6 py-16">
-          <div className="p-8 rounded-2xl bg-primary/5 border border-primary/20 text-center">
+          <div className="p-6 sm:p-8 rounded-2xl bg-primary/5 border border-primary/20 text-center">
             <h2 className="text-2xl font-bold text-gray-900">Ready to start learning?</h2>
             <p className="mt-2 text-gray-600">
               무료로 시작하세요. 가입하면 무제한 학습이 가능합니다.

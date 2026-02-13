@@ -392,7 +392,7 @@ export function AdminGenerationPage() {
                         setStatusFilter(option.value)
                         setSelectedCardIds(new Set())
                       }}
-                      className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                      className={`px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
                         statusFilter === option.value
                           ? 'bg-primary text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -413,7 +413,7 @@ export function AdminGenerationPage() {
                       setModelFilter(e.target.value)
                       setSelectedCardIds(new Set())
                     }}
-                    className="h-8 px-2 text-sm rounded-md border border-gray-200 bg-white"
+                    className="min-h-[44px] px-2 text-sm rounded-md border border-gray-200 bg-white"
                   >
                     <option value="">전체</option>
                     {availableModels.map((m) => (

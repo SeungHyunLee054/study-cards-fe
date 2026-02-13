@@ -74,7 +74,7 @@ function CardDetailModal({ card, isLoading, onClose }: CardDetailModalProps) {
           <h3 className="text-lg font-semibold">카드 상세</h3>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-3 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <X className="h-5 w-5 text-gray-500" />
           </button>
@@ -219,7 +219,7 @@ function SessionCard({ session, onReviewSession }: SessionCardProps) {
                   variant="outline"
                   size="sm"
                   onClick={handleReviewSession}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 min-h-[44px]"
                 >
                   <RotateCcw className="h-4 w-4" />
                   다시 학습하기
@@ -307,7 +307,7 @@ export function SessionHistoryPage() {
       {/* Header */}
       <header className="border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
             <Link to="/mypage">
               <ArrowLeft className="mr-2 h-4 w-4" />
               뒤로
@@ -364,6 +364,7 @@ export function SessionHistoryPage() {
                 size="sm"
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
+                className="min-h-[44px]"
               >
                 이전
               </Button>
@@ -375,6 +376,7 @@ export function SessionHistoryPage() {
                 size="sm"
                 onClick={() => setPage((p) => p + 1)}
                 disabled={page >= totalPages - 1}
+                className="min-h-[44px]"
               >
                 다음
               </Button>

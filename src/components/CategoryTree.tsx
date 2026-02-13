@@ -72,14 +72,14 @@ function TreeNode({ node, deckStats, depth, colorIndex }: TreeNodeProps) {
     <div>
       <div
         className={`p-4 rounded-lg border-l-4 ${getDeckColor(colorIndex)} bg-gray-50 hover:bg-gray-100 transition-colors`}
-        style={{ marginLeft: depth * 16 }}
+        style={{ marginLeft: Math.min(depth, 3) * 16 }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {hasChildren && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="p-1 hover:bg-gray-200 rounded"
+                className="p-2 hover:bg-gray-200 rounded"
               >
                 {isExpanded ? (
                   <ChevronDown className="h-4 w-4 text-gray-500" />
@@ -100,7 +100,7 @@ function TreeNode({ node, deckStats, depth, colorIndex }: TreeNodeProps) {
             <div>
               <div className="font-medium text-gray-900">{node.name}</div>
               {stats && (
-                <div className="mt-1 flex gap-4 text-sm">
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0 text-sm">
                   <span className="text-primary">{stats.newCount} 새 카드</span>
                   <span className="text-orange-600">{stats.learningCount} 학습 중</span>
                   <span className="text-green-600">{stats.reviewCount} 복습</span>
@@ -108,7 +108,7 @@ function TreeNode({ node, deckStats, depth, colorIndex }: TreeNodeProps) {
               )}
             </div>
           </div>
-          <Button size="sm" variant="outline" asChild>
+          <Button size="sm" variant="outline" asChild className="min-h-[44px]">
             <Link to={`/study?deck=${encodeURIComponent(node.code)}`}>학습</Link>
           </Button>
         </div>

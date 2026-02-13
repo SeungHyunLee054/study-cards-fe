@@ -122,7 +122,7 @@ export function NotificationDropdown() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={handleOpen}
-        className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+        className="relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
         aria-label="알림"
       >
         <Bell className="h-5 w-5 text-gray-600" />
@@ -186,7 +186,7 @@ export function NotificationDropdown() {
                         <div className="flex-shrink-0">
                           <button
                             onClick={() => handleMarkAsRead(notification.id)}
-                            className="p-1 rounded hover:bg-gray-200 transition-colors"
+                            className="p-2 rounded hover:bg-gray-200 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                             title="읽음 처리"
                           >
                             <Check className="h-4 w-4 text-gray-400" />

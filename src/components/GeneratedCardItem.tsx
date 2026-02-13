@@ -89,7 +89,7 @@ export function GeneratedCardItem({
               size="sm"
               onClick={() => onApprove(card.id)}
               disabled={isActionInProgress}
-              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+              className="text-green-600 hover:text-green-700 hover:bg-green-50 min-h-[44px]"
             >
               {isApproving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -105,7 +105,7 @@ export function GeneratedCardItem({
               size="sm"
               onClick={() => onReject(card.id)}
               disabled={isActionInProgress}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px]"
             >
               {isRejecting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

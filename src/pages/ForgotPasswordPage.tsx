@@ -153,6 +153,7 @@ export function ForgotPasswordPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
+                autoComplete="email"
               />
             </div>
 
@@ -190,11 +191,12 @@ export function ForgotPasswordPage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   disabled={isLoading}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 text-gray-500 hover:text-gray-700"
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4" />

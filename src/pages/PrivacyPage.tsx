@@ -12,7 +12,7 @@ export function PrivacyPage() {
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="text-xl font-semibold">Study Cards</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
             <Link to="/signup">
               <ArrowLeft className="h-4 w-4 mr-2" />
               돌아가기
@@ -46,7 +46,7 @@ export function PrivacyPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">2. 수집하는 개인정보 항목</h2>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 rounded-lg p-4 overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">

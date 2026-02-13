@@ -8,7 +8,7 @@ export function AboutPage() {
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
             <Link to="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
               홈으로
