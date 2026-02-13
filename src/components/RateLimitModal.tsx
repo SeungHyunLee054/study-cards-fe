@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { LogIn, UserPlus, X } from 'lucide-react'
@@ -8,6 +9,15 @@ interface RateLimitModalProps {
 }
 
 export function RateLimitModal({ isOpen, onClose }: RateLimitModalProps) {
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   return (
@@ -22,7 +32,7 @@ export function RateLimitModal({ isOpen, onClose }: RateLimitModalProps) {
       <div className="relative z-10 w-full max-w-md mx-4 bg-background rounded-lg shadow-lg p-6">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
+          className="absolute top-2 right-2 p-3 text-muted-foreground hover:text-foreground rounded-lg"
         >
           <X className="h-5 w-5" />
         </button>
