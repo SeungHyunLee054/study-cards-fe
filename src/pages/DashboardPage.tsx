@@ -123,74 +123,78 @@ export function DashboardPage() {
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="text-xl font-semibold hidden sm:inline">Study Cards</span>
           </Link>
-          <div className="flex items-center gap-2 md:gap-4 overflow-x-auto">
-            <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
-              <User className="h-4 w-4" />
-              {user?.nickname && <span>{user.nickname}</span>}
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-2 overflow-x-auto">
+              <div className="hidden md:flex items-center gap-2 text-sm text-gray-600 shrink-0">
+                <User className="h-4 w-4" />
+                {user?.nickname && <span>{user.nickname}</span>}
+              </div>
+              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                <Link to="/mypage">
+                  <LayoutDashboard className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                <Link to="/search">
+                  <Search className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                <Link to="/bookmarks">
+                  <Heart className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                <Link to="/ai-generate" className="text-primary">
+                  <Wand2 className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                <Link to="/sessions">
+                  <History className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                <Link to="/my-cards">
+                  <NotebookText className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                <Link to="/stats">
+                  <BarChart3 className="h-4 w-4" />
+                </Link>
+              </Button>
+              {isAdmin && (
+                <>
+                  <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                    <Link to="/admin/cards" className="text-purple-600">
+                      <Shield className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                    <Link to="/admin/generation" className="text-purple-600">
+                      <Sparkles className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </>
+              )}
+              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                <Link to="/subscription">
+                  <CreditCard className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/mypage">
-                <LayoutDashboard className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/search">
-                <Search className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/bookmarks">
-                <Heart className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/ai-generate" className="text-primary">
-                <Wand2 className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/sessions">
-                <History className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/my-cards">
-                <NotebookText className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/stats">
-                <BarChart3 className="h-4 w-4" />
-              </Link>
-            </Button>
-            {isAdmin && (
-              <>
-                <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-                  <Link to="/admin/cards" className="text-purple-600">
-                    <Shield className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-                  <Link to="/admin/generation" className="text-purple-600">
-                    <Sparkles className="h-4 w-4" />
-                  </Link>
-                </Button>
-              </>
-            )}
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/subscription">
-                <CreditCard className="h-4 w-4" />
-              </Link>
-            </Button>
-            <NotificationDropdown />
-            <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
-              <Link to="/settings">
-                <Settings className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={logout} className="min-h-[44px]">
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <NotificationDropdown />
+              <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
+                <Link to="/settings">
+                  <Settings className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={logout} className="min-h-[44px]">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
