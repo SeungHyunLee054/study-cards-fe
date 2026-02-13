@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Play, Clock, CheckCircle, AlertCircle, BarChart3, Calendar, Settings, LogOut, User, BookOpen, Loader2, NotebookText, Shield, LayoutDashboard, History, Sparkles, CreditCard } from 'lucide-react'
+import { Play, Clock, CheckCircle, AlertCircle, BarChart3, Calendar, Settings, LogOut, User, BookOpen, Loader2, NotebookText, Shield, LayoutDashboard, History, Sparkles, CreditCard, Search, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CategoryTree } from '@/components/CategoryTree'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
@@ -78,57 +78,67 @@ export function MyPage() {
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="text-xl font-semibold">Study Cards</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 overflow-x-auto">
+            <div className="flex items-center gap-2 text-sm text-gray-600 shrink-0">
               <User className="h-4 w-4" />
               {user?.nickname && <span>{user.nickname}</span>}
             </div>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/dashboard">
                 <LayoutDashboard className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
+              <Link to="/search">
+                <Search className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
+              <Link to="/bookmarks">
+                <Heart className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/sessions">
                 <History className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/my-cards">
                 <NotebookText className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/stats">
                 <BarChart3 className="h-4 w-4" />
               </Link>
             </Button>
             {isAdmin && (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
                   <Link to="/admin/cards" className="text-purple-600">
                     <Shield className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
                   <Link to="/admin/generation" className="text-purple-600">
                     <Sparkles className="h-4 w-4" />
                   </Link>
                 </Button>
               </>
             )}
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/subscription">
                 <CreditCard className="h-4 w-4" />
               </Link>
             </Button>
             <NotificationDropdown />
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/settings">
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" onClick={logout}>
+            <Button variant="ghost" size="sm" onClick={logout} className="min-h-[44px]">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -161,7 +171,7 @@ export function MyPage() {
         </div>
 
         {/* Stats Overview */}
-        <div className="mt-8 grid grid-cols-4 gap-4">
+        <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-6 rounded-xl bg-gray-50 border border-gray-200">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
@@ -208,9 +218,9 @@ export function MyPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-3 gap-6">
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Decks */}
-          <div className="col-span-2">
+          <div className="lg:col-span-2">
             <div className="rounded-xl border border-gray-200 bg-white">
               <div className="p-6 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900">내 덱</h2>

@@ -50,7 +50,7 @@ export function SubscriptionPage() {
 
       const plansData = await fetchPlans()
       // 구매 가능한 플랜 (PREMIUM)만 선택
-      const paidPlan = plansData.find(p => p.isPurchasable) || plansData.find(p => p.plan === 'PREMIUM') || plansData[0]
+      const paidPlan = plansData.find(p => p.isPurchasable) || plansData.find(p => p.plan === 'PRO') || plansData.find(p => p.plan === 'PREMIUM') || plansData[0]
       setPlan(paidPlan)
 
       if (isLoggedIn) {
@@ -69,8 +69,9 @@ export function SubscriptionPage() {
   }, [isLoggedIn])
 
   useEffect(() => {
+    if (authLoading) return
     loadData()
-  }, [loadData])
+  }, [loadData, authLoading])
 
   async function handleSubscribe() {
     if (!plan) return
@@ -153,24 +154,24 @@ export function SubscriptionPage() {
     <div className="min-h-screen bg-white text-gray-900">
       {/* Header */}
       <header className="border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="text-xl font-semibold">Study Cards</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
             <Link to="/mypage">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              마이페이지
+              <ArrowLeft className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">마이페이지</span>
             </Link>
           </Button>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
-            <CreditCard className="h-8 w-8" />
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
+            <CreditCard className="h-6 w-6 md:h-8 md:w-8" />
             구독 관리
           </h1>
           <p className="mt-2 text-gray-600">
@@ -213,7 +214,7 @@ export function SubscriptionPage() {
 
             {/* Comparison Table */}
             <div className="rounded-2xl border border-gray-200 overflow-hidden overflow-x-auto">
-              <table className="w-full min-w-[500px]">
+              <table className="w-full min-w-[360px]">
                 <thead>
                   <tr className="bg-gray-50">
                     <th className="text-left p-4 font-medium text-gray-600 w-1/4 border-r border-gray-200">기능</th>
@@ -229,9 +230,9 @@ export function SubscriptionPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   <tr>
-                    <td className="p-4 text-gray-700 border-r border-gray-200">하루 학습 카드</td>
-                    <td className="p-4 text-center text-gray-500 border-r border-gray-200">15개</td>
-                    <td className="p-4 text-center text-gray-500 border-r border-gray-200">100개</td>
+                    <td className="p-4 text-gray-700 border-r border-gray-200">학습 카드</td>
+                    <td className="p-4 text-center text-gray-500 border-r border-gray-200">15개/일</td>
+                    <td className="p-4 text-center text-gray-500 border-r border-gray-200">무제한</td>
                     <td className="p-4 text-center bg-primary/5 font-medium text-primary">무제한</td>
                   </tr>
                   <tr>
@@ -247,7 +248,15 @@ export function SubscriptionPage() {
                     </td>
                   </tr>
                   <tr>
-                    <td className="p-4 text-gray-700 border-r border-gray-200">AI 생성 카드 이용</td>
+                    <td className="p-4 text-gray-700 border-r border-gray-200">AI 카드 생성</td>
+                    <td className="p-4 text-center border-r border-gray-200">
+                      <span className="text-gray-300">-</span>
+                    </td>
+                    <td className="p-4 text-center text-gray-500 border-r border-gray-200">5회 체험</td>
+                    <td className="p-4 text-center bg-primary/5 font-medium text-primary">30회/일</td>
+                  </tr>
+                  <tr>
+                    <td className="p-4 text-gray-700 border-r border-gray-200">AI 복습 전략</td>
                     <td className="p-4 text-center border-r border-gray-200">
                       <span className="text-gray-300">-</span>
                     </td>
@@ -317,7 +326,7 @@ export function SubscriptionPage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-200 py-8 mt-16">
-        <div className="max-w-4xl mx-auto px-6 text-center text-sm text-gray-500">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center text-sm text-gray-500">
           <p>© 2025 Study Cards. All rights reserved.</p>
         </div>
       </footer>

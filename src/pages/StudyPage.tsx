@@ -1,15 +1,22 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Filter, Loader2, User, CalendarCheck, BookOpen } from 'lucide-react'
+import { ArrowLeft, Filter, Loader2, User, CalendarCheck, BookOpen, Sparkles } from 'lucide-react'
 import { CardDeck } from '@/components/CardDeck'
 import { RateLimitModal } from '@/components/RateLimitModal'
+import { RecommendedCardList } from '@/components/RecommendedCardList'
+import { CategoryAccuracyChart } from '@/components/CategoryAccuracyChart'
 import { useStudyCards } from '@/hooks/useStudyCards'
 import { Button } from '@/components/ui/button'
-import { fetchCategories } from '@/api/categories'
-import type { CategoryResponse } from '@/types/category'
+import { useAuth } from '@/contexts/AuthContext'
+import { fetchCategoryTree } from '@/api/categories'
+import { fetchRecommendations, fetchCategoryAccuracy } from '@/api/recommendations'
+import { fetchMySubscription } from '@/api/subscriptions'
+import type { CategoryTreeResponse } from '@/types/category'
+import type { RecommendationResponse, CategoryAccuracyResponse } from '@/types/recommendation'
+import { CategoryFilterTree } from '@/components/CategoryFilterTree'
 import { STUDY_LOAD_DEBOUNCE_MS } from '@/lib/constants'
 
-type StudyMode = 'all' | 'review' | 'myCards' | 'session-review'
+type StudyMode = 'all' | 'review' | 'myCards' | 'session-review' | 'recommended'
 
 export function StudyPage() {
   const lastLoadTimeRef = useRef(0)
@@ -17,10 +24,17 @@ export function StudyPage() {
   const category = searchParams.get('deck') || undefined
   const modeParam = (searchParams.get('mode') as StudyMode) || 'all'
 
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
+  const [categoryTree, setCategoryTree] = useState<CategoryTreeResponse[]>([])
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true)
   const [selectedMode, setSelectedMode] = useState<StudyMode>(modeParam)
-  const isLoggedIn = !!localStorage.getItem('accessToken')
+  const { isLoggedIn, isLoading: authLoading } = useAuth()
+
+  // 추천 관련 상태
+  const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null)
+  const [categoryAccuracy, setCategoryAccuracy] = useState<CategoryAccuracyResponse[]>([])
+  const [isRecommendationsLoading, setIsRecommendationsLoading] = useState(false)
+  const [recommendationsError, setRecommendationsError] = useState<string | null>(null)
+  const [canSeeAiExplanation, setCanSeeAiExplanation] = useState(false)
 
   const {
     currentCard,
@@ -37,15 +51,48 @@ export function StudyPage() {
     progress,
   } = useStudyCards()
 
-  // 카테고리 목록 로드
+  // 카테고리 트리 로드
   useEffect(() => {
-    fetchCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]))
+    fetchCategoryTree()
+      .then(setCategoryTree)
+      .catch(() => setCategoryTree([]))
       .finally(() => setIsCategoriesLoading(false))
   }, [])
 
+  // 추천 데이터 로드 함수 (useEffect + retry 버튼에서 공유)
+  const loadRecommendations = useCallback(async () => {
+    try {
+      setIsRecommendationsLoading(true)
+      setRecommendationsError(null)
+      const [recData, accData] = await Promise.all([
+        fetchRecommendations(20),
+        fetchCategoryAccuracy(),
+      ])
+      setRecommendations(recData)
+      setCategoryAccuracy(accData)
+
+      try {
+        const sub = await fetchMySubscription()
+        setCanSeeAiExplanation(sub?.plan === 'PRO')
+      } catch {
+        setCanSeeAiExplanation(false)
+      }
+    } catch {
+      setRecommendationsError('추천 카드를 불러오는데 실패했습니다.')
+    } finally {
+      setIsRecommendationsLoading(false)
+    }
+  }, [])
+
+  // 추천 모드 진입 시 데이터 로드
   useEffect(() => {
+    if (selectedMode !== 'recommended' || !isLoggedIn || authLoading) return
+    loadRecommendations()
+  }, [selectedMode, isLoggedIn, authLoading, loadRecommendations])
+
+  useEffect(() => {
+    if (authLoading) return
+    if (selectedMode === 'recommended') return // 추천 모드는 별도 로드
     const now = Date.now()
     if (now - lastLoadTimeRef.current < STUDY_LOAD_DEBOUNCE_MS) return
     lastLoadTimeRef.current = now
@@ -58,23 +105,23 @@ export function StudyPage() {
           const cardIds = JSON.parse(storedIds) as number[]
           if (Array.isArray(cardIds) && cardIds.length > 0) {
             sessionStorage.removeItem('reviewCardIds')
-            loadCards(undefined, 'session-review', cardIds)
+            loadCards(undefined, 'session-review', cardIds, isLoggedIn)
           } else {
             sessionStorage.removeItem('reviewCardIds')
-            loadCards(category, 'all')
+            loadCards(category, 'all', undefined, isLoggedIn)
           }
         } catch {
           sessionStorage.removeItem('reviewCardIds')
-          loadCards(category, 'all')
+          loadCards(category, 'all', undefined, isLoggedIn)
         }
       } else {
         // cardIds가 없으면 전체 학습으로 전환
-        loadCards(category, 'all')
+        loadCards(category, 'all', undefined, isLoggedIn)
       }
     } else {
-      loadCards(category, selectedMode)
+      loadCards(category, selectedMode, undefined, isLoggedIn)
     }
-  }, [loadCards, category, selectedMode])
+  }, [loadCards, category, selectedMode, isLoggedIn, authLoading])
 
   const handleCategoryChange = (categoryCode: string | undefined) => {
     const params: Record<string, string> = {}
@@ -92,11 +139,11 @@ export function StudyPage() {
   }
 
   const handleRetry = () => {
-    loadCards(category, selectedMode)
+    loadCards(category, selectedMode, undefined, isLoggedIn)
   }
 
   const handleNewSession = () => {
-    loadCards(category, selectedMode)
+    loadCards(category, selectedMode, undefined, isLoggedIn)
   }
 
   const getModeLabel = () => {
@@ -107,6 +154,8 @@ export function StudyPage() {
         return '내 카드'
       case 'session-review':
         return '세션 복습'
+      case 'recommended':
+        return 'AI 추천'
       default:
         return ''
     }
@@ -115,34 +164,40 @@ export function StudyPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              뒤로
+      <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-10">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
+            <Link to={isLoggedIn ? '/dashboard' : '/'}>
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              <span className="hidden sm:inline">뒤로</span>
             </Link>
           </Button>
-          <h1 className="text-lg font-semibold">
+          <h1 className="text-base md:text-lg font-semibold truncate">
             {getModeLabel()}{getModeLabel() && ' '}{category ? `${category} 학습` : '학습 세션'}
           </h1>
-          <div className="w-20" />
+          {/* Progress Counter */}
+          {progress.total > 0 && (
+            <div className="text-sm font-medium text-primary">
+              {progress.completed}/{progress.total}
+            </div>
+          )}
+          {progress.total === 0 && <div className="w-16" />}
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4 md:py-8">
         {/* Study Mode Selection */}
         {isLoggedIn && (
-          <div className="max-w-2xl mx-auto mb-6">
-            <div className="flex items-center gap-3 mb-3">
+          <div className="max-w-2xl mx-auto mb-4 md:mb-6">
+            <div className="flex items-center gap-3 mb-2">
               <BookOpen className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">학습 모드</span>
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => handleModeChange('all')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
                   selectedMode === 'all'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
@@ -153,7 +208,7 @@ export function StudyPage() {
               </button>
               <button
                 onClick={() => handleModeChange('review')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
                   selectedMode === 'review'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
@@ -164,7 +219,7 @@ export function StudyPage() {
               </button>
               <button
                 onClick={() => handleModeChange('myCards')}
-                className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
                   selectedMode === 'myCards'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
@@ -173,77 +228,107 @@ export function StudyPage() {
                 <User className="h-4 w-4" />
                 내 카드만
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Category Filter */}
-        <div className="max-w-2xl mx-auto mb-6">
-          <div className="flex items-center gap-3 mb-3">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">카테고리</span>
-          </div>
-          {isCategoriesLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              카테고리 로딩 중...
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => handleCategoryChange(undefined)}
-                className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                  !category
+                onClick={() => handleModeChange('recommended')}
+                className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
+                  selectedMode === 'recommended'
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 }`}
               >
-                전체
+                <Sparkles className="h-4 w-4" />
+                AI 추천
               </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => handleCategoryChange(cat.code)}
-                  className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                    category === cat.code
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
+        {/* Category Filter (추천 모드에서는 숨김) */}
+        {selectedMode !== 'recommended' && (
+          <div className="max-w-2xl mx-auto mb-4 md:mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">카테고리</span>
+            </div>
+            {isCategoriesLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                카테고리 로딩 중...
+              </div>
+            ) : (
+              <CategoryFilterTree
+                tree={categoryTree}
+                selectedCategory={category}
+                onSelect={handleCategoryChange}
+              />
+            )}
+          </div>
+        )}
+
+        {/* AI 추천 모드 뷰 */}
+        {selectedMode === 'recommended' ? (
+          <div className="max-w-2xl mx-auto">
+            {isRecommendationsLoading ? (
+              <div className="flex flex-col items-center justify-center h-64 gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-muted-foreground">추천 카드를 분석하는 중...</p>
+              </div>
+            ) : recommendationsError ? (
+              <div className="flex flex-col items-center justify-center h-64">
+                <p className="text-destructive mb-4">{recommendationsError}</p>
+                <Button onClick={loadRecommendations} className="min-h-[44px]">
+                  다시 시도
+                </Button>
+              </div>
+            ) : recommendations && recommendations.recommendations.length === 0 ? (
+              <div className="text-center p-6 md:p-8 rounded-lg bg-secondary/50">
+                <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h2 className="text-lg md:text-xl font-semibold mb-2">추천 카드가 없습니다</h2>
+                <p className="text-muted-foreground text-sm md:text-base">
+                  학습 데이터가 더 쌓이면 AI가 맞춤 카드를 추천해 드립니다.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <RecommendedCardList
+                  recommendations={recommendations?.recommendations ?? []}
+                  aiExplanation={recommendations?.aiExplanation ?? null}
+                  canSeeAiExplanation={canSeeAiExplanation}
+                />
+                {categoryAccuracy.length > 0 && (
+                  <CategoryAccuracyChart data={categoryAccuracy} />
+                )}
+              </div>
+            )}
+          </div>
+        ) : isLoading ? (
+          <div className="flex flex-col items-center justify-center h-64 gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-muted-foreground">카드를 불러오는 중...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-64">
             <p className="text-destructive mb-4">{error}</p>
-            <Button onClick={handleRetry}>다시 시도</Button>
+            <Button onClick={handleRetry} className="min-h-[44px]">다시 시도</Button>
           </div>
         ) : progress.total === 0 ? (
           <div className="max-w-2xl mx-auto">
-            <div className="text-center p-8 rounded-lg bg-secondary/50">
+            <div className="text-center p-6 md:p-8 rounded-lg bg-secondary/50">
               <CalendarCheck className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               {selectedMode === 'review' ? (
                 <>
-                  <h2 className="text-xl font-semibold mb-2">오늘 복습할 카드가 없습니다</h2>
-                  <p className="text-muted-foreground mb-4">
+                  <h2 className="text-lg md:text-xl font-semibold mb-2">오늘 복습할 카드가 없습니다</h2>
+                  <p className="text-muted-foreground mb-4 text-sm md:text-base">
                     모든 카드를 복습했거나, 아직 학습 기록이 없습니다.
                   </p>
-                  <Button onClick={() => handleModeChange('all')}>
+                  <Button onClick={() => handleModeChange('all')} className="min-h-[44px]">
                     전체 학습하기
                   </Button>
                 </>
               ) : (
                 <>
-                  <h2 className="text-xl font-semibold mb-2">카드가 없습니다</h2>
-                  <p className="text-muted-foreground">
+                  <h2 className="text-lg md:text-xl font-semibold mb-2">카드가 없습니다</h2>
+                  <p className="text-muted-foreground text-sm md:text-base">
                     {selectedMode === 'myCards'
                       ? '내 카드를 먼저 만들어보세요.'
                       : '해당 카테고리에 카드가 없습니다.'}
@@ -255,14 +340,19 @@ export function StudyPage() {
         ) : (
           <div className="max-w-2xl mx-auto">
             {/* Progress Bar */}
-            <div className="mb-6">
+            <div className="mb-4 md:mb-6">
               <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                <span>진행률</span>
+                <span>{progress.completed}/{progress.total} 완료</span>
                 <span>
-                  {progress.correct} / {progress.completed} 정답
+                  {progress.correct}/{progress.completed} 정답
+                  {progress.completed > 0 && (
+                    <span className="ml-1 text-primary font-medium">
+                      ({Math.round((progress.correct / progress.completed) * 100)}%)
+                    </span>
+                  )}
                 </span>
               </div>
-              <div className="h-2 w-full rounded-full bg-secondary">
+              <div className="h-2.5 w-full rounded-full bg-secondary">
                 <div
                   className="h-full rounded-full bg-primary transition-all"
                   style={{
@@ -289,18 +379,18 @@ export function StudyPage() {
 
             {/* Session Complete */}
             {progress.completed === progress.total && progress.total > 0 && (
-              <div className="mt-8 text-center p-6 rounded-lg bg-primary/10">
-                <h2 className="text-xl font-semibold mb-2">
+              <div className="mt-6 md:mt-8 text-center p-5 md:p-6 rounded-xl bg-primary/10">
+                <h2 className="text-lg md:text-xl font-semibold mb-2">
                   {selectedMode === 'review' ? '오늘의 복습 완료!' : '학습 완료!'}
                 </h2>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-muted-foreground mb-4 text-sm md:text-base">
                   {progress.total}개 중 {progress.correct}개 정답 (
                   {Math.round((progress.correct / progress.total) * 100)}%)
                 </p>
-                <div className="flex gap-4 justify-center">
-                  <Button onClick={handleNewSession}>새 세션</Button>
-                  <Button variant="outline" asChild>
-                    <Link to="/">홈으로</Link>
+                <div className="flex gap-3 justify-center">
+                  <Button onClick={handleNewSession} className="min-h-[44px]">새 세션</Button>
+                  <Button variant="outline" asChild className="min-h-[44px]">
+                    <Link to={isLoggedIn ? '/dashboard' : '/'}>홈으로</Link>
                   </Button>
                 </div>
               </div>

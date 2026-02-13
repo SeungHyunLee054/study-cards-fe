@@ -10,7 +10,7 @@ import {
   submitStudyAnswer,
 } from '@/api/cards'
 
-type StudyMode = 'all' | 'review' | 'myCards' | 'session-review'
+type StudyMode = 'all' | 'review' | 'myCards' | 'session-review' | 'recommended'
 
 interface UseStudyCardsReturn {
   cards: StudyCard[]
@@ -21,7 +21,7 @@ interface UseStudyCardsReturn {
   isFlipped: boolean
   isRateLimited: boolean
   studyMode: StudyMode
-  loadCards: (category?: string, mode?: StudyMode, cardIds?: number[]) => Promise<void>
+  loadCards: (category?: string, mode?: StudyMode, cardIds?: number[], isLoggedIn?: boolean) => Promise<void>
   flipCard: () => void
   answerCard: (isCorrect: boolean) => void
   nextCard: () => void
@@ -48,15 +48,13 @@ export function useStudyCards(): UseStudyCardsReturn {
 
   const currentCard = cards[currentIndex] ?? null
 
-  const loadCards = useCallback(async (category?: string, mode: StudyMode = 'all', cardIds?: number[]) => {
+  const loadCards = useCallback(async (category?: string, mode: StudyMode = 'all', cardIds?: number[], isLoggedIn = false) => {
     if (isLoadingRef.current) return
     isLoadingRef.current = true
     setIsLoading(true)
     setError(null)
     setIsRateLimited(false)
     setStudyMode(mode)
-
-    const isLoggedIn = !!localStorage.getItem('accessToken')
 
     try {
       let data: StudyCard[] | StudyCardResponse[]

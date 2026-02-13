@@ -18,14 +18,19 @@ import {
   History,
   LayoutDashboard,
   CreditCard,
+  Wand2,
+  Search,
+  Heart,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { useAuth } from '@/contexts/AuthContext'
 import { fetchDashboard } from '@/api/dashboard'
+import { fetchCategoryTree } from '@/api/categories'
+import type { CategoryTreeResponse } from '@/types/category'
+import { CategoryProgressTree } from '@/components/CategoryProgressTree'
 import type {
   DashboardResponse,
-  CategoryProgressItem,
   DashboardActivity,
   RecommendationType,
 } from '@/types/dashboard'
@@ -58,6 +63,7 @@ export function DashboardPage() {
   const { logout, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [dashboard, setDashboard] = useState<DashboardResponse | null>(null)
+  const [categoryTree, setCategoryTree] = useState<CategoryTreeResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -66,8 +72,12 @@ export function DashboardPage() {
       try {
         setIsLoading(true)
         setError(null)
-        const data = await fetchDashboard()
+        const [data, treeData] = await Promise.all([
+          fetchDashboard(),
+          fetchCategoryTree(),
+        ])
         setDashboard(data)
+        setCategoryTree(treeData)
       } catch {
         setError('대시보드를 불러오는데 실패했습니다')
       } finally {
@@ -108,69 +118,84 @@ export function DashboardPage() {
     <div className="min-h-screen bg-white text-gray-900">
       {/* Header */}
       <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
+            <span className="text-xl font-semibold hidden sm:inline">Study Cards</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 md:gap-4 overflow-x-auto">
+            <div className="hidden md:flex items-center gap-2 text-sm text-gray-600">
               <User className="h-4 w-4" />
               {user?.nickname && <span>{user.nickname}</span>}
             </div>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/mypage">
                 <LayoutDashboard className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
+              <Link to="/search">
+                <Search className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
+              <Link to="/bookmarks">
+                <Heart className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
+              <Link to="/ai-generate" className="text-primary">
+                <Wand2 className="h-4 w-4" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/sessions">
                 <History className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/my-cards">
                 <NotebookText className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/stats">
                 <BarChart3 className="h-4 w-4" />
               </Link>
             </Button>
             {isAdmin && (
               <>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
                   <Link to="/admin/cards" className="text-purple-600">
                     <Shield className="h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="ghost" size="sm" asChild>
+                <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
                   <Link to="/admin/generation" className="text-purple-600">
                     <Sparkles className="h-4 w-4" />
                   </Link>
                 </Button>
               </>
             )}
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/subscription">
                 <CreditCard className="h-4 w-4" />
               </Link>
             </Button>
             <NotificationDropdown />
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
               <Link to="/settings">
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" onClick={logout}>
+            <Button variant="ghost" size="sm" onClick={logout} className="min-h-[44px]">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {error && (
           <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
             {error}
@@ -178,15 +203,15 @@ export function DashboardPage() {
         )}
 
         {/* Recommendation Banner */}
-        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-primary/10">
-              <Sparkles className="h-6 w-6 text-primary" />
+        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="p-2 md:p-3 rounded-xl bg-primary/10 shrink-0">
+              <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{recommendation.message}</h1>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">{recommendation.message}</h1>
               {recommendation.cardsToStudy > 0 && (
-                <p className="mt-1 text-gray-600">
+                <p className="mt-1 text-sm md:text-base text-gray-600">
                   {recommendation.recommendedCategory && `${recommendation.recommendedCategory} · `}
                   {recommendation.cardsToStudy}개 카드
                 </p>
@@ -198,14 +223,34 @@ export function DashboardPage() {
             variant={recommendConfig.variant}
             disabled={recommendConfig.disabled}
             onClick={handleRecommendationClick}
+            className="w-full sm:w-auto shrink-0"
           >
             {recommendConfig.buttonText}
           </Button>
         </div>
 
+        {/* AI Generate CTA */}
+        <div className="mt-4 bg-gradient-to-r from-purple-50 to-primary/5 border border-purple-200 rounded-xl p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-purple-100 shrink-0">
+              <Wand2 className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-900 text-sm md:text-base">AI로 나만의 학습 카드를 만들어보세요</p>
+              <p className="text-xs md:text-sm text-gray-500">텍스트를 입력하면 AI가 자동으로 플래시카드를 생성합니다</p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" asChild className="shrink-0">
+            <Link to="/ai-generate">
+              <Wand2 className="h-4 w-4 mr-1" />
+              생성하기
+            </Link>
+          </Button>
+        </div>
+
         {/* Today's Stats Grid */}
-        <div className="mt-8 grid grid-cols-4 gap-4">
-          <div className="p-6 rounded-xl bg-gray-50 border border-gray-200">
+        <div className="mt-6 md:mt-8 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="p-4 md:p-6 rounded-xl bg-gray-50 border border-gray-200">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
                 <Clock className="h-5 w-5 text-primary" />
@@ -216,7 +261,7 @@ export function DashboardPage() {
               </div>
             </div>
           </div>
-          <div className="p-6 rounded-xl bg-gray-50 border border-gray-200">
+          <div className="p-4 md:p-6 rounded-xl bg-gray-50 border border-gray-200">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-green-100">
                 <CheckCircle className="h-5 w-5 text-green-600" />
@@ -227,7 +272,7 @@ export function DashboardPage() {
               </div>
             </div>
           </div>
-          <div className="p-6 rounded-xl bg-gray-50 border border-gray-200">
+          <div className="p-4 md:p-6 rounded-xl bg-gray-50 border border-gray-200">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-purple-100">
                 <Sparkles className="h-5 w-5 text-purple-600" />
@@ -238,7 +283,7 @@ export function DashboardPage() {
               </div>
             </div>
           </div>
-          <div className="p-6 rounded-xl bg-gray-50 border border-gray-200">
+          <div className="p-4 md:p-6 rounded-xl bg-gray-50 border border-gray-200">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-orange-100">
                 <Target className="h-5 w-5 text-orange-600" />
@@ -254,7 +299,7 @@ export function DashboardPage() {
         </div>
 
         {/* Two Column Layout */}
-        <div className="mt-8 grid grid-cols-2 gap-6">
+        <div className="mt-6 md:mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* Category Progress */}
           <div className="rounded-xl border border-gray-200 bg-white">
             <div className="p-6 border-b border-gray-200">
@@ -264,36 +309,10 @@ export function DashboardPage() {
               </h2>
             </div>
             <div className="p-6">
-              {categoryProgress.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">아직 학습 기록이 없습니다</p>
-              ) : (
-                <div className="space-y-4">
-                  {categoryProgress.map((cat: CategoryProgressItem) => (
-                    <div key={cat.categoryCode}>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-medium text-gray-900">{cat.categoryCode}</span>
-                        <div className="flex items-center gap-3 text-sm">
-                          <span className="text-gray-500">
-                            {cat.studiedCards}/{cat.totalCards} 학습
-                          </span>
-                          <span className="font-semibold text-primary">
-                            {formatPercent(cat.progressRate)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-primary transition-all"
-                          style={{ width: `${cat.progressRate * 100}%` }}
-                        />
-                      </div>
-                      <div className="mt-1 text-xs text-gray-400">
-                        마스터리: {formatPercent(cat.masteryRate)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <CategoryProgressTree
+                tree={categoryTree}
+                progressItems={categoryProgress}
+              />
             </div>
           </div>
 
@@ -369,25 +388,25 @@ export function DashboardPage() {
 
         {/* User Stats Summary */}
         {user && (
-          <div className="mt-8 p-6 rounded-xl bg-gradient-to-r from-primary/5 to-purple-50 border border-primary/10">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
+          <div className="mt-6 md:mt-8 p-4 md:p-6 rounded-xl bg-gradient-to-r from-primary/5 to-purple-50 border border-primary/10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4 md:gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">{user.level}</div>
-                  <div className="text-sm text-gray-500">레벨</div>
+                  <div className="text-2xl md:text-3xl font-bold text-primary">{user.level}</div>
+                  <div className="text-xs md:text-sm text-gray-500">레벨</div>
                 </div>
-                <div className="h-10 w-px bg-gray-200" />
+                <div className="h-8 md:h-10 w-px bg-gray-200" />
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-orange-500">{user.streak}</div>
-                  <div className="text-sm text-gray-500">연속 학습</div>
+                  <div className="text-2xl md:text-3xl font-bold text-orange-500">{user.streak}</div>
+                  <div className="text-xs md:text-sm text-gray-500">연속 학습</div>
                 </div>
-                <div className="h-10 w-px bg-gray-200" />
+                <div className="h-8 md:h-10 w-px bg-gray-200" />
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">{user.totalStudied}</div>
-                  <div className="text-sm text-gray-500">총 학습 카드</div>
+                  <div className="text-2xl md:text-3xl font-bold text-green-600">{user.totalStudied}</div>
+                  <div className="text-xs md:text-sm text-gray-500">총 학습 카드</div>
                 </div>
               </div>
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild className="w-full sm:w-auto">
                 <Link to="/stats">상세 통계 보기</Link>
               </Button>
             </div>

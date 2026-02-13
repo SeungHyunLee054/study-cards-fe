@@ -56,6 +56,15 @@ const DashboardPage = lazy(() =>
 const SessionHistoryPage = lazy(() =>
   import('@/pages/SessionHistoryPage').then(m => ({ default: m.SessionHistoryPage }))
 )
+const AiGeneratePage = lazy(() =>
+  import('@/pages/AiGeneratePage').then(m => ({ default: m.AiGeneratePage }))
+)
+const BookmarksPage = lazy(() =>
+  import('@/pages/BookmarksPage').then(m => ({ default: m.BookmarksPage }))
+)
+const SearchPage = lazy(() =>
+  import('@/pages/SearchPage').then(m => ({ default: m.SearchPage }))
+)
 const AdminCardsPage = lazy(() =>
   import('@/pages/AdminCardsPage').then(m => ({ default: m.AdminCardsPage }))
 )
@@ -93,6 +102,7 @@ function AppRoutes() {
           <Route path="/subscription" element={<SubscriptionPage />} />
           <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
           <Route path="/subscription/fail" element={<SubscriptionFailPage />} />
+          <Route path="/search" element={<SearchPage />} />
           {/* Protected routes */}
           <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
           <Route path="/my-cards" element={<ProtectedRoute><MyCardsPage /></ProtectedRoute>} />
@@ -100,6 +110,8 @@ function AppRoutes() {
           <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/sessions" element={<ProtectedRoute><SessionHistoryPage /></ProtectedRoute>} />
+          <Route path="/ai-generate" element={<ProtectedRoute><AiGeneratePage /></ProtectedRoute>} />
+          <Route path="/bookmarks" element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} />
           {/* Admin routes */}
           <Route
             path="/admin/cards"

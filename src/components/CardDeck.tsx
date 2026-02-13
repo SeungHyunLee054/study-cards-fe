@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { Check, X, RotateCcw } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { BookmarkButton } from '@/components/BookmarkButton'
+import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import type { StudyCard } from '@/types/card'
 
@@ -24,6 +26,7 @@ export function CardDeck({
   currentIndex,
   totalCards,
 }: CardDeckProps) {
+  const { isLoggedIn } = useAuth()
   const [isAnimating, setIsAnimating] = useState(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -35,7 +38,7 @@ export function CardDeck({
 
   if (!card) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-lg mx-auto">
         <CardContent className="flex items-center justify-center h-64">
           <p className="text-muted-foreground">학습할 카드가 없습니다</p>
         </CardContent>
@@ -51,12 +54,12 @@ export function CardDeck({
   }
 
   return (
-    <div className="w-full max-w-md mx-auto space-y-4">
+    <div className="w-full max-w-lg mx-auto space-y-4">
       <div className="flex justify-between items-center text-sm text-muted-foreground">
-        <span>
-          카드 {currentIndex + 1} / {totalCards}
+        <span className="font-medium">
+          {currentIndex + 1} / {totalCards}
         </span>
-        <span className="px-2 py-1 rounded bg-secondary">{card.category.name}</span>
+        <span className="px-2.5 py-1 rounded-full bg-secondary text-xs font-medium">{card.category.name}</span>
       </div>
 
       <div
@@ -73,13 +76,31 @@ export function CardDeck({
       >
         <Card
           className={cn(
-            'min-h-64 transition-all duration-300',
+            'min-h-[280px] md:min-h-[320px] transition-all duration-300',
             isFlipped && 'bg-primary/5'
           )}
         >
-          <CardHeader />
-          <CardContent className="flex flex-col items-center justify-center min-h-32 gap-2">
-            <p className="text-lg text-center">
+          <CardHeader className="pb-2 relative">
+            <div className="text-center">
+              <span className={cn(
+                'text-xs font-medium px-2 py-0.5 rounded-full',
+                isFlipped ? 'bg-green-100 text-green-700' : 'bg-primary/10 text-primary'
+              )}>
+                {isFlipped ? 'ANSWER' : 'QUESTION'}
+              </span>
+            </div>
+            {isLoggedIn && 'cardType' in card && (
+              <BookmarkButton
+                key={card.id}
+                cardId={card.id}
+                cardType={card.cardType}
+                size="sm"
+                className="absolute top-2 right-2"
+              />
+            )}
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center min-h-[160px] md:min-h-[200px] gap-3 px-6">
+            <p className="text-lg md:text-xl text-center leading-relaxed">
               {isFlipped ? card.answer : card.question}
             </p>
             {isFlipped && card.answerSub && (
@@ -89,39 +110,40 @@ export function CardDeck({
               <p className="text-sm text-muted-foreground text-center">{card.questionSub}</p>
             )}
           </CardContent>
-          <CardFooter className="justify-center">
+          <CardFooter className="justify-center pb-4">
             <p className="text-xs text-muted-foreground">
-              {isFlipped ? '정답' : '클릭하여 정답 확인'}
+              {isFlipped ? '정답을 확인했습니다' : '탭하여 정답 확인'}
             </p>
           </CardFooter>
         </Card>
       </div>
 
       {isFlipped && (
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-3 justify-center">
           <Button
             variant="destructive"
             size="lg"
             onClick={onIncorrect}
-            className="flex-1 max-w-32"
+            className="flex-1 max-w-36 min-h-[48px] text-base"
           >
-            <X className="mr-2 h-5 w-5" />
+            <X className="mr-1.5 h-5 w-5" />
             오답
           </Button>
           <Button
             variant="outline"
             size="lg"
             onClick={handleFlip}
+            className="min-h-[48px]"
           >
             <RotateCcw className="h-5 w-5 mr-1" />
-            뒤집기
+            <span className="hidden sm:inline">뒤집기</span>
           </Button>
           <Button
             size="lg"
             onClick={onCorrect}
-            className="flex-1 max-w-32 bg-green-600 hover:bg-green-700"
+            className="flex-1 max-w-36 min-h-[48px] text-base bg-green-600 hover:bg-green-700"
           >
-            <Check className="mr-2 h-5 w-5" />
+            <Check className="mr-1.5 h-5 w-5" />
             정답
           </Button>
         </div>
