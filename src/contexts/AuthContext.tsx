@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { AxiosError } from 'axios'
 import { signIn as apiSignIn, signUp as apiSignUp, signOut as apiSignOut } from '@/api/auth'
 import { fetchUserProfile } from '@/api/users'
 import type { SignInRequest, SignUpRequest, UserResponse } from '@/types/auth'
@@ -45,11 +46,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const profile = await fetchUserProfile()
           setUser(profile)
-        } catch {
-          // 토큰이 유효하지 않으면 로그아웃 처리
-          localStorage.removeItem('accessToken')
-          setIsLoggedIn(false)
-          setUser(null)
+        } catch (err) {
+          // 401(토큰 만료/무효)일 때만 로그아웃 처리
+          // 서버 오류(500)나 네트워크 에러 시에는 로그인 상태 유지
+          if (err instanceof AxiosError && err.response?.status === 401) {
+            localStorage.removeItem('accessToken')
+            setIsLoggedIn(false)
+            setUser(null)
+          }
         }
       }
       setIsLoading(false)
