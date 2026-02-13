@@ -9,3 +9,6 @@ export const STUDY_LOAD_DEBOUNCE_MS = 100
 
 /** API 요청 타임아웃 (밀리초) */
 export const API_TIMEOUT_MS = 15_000
+
+/** 검색 디바운스 딜레이 (밀리초) */
+export const SEARCH_DEBOUNCE_MS = 300
