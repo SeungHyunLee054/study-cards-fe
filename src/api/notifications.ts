@@ -62,8 +62,11 @@ export async function updatePushSettings(pushEnabled: boolean): Promise<PushSett
 // 알림 목록 조회
 export async function fetchNotifications(): Promise<NotificationResponse[]> {
   try {
-    const response = await apiClient.get<NotificationResponse[]>('/api/notifications')
-    return response.data
+    const response = await apiClient.get('/api/notifications')
+    const data = response.data
+    if (Array.isArray(data)) return data
+    if (data && Array.isArray(data.content)) return data.content
+    return []
   } catch (error) {
     if (error instanceof AxiosError) {
       throw new Error(error.response?.data?.message || '알림 목록을 불러오는데 실패했습니다.')
@@ -75,8 +78,11 @@ export async function fetchNotifications(): Promise<NotificationResponse[]> {
 // 읽지 않은 알림 목록 조회
 export async function fetchUnreadNotifications(): Promise<NotificationResponse[]> {
   try {
-    const response = await apiClient.get<NotificationResponse[]>('/api/notifications/unread')
-    return response.data
+    const response = await apiClient.get('/api/notifications/unread')
+    const data = response.data
+    if (Array.isArray(data)) return data
+    if (data && Array.isArray(data.content)) return data.content
+    return []
   } catch (error) {
     if (error instanceof AxiosError) {
       throw new Error(error.response?.data?.message || '읽지 않은 알림을 불러오는데 실패했습니다.')
@@ -88,8 +94,8 @@ export async function fetchUnreadNotifications(): Promise<NotificationResponse[]
 // 읽지 않은 알림 개수 조회
 export async function fetchUnreadCount(): Promise<number> {
   try {
-    const response = await apiClient.get<{ count: number }>('/api/notifications/unread/count')
-    return response.data.count
+    const response = await apiClient.get('/api/notifications/unread/count')
+    return response.data?.count ?? 0
   } catch (error) {
     if (error instanceof AxiosError) {
       throw new Error(error.response?.data?.message || '읽지 않은 알림 개수를 불러오는데 실패했습니다.')
