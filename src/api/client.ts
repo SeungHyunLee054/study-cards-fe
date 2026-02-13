@@ -15,15 +15,20 @@ export const apiClient = axios.create({
 
 // 토큰 갱신 중복 요청 방지
 let isRefreshing = false
-let refreshSubscribers: ((token: string) => void)[] = []
+let refreshSubscribers: { resolve: (token: string) => void; reject: (err: unknown) => void }[] = []
 
 const onRefreshed = (token: string) => {
-  refreshSubscribers.forEach((callback) => callback(token))
+  refreshSubscribers.forEach(({ resolve }) => resolve(token))
   refreshSubscribers = []
 }
 
-const addRefreshSubscriber = (callback: (token: string) => void) => {
-  refreshSubscribers.push(callback)
+const onRefreshFailed = (err: unknown) => {
+  refreshSubscribers.forEach(({ reject }) => reject(err))
+  refreshSubscribers = []
+}
+
+const addRefreshSubscriber = (resolve: (token: string) => void, reject: (err: unknown) => void) => {
+  refreshSubscribers.push({ resolve, reject })
 }
 
 // 요청 인터셉터: 토큰 자동 첨부
@@ -55,11 +60,16 @@ apiClient.interceptors.response.use(
 
       if (isRefreshing) {
         // 이미 갱신 중이면 대기
-        return new Promise((resolve) => {
-          addRefreshSubscriber((token: string) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-            resolve(apiClient(originalRequest))
-          })
+        return new Promise((resolve, reject) => {
+          addRefreshSubscriber(
+            (token: string) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`
+              resolve(apiClient(originalRequest))
+            },
+            (err: unknown) => {
+              reject(err)
+            }
+          )
         })
       }
 
@@ -76,6 +86,7 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newToken}`
         return apiClient(originalRequest)
       } catch (refreshError) {
+        onRefreshFailed(refreshError)
         localStorage.removeItem('accessToken')
         window.dispatchEvent(new CustomEvent('auth:logout'))
         return Promise.reject(refreshError)
