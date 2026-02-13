@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, BookOpen, ArrowLeft, Loader2, Filter } from 'lucide-react'
+import { Plus, Pencil, Trash2, BookOpen, ArrowLeft, Loader2, Filter, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { CardForm } from '@/components/CardForm'
 import { getUserCards, createUserCard, updateUserCard, deleteUserCard } from '@/api/cards'
@@ -122,10 +122,18 @@ export function MyCardsPage() {
             <h1 className="text-2xl font-bold text-gray-900">내 카드</h1>
             <p className="mt-1 text-gray-600">나만의 학습 카드를 관리하세요</p>
           </div>
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            새 카드
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/ai-generate">
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI 생성
+              </Link>
+            </Button>
+            <Button onClick={() => setIsFormOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              새 카드
+            </Button>
+          </div>
         </div>
 
         {/* Error Message */}
