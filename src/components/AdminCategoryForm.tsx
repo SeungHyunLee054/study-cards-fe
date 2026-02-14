@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { CategoryResponse, CategoryCreateRequest } from '@/types/category'
+import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
 
 interface AdminCategoryFormProps {
   isOpen: boolean
@@ -79,10 +80,11 @@ export function AdminCategoryForm({
     await onSubmit(data)
   }
 
-  if (!isOpen) return null
-
   // 자기 자신을 제외한 카테고리 목록 (부모 선택용)
   const availableParents = categories.filter((cat) => cat.id !== initialData?.id)
+  const parentOptions = useMemo(() => flattenCategoriesForSelect(availableParents), [availableParents])
+
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -146,9 +148,9 @@ export function AdminCategoryForm({
                 disabled={isLoading}
               >
                 <option value="">없음 (최상위)</option>
-                {availableParents.map((cat) => (
-                  <option key={cat.id} value={cat.code}>
-                    {cat.name} ({cat.code})
+                {parentOptions.map((option) => (
+                  <option key={option.id} value={option.code}>
+                    {option.pathLabel} ({option.code})
                   </option>
                 ))}
               </select>

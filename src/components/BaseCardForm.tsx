@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { CategoryResponse } from '@/types/category'
+import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
 
 interface CardFormInitialData {
   question: string
@@ -70,6 +71,7 @@ export function BaseCardForm<
   const [answerSub, setAnswerSub] = useState('')
   const [category, setCategory] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const categoryOptions = useMemo(() => flattenCategoriesForSelect(categories), [categories])
 
   const isEdit = !!initialData
 
@@ -93,9 +95,9 @@ export function BaseCardForm<
   }, [isOpen, initialData])
 
   useEffect(() => {
-    if (!isOpen || initialData || category || categories.length === 0) return
-    setCategory(categories[0].code)
-  }, [isOpen, initialData, category, categories])
+    if (!isOpen || initialData || category || categoryOptions.length === 0) return
+    setCategory(categoryOptions[0].code)
+  }, [isOpen, initialData, category, categoryOptions])
 
   function validate(): boolean {
     const newErrors: Record<string, string> = {}
@@ -159,9 +161,9 @@ export function BaseCardForm<
               disabled={isLoading}
             >
               <option value="">카테고리 선택</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.code}>
-                  {showCategoryCode ? `${cat.name} (${cat.code})` : cat.name}
+              {categoryOptions.map((option) => (
+                <option key={option.id} value={option.code}>
+                  {showCategoryCode ? `${option.pathLabel} (${option.code})` : option.pathLabel}
                 </option>
               ))}
             </select>

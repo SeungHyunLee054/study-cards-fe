@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Pencil, Trash2, BookOpen, Loader2, Filter, Shield, FolderTree, Sparkles, Users, User } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { AdminCardForm } from '@/components/AdminCardForm'
 import { AdminCategoryForm } from '@/components/AdminCategoryForm'
+import { CategoryFilterChips } from '@/components/CategoryFilterChips'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import {
   createAdminCard,
   updateAdminCard,
@@ -17,6 +19,8 @@ import { fetchCategories } from '@/api/categories'
 import { useInfiniteAdminCards } from '@/hooks/useInfiniteAdminCards'
 import type { AdminCardResponse, AdminCardCreateRequest } from '@/types/admin'
 import type { CategoryResponse, CategoryCreateRequest, CategoryUpdateRequest } from '@/types/category'
+import { buildCategoryTreeFromFlat } from '@/lib/categoryHierarchy'
+import type { CategoryTreeNode } from '@/lib/categoryHierarchy'
 
 type Tab = 'cards' | 'categories'
 
@@ -31,11 +35,15 @@ export function AdminCardsPage() {
   const [selectedCategory, setSelectedCategory] = useState('ALL')
   const [isCardFormOpen, setIsCardFormOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<AdminCardResponse | null>(null)
+  const [deleteTargetCard, setDeleteTargetCard] = useState<AdminCardResponse | null>(null)
   const [isCardSubmitting, setIsCardSubmitting] = useState(false)
-  const [deleteCardConfirmId, setDeleteCardConfirmId] = useState<number | null>(null)
   const [cardActionError, setCardActionError] = useState<string | null>(null)
 
   const categoryCode = selectedCategory === 'ALL' ? undefined : selectedCategory
+  const selectedCategoryName = selectedCategory === 'ALL'
+    ? '전체'
+    : (categories.find((cat) => cat.code === selectedCategory)?.name ?? selectedCategory)
+  const categoryTree = useMemo(() => buildCategoryTreeFromFlat(categories), [categories])
   const {
     cards,
     isLoading: isCardsLoading,
@@ -51,8 +59,8 @@ export function AdminCardsPage() {
   const [categoriesError, setCategoriesError] = useState<string | null>(null)
   const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<CategoryResponse | null>(null)
+  const [deleteTargetCategory, setDeleteTargetCategory] = useState<CategoryResponse | null>(null)
   const [isCategorySubmitting, setIsCategorySubmitting] = useState(false)
-  const [deleteCategoryConfirmId, setDeleteCategoryConfirmId] = useState<number | null>(null)
 
   // 카테고리 목록 로드
   useEffect(() => {
@@ -104,7 +112,7 @@ export function AdminCardsPage() {
     try {
       setIsCardSubmitting(true)
       await deleteAdminCard(id)
-      setDeleteCardConfirmId(null)
+      setDeleteTargetCard(null)
       await refreshCards()
     } catch (err) {
       setCardActionError(err instanceof Error ? err.message : '카드 삭제에 실패했습니다')
@@ -150,7 +158,7 @@ export function AdminCardsPage() {
     try {
       setIsCategorySubmitting(true)
       await deleteAdminCategory(id)
-      setDeleteCategoryConfirmId(null)
+      setDeleteTargetCategory(null)
       await loadCategories()
     } catch (err) {
       setCategoriesError(err instanceof Error ? err.message : '카테고리 삭제에 실패했습니다')
@@ -169,6 +177,61 @@ export function AdminCardsPage() {
     setEditingCategory(null)
   }
 
+  function renderCategoryNode(node: CategoryTreeNode) {
+    return (
+      <div key={node.id} className="space-y-2">
+        <div className="p-4 rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="px-3 py-1 text-sm font-medium rounded-lg bg-primary/10 text-primary">
+                  {node.code}
+                </span>
+                <span className="text-lg font-medium text-gray-900">{node.name}</span>
+                {node.parentCode && (
+                  <span className="text-xs text-gray-500">
+                    상위: {node.parentCode}
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-gray-400">
+                ID: #{node.id} · 레벨 {node.depth + 1}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setEditingCategory(categories.find((cat) => cat.id === node.id) ?? null)}
+                className="min-h-[44px] min-w-[44px]"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const target = categories.find((cat) => cat.id === node.id)
+                  if (target) {
+                    setDeleteTargetCategory(target)
+                  }
+                }}
+                className="min-h-[44px] min-w-[44px]"
+              >
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </Button>
+            </div>
+          </div>
+        </div>
+        {node.children.length > 0 && (
+          <div className="ml-4 pl-4 border-l border-gray-200 space-y-2">
+            {node.children.map((child) => renderCategoryNode(child))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <AppHeader
@@ -180,19 +243,19 @@ export function AdminCardsPage() {
               관리자
             </span>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/admin/users">
+              <Link to="/admin/users" aria-label="사용자 관리">
                 <Users className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">사용자 관리</span>
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/admin/generation">
+              <Link to="/admin/generation" aria-label="AI 문제 생성">
                 <Sparkles className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">AI 문제 생성</span>
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/mypage">
+              <Link to="/mypage" aria-label="마이페이지">
                 <User className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">마이페이지</span>
               </Link>
@@ -263,33 +326,14 @@ export function AdminCardsPage() {
             )}
 
             {/* Category Filter */}
-            <div className="mb-6 flex items-center gap-3">
+            <div className="mb-6 flex items-start gap-3">
               <Filter className="h-4 w-4 text-gray-500" />
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setSelectedCategory('ALL')}
-                  className={`px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
-                    selectedCategory === 'ALL'
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  전체
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.code)}
-                    className={`px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
-                      selectedCategory === cat.code
-                        ? 'bg-primary text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
+              <CategoryFilterChips
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onChange={setSelectedCategory}
+                buttonBaseClassName="px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px]"
+              />
             </div>
 
             {/* Cards List */}
@@ -304,7 +348,7 @@ export function AdminCardsPage() {
                 <p className="text-gray-600 mb-4">
                   {selectedCategory === 'ALL'
                     ? '첫 번째 학습 카드를 만들어보세요!'
-                    : `${selectedCategory} 카테고리에 카드가 없습니다`}
+                    : `${selectedCategoryName} 카테고리에 카드가 없습니다`}
                 </p>
                 <Button onClick={() => setIsCardFormOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -346,41 +390,14 @@ export function AdminCardsPage() {
                         <Button variant="ghost" size="sm" onClick={() => setEditingCard(card)} className="min-h-[44px] min-w-[44px]">
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        {deleteCardConfirmId === card.id ? (
-                          <div className="flex gap-1">
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteCard(card.id)}
-                              disabled={isCardSubmitting}
-                              className="min-h-[44px]"
-                            >
-                              {isCardSubmitting ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                '삭제'
-                              )}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setDeleteCardConfirmId(null)}
-                              disabled={isCardSubmitting}
-                              className="min-h-[44px]"
-                            >
-                              취소
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteCardConfirmId(card.id)}
-                            className="min-h-[44px] min-w-[44px]"
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDeleteTargetCard(card)}
+                          className="min-h-[44px] min-w-[44px]"
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -443,80 +460,65 @@ export function AdminCardsPage() {
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {categories.map((cat) => (
-                  <div
-                    key={cat.id}
-                    className="p-4 rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <span className="px-3 py-1 text-sm font-medium rounded-lg bg-primary/10 text-primary">
-                            {cat.code}
-                          </span>
-                          <span className="text-lg font-medium text-gray-900">{cat.name}</span>
-                          {cat.parentCode && (
-                            <span className="text-sm text-gray-500">
-                              (상위: {cat.parentCode})
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1 text-xs text-gray-400">ID: #{cat.id}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditingCategory(cat)}
-                          className="min-h-[44px] min-w-[44px]"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        {deleteCategoryConfirmId === cat.id ? (
-                          <div className="flex gap-1">
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteCategory(cat.id)}
-                              disabled={isCategorySubmitting}
-                              className="min-h-[44px]"
-                            >
-                              {isCategorySubmitting ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                '삭제'
-                              )}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setDeleteCategoryConfirmId(null)}
-                              disabled={isCategorySubmitting}
-                              className="min-h-[44px]"
-                            >
-                              취소
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteCategoryConfirmId(cat.id)}
-                            className="min-h-[44px] min-w-[44px]"
-                          >
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-3">
+                {categoryTree.map((node) => renderCategoryNode(node))}
               </div>
             )}
           </>
         )}
       </main>
+
+      <ConfirmDialog
+        isOpen={!!deleteTargetCard}
+        title="카드 삭제"
+        description={deleteTargetCard ? (
+          <>
+            관리자 카드(ID: #{deleteTargetCard.id})를 삭제하시겠습니까?
+            <br />
+            삭제된 카드는 복구할 수 없습니다.
+          </>
+        ) : undefined}
+        confirmLabel="삭제"
+        confirmVariant="destructive"
+        isConfirming={isCardSubmitting}
+        onCancel={() => {
+          if (!isCardSubmitting) {
+            setDeleteTargetCard(null)
+          }
+        }}
+        onConfirm={() => {
+          if (deleteTargetCard) {
+            void handleDeleteCard(deleteTargetCard.id)
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteTargetCategory}
+        title="카테고리 삭제"
+        description={deleteTargetCategory ? (
+          <>
+            <span className="font-medium text-gray-900">{deleteTargetCategory.name}</span>
+            {' '}
+            카테고리를 삭제하시겠습니까?
+            <br />
+            하위 카테고리/카드 영향 여부를 확인한 뒤 진행하세요.
+          </>
+        ) : undefined}
+        confirmLabel="삭제"
+        confirmVariant="destructive"
+        isConfirming={isCategorySubmitting}
+        onCancel={() => {
+          if (!isCategorySubmitting) {
+            setDeleteTargetCategory(null)
+          }
+        }}
+        onConfirm={() => {
+          if (deleteTargetCategory) {
+            void handleDeleteCategory(deleteTargetCategory.id)
+          }
+        }}
+      />
 
       {/* Card Form Modal */}
       <AdminCardForm
