@@ -27,7 +27,7 @@ export interface AdminCardResponse {
   createdAt: string
 }
 
-export type AdminUserStatus = 'ACTIVE' | 'WITHDRAWN'
+export type AdminUserStatus = 'ACTIVE' | 'WITHDRAWN' | 'BANNED'
 export type AdminUserRole = 'ROLE_USER' | 'ROLE_ADMIN'
 export type AdminUserProvider = 'LOCAL' | 'GOOGLE' | 'KAKAO' | 'NAVER'
 

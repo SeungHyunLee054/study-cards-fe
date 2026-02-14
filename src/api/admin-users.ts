@@ -31,8 +31,8 @@ export async function fetchAdminUser(userId: number): Promise<AdminUserResponse>
   }, '사용자 정보를 불러오는데 실패했습니다.')
 }
 
-export async function withdrawAdminUser(userId: number): Promise<void> {
+export async function banAdminUser(userId: number): Promise<void> {
   return withApiErrorHandling(async () => {
     await apiClient.delete(`/api/admin/users/${userId}`)
-  }, '사용자 탈퇴 처리에 실패했습니다.')
+  }, '사용자 이용 제한 처리에 실패했습니다.')
 }

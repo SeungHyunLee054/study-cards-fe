@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Eye, Filter, Loader2, Shield, UserX, Users, Sparkles, BookOpen, User } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
-import { fetchAdminUser, fetchAdminUsers, withdrawAdminUser } from '@/api/admin-users'
+import { banAdminUser, fetchAdminUser, fetchAdminUsers } from '@/api/admin-users'
 import type { AdminUserResponse, AdminUserStatus } from '@/types/admin'
 import type { PageResponse } from '@/types/card'
 
@@ -13,6 +13,7 @@ const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
   { value: 'ALL', label: '전체' },
   { value: 'ACTIVE', label: '활성' },
   { value: 'WITHDRAWN', label: '탈퇴' },
+  { value: 'BANNED', label: '이용 제한' },
 ]
 
 function formatDateTime(value: string | null): string {
@@ -25,6 +26,13 @@ function getStatusChip(status: AdminUserStatus): { label: string; className: str
     return {
       label: '활성',
       className: 'bg-green-100 text-green-700',
+    }
+  }
+
+  if (status === 'BANNED') {
+    return {
+      label: '이용 제한',
+      className: 'bg-red-100 text-red-700',
     }
   }
 
@@ -95,19 +103,19 @@ export function AdminUsersPage() {
     }
   }
 
-  async function handleWithdrawUser(user: AdminUserResponse) {
+  async function handleBanUser(user: AdminUserResponse) {
     if (user.status !== 'ACTIVE') {
       return
     }
 
-    if (!confirm(`"${user.nickname}" 사용자를 탈퇴 처리하시겠습니까?\n되돌릴 수 없습니다.`)) {
+    if (!confirm(`"${user.nickname}" 사용자를 이용 제한 처리하시겠습니까?\n되돌릴 수 없습니다.`)) {
       return
     }
 
     try {
       setActionLoadingId(user.id)
       setError(null)
-      await withdrawAdminUser(user.id)
+      await banAdminUser(user.id)
       await loadUsers(true)
 
       if (selectedUserId === user.id) {
@@ -115,7 +123,7 @@ export function AdminUsersPage() {
         setSelectedUser(refreshed)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '사용자 탈퇴 처리에 실패했습니다')
+      setError(err instanceof Error ? err.message : '사용자 이용 제한 처리에 실패했습니다')
     } finally {
       setActionLoadingId(null)
     }
@@ -274,14 +282,14 @@ export function AdminUsersPage() {
                           size="sm"
                           className="min-h-[44px]"
                           disabled={isActionLoading}
-                          onClick={() => void handleWithdrawUser(user)}
+                          onClick={() => void handleBanUser(user)}
                         >
                           {isActionLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <>
                               <UserX className="h-4 w-4 mr-1" />
-                              탈퇴 처리
+                              이용 제한
                             </>
                           )}
                         </Button>
