@@ -1,5 +1,4 @@
-import { apiClient, publicClient } from './client'
-import { AxiosError } from 'axios'
+import { withApiErrorHandling, getOptionalAuthClient } from './helpers'
 import type { CardResponse, PageResponse } from '@/types/card'
 
 // 카드 검색 (인증 선택적 - 인증 시 사용자 카드도 포함)
@@ -9,8 +8,8 @@ export async function searchCards(params: {
   page?: number
   size?: number
 }): Promise<PageResponse<CardResponse>> {
-  try {
-    const client = localStorage.getItem('accessToken') ? apiClient : publicClient
+  return withApiErrorHandling(async () => {
+    const client = getOptionalAuthClient()
     const response = await client.get<PageResponse<CardResponse>>('/api/cards/search', {
       params: {
         keyword: params.keyword,
@@ -20,10 +19,5 @@ export async function searchCards(params: {
       },
     })
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '카드 검색에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '카드 검색에 실패했습니다.')
 }

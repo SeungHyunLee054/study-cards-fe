@@ -1,5 +1,6 @@
-import { apiClient, publicClient } from './client'
 import { AxiosError } from 'axios'
+import { apiClient, publicClient } from './client'
+import { withApiErrorHandling, toAppError } from './helpers'
 import { AuthError } from '@/types/errors'
 import type {
   SignUpRequest,
@@ -14,15 +15,10 @@ import type {
 } from '@/types/auth'
 
 export async function signUp(request: SignUpRequest): Promise<UserResponse> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await publicClient.post<UserResponse>('/api/auth/signup', request)
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '회원가입에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '회원가입에 실패했습니다.')
 }
 
 export async function signIn(request: SignInRequest): Promise<SignInResponse> {
@@ -32,7 +28,6 @@ export async function signIn(request: SignInRequest): Promise<SignInResponse> {
   } catch (error) {
     if (error instanceof AxiosError) {
       const code = error.response?.data?.code
-      // EMAIL_NOT_VERIFIED 에러 처리
       if (error.response?.status === 403 && code === 'EMAIL_NOT_VERIFIED') {
         throw new AuthError(
           error.response?.data?.message || '이메일 인증이 필요합니다.',
@@ -40,55 +35,34 @@ export async function signIn(request: SignInRequest): Promise<SignInResponse> {
           request.email
         )
       }
-      throw new Error(error.response?.data?.message || '로그인에 실패했습니다.')
     }
-    throw error
+    return toAppError(error, '로그인에 실패했습니다.')
   }
 }
 
 export async function signOut(): Promise<void> {
-  try {
+  return withApiErrorHandling(async () => {
     await apiClient.post('/api/auth/signout')
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '로그아웃에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '로그아웃에 실패했습니다.')
 }
 
 export async function refreshToken(): Promise<SignInResponse> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await publicClient.post<SignInResponse>('/api/auth/refresh')
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '토큰 갱신에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '토큰 갱신에 실패했습니다.')
 }
 
 export async function requestPasswordReset(request: PasswordResetRequest): Promise<void> {
-  try {
+  return withApiErrorHandling(async () => {
     await publicClient.post('/api/auth/password-reset/request', request)
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '비밀번호 재설정 요청에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '비밀번호 재설정 요청에 실패했습니다.')
 }
 
 export async function verifyPasswordReset(request: PasswordResetVerifyRequest): Promise<void> {
-  try {
+  return withApiErrorHandling(async () => {
     await publicClient.post('/api/auth/password-reset/verify', request)
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '비밀번호 재설정에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '비밀번호 재설정에 실패했습니다.')
 }
 
 export async function requestEmailVerification(request: EmailVerificationRequest): Promise<void> {
@@ -100,9 +74,8 @@ export async function requestEmailVerification(request: EmailVerificationRequest
       if (code === 'TOO_MANY_ATTEMPTS') {
         throw new Error('인증 코드 요청 횟수를 초과했습니다. 잠시 후 다시 시도해주세요.')
       }
-      throw new Error(error.response?.data?.message || '인증 코드 발송에 실패했습니다.')
     }
-    throw error
+    return toAppError(error, '인증 코드 발송에 실패했습니다.')
   }
 }
 
@@ -121,9 +94,8 @@ export async function verifyEmailVerification(request: EmailVerificationVerifyRe
       if (code === 'TOO_MANY_ATTEMPTS') {
         throw new Error('인증 시도 횟수를 초과했습니다. 새 코드를 요청해주세요.')
       }
-      throw new Error(error.response?.data?.message || '이메일 인증에 실패했습니다.')
     }
-    throw error
+    return toAppError(error, '이메일 인증에 실패했습니다.')
   }
 }
 

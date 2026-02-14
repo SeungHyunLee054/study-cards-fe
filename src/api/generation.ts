@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import { AxiosError } from 'axios'
+import { withApiErrorHandling } from './helpers'
 import type { PageResponse } from '@/types/card'
 import type {
   GeneratedCardResponse,
@@ -13,38 +13,28 @@ import type {
 
 // 1. AI 문제 생성
 export async function generateCards(request: GenerationRequest): Promise<GenerationResultResponse> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await apiClient.post<GenerationResultResponse>(
       '/api/admin/generation/cards',
       request
     )
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || 'AI 문제 생성에 실패했습니다.')
-    }
-    throw error
-  }
+  }, 'AI 문제 생성에 실패했습니다.')
 }
 
 // 2. 생성 통계 조회
 export async function fetchGenerationStats(): Promise<GenerationStatsResponse> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await apiClient.get<GenerationStatsResponse>('/api/admin/generation/stats')
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '생성 통계를 불러오는데 실패했습니다.')
-    }
-    throw error
-  }
+  }, '생성 통계를 불러오는데 실패했습니다.')
 }
 
 // 3. 생성된 문제 목록 (페이지네이션)
 export async function fetchGeneratedCards(
   params?: GeneratedCardsParams
 ): Promise<PageResponse<GeneratedCardResponse>> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await apiClient.get<PageResponse<GeneratedCardResponse>>(
       '/api/admin/generation/cards',
       {
@@ -57,86 +47,56 @@ export async function fetchGeneratedCards(
       }
     )
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '생성된 문제 목록을 불러오는데 실패했습니다.')
-    }
-    throw error
-  }
+  }, '생성된 문제 목록을 불러오는데 실패했습니다.')
 }
 
 // 4. 생성된 문제 상세 조회
 export async function fetchGeneratedCard(id: number): Promise<GeneratedCardResponse> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await apiClient.get<GeneratedCardResponse>(
       `/api/admin/generation/cards/${id}`
     )
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '문제를 불러오는데 실패했습니다.')
-    }
-    throw error
-  }
+  }, '문제를 불러오는데 실패했습니다.')
 }
 
 // 5. 문제 승인
 export async function approveGeneratedCard(id: number): Promise<GeneratedCardResponse> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await apiClient.patch<GeneratedCardResponse>(
       `/api/admin/generation/cards/${id}/approve`
     )
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '문제 승인에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '문제 승인에 실패했습니다.')
 }
 
 // 6. 문제 거부
 export async function rejectGeneratedCard(id: number): Promise<GeneratedCardResponse> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await apiClient.patch<GeneratedCardResponse>(
       `/api/admin/generation/cards/${id}/reject`
     )
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '문제 거부에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '문제 거부에 실패했습니다.')
 }
 
 // 7. 일괄 승인
 export async function batchApproveCards(
   request: BatchApproveRequest
 ): Promise<GeneratedCardResponse[]> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await apiClient.post<GeneratedCardResponse[]>(
       '/api/admin/generation/cards/batch-approve',
       request
     )
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '일괄 승인에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '일괄 승인에 실패했습니다.')
 }
 
 // 8. Card 테이블로 마이그레이션
 export async function migrateApprovedCards(): Promise<MigrationResponse> {
-  try {
+  return withApiErrorHandling(async () => {
     const response = await apiClient.post<MigrationResponse>('/api/admin/generation/migrate')
     return response.data
-  } catch (error) {
-    if (error instanceof AxiosError) {
-      throw new Error(error.response?.data?.message || '마이그레이션에 실패했습니다.')
-    }
-    throw error
-  }
+  }, '마이그레이션에 실패했습니다.')
 }
