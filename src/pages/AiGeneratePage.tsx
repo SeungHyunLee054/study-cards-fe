@@ -13,9 +13,8 @@ import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/useAuth'
-import { fetchCategories } from '@/api/categories'
+import { useCategories } from '@/hooks/useCategories'
 import { generateUserCards, fetchAiGenerationLimit } from '@/api/ai'
-import type { CategoryResponse } from '@/types/category'
 import type { AiCardResponse, AiLimitResponse } from '@/types/ai'
 import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
 
@@ -25,7 +24,7 @@ const MAX_CARD_COUNT = 20
 export function AiGeneratePage() {
   const { isLoggedIn } = useAuth()
 
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
+  const { categories } = useCategories()
   const [sourceText, setSourceText] = useState('')
   const [categoryCode, setCategoryCode] = useState('')
   const [countInput, setCountInput] = useState('5')
@@ -38,12 +37,6 @@ export function AiGeneratePage() {
   const [limitInfo, setLimitInfo] = useState<AiLimitResponse | null>(null)
   const [isLoadingLimit, setIsLoadingLimit] = useState(true)
   const categoryOptions = useMemo(() => flattenCategoriesForSelect(categories), [categories])
-
-  useEffect(() => {
-    fetchCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]))
-  }, [])
 
   useEffect(() => {
     if (categoryOptions.length === 0) {

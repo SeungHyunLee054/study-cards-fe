@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { CategoryResponse } from '@/types/category'
 import type { CategoryTreeNode } from '@/lib/categoryHierarchy'
@@ -25,6 +25,14 @@ function findPathCodes(nodes: CategoryTreeNode[], targetCode: string): string[] 
   return []
 }
 
+function collectNodeAndDescendantCodes(node: CategoryTreeNode): string[] {
+  const codes: string[] = [node.code]
+  node.children.forEach((child) => {
+    codes.push(...collectNodeAndDescendantCodes(child))
+  })
+  return codes
+}
+
 export function CategoryFilterChips({
   selectedCategory,
   categories,
@@ -35,18 +43,50 @@ export function CategoryFilterChips({
   const categoryTree = useMemo(() => buildCategoryTreeFromFlat(categories), [categories])
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({})
 
-  const selectedPathSet = useMemo(() => {
-    if (selectedCategory === 'ALL') return new Set<string>()
-    return new Set(findPathCodes(categoryTree, selectedCategory))
+  const selectedPath = useMemo(() => {
+    if (selectedCategory === 'ALL') return []
+    return findPathCodes(categoryTree, selectedCategory)
   }, [categoryTree, selectedCategory])
+
+  useEffect(() => {
+    if (selectedPath.length === 0) return
+    setExpandedMap((prev) => {
+      const next = { ...prev }
+      let hasChanged = false
+
+      selectedPath.forEach((code) => {
+        if (!next[code]) {
+          next[code] = true
+          hasChanged = true
+        }
+      })
+
+      return hasChanged ? next : prev
+    })
+  }, [selectedPath])
 
   function toggleExpanded(code: string) {
     setExpandedMap((prev) => ({ ...prev, [code]: !prev[code] }))
   }
 
+  function handleNodeSelect(node: CategoryTreeNode) {
+    if (node.children.length > 0) {
+      const codesToExpand = collectNodeAndDescendantCodes(node)
+      setExpandedMap((prev) => {
+        const next = { ...prev }
+        codesToExpand.forEach((code) => {
+          next[code] = true
+        })
+        return next
+      })
+    }
+
+    onChange(node.code)
+  }
+
   function renderNode(node: CategoryTreeNode) {
     const hasChildren = node.children.length > 0
-    const isExpanded = hasChildren && ((expandedMap[node.code] ?? false) || selectedPathSet.has(node.code))
+    const isExpanded = hasChildren && !!expandedMap[node.code]
     const isSelected = selectedCategory === node.code
 
     return (
@@ -77,7 +117,7 @@ export function CategoryFilterChips({
           )}
           <button
             type="button"
-            onClick={() => onChange(node.code)}
+            onClick={() => handleNodeSelect(node)}
             className={`${buttonBaseClassName} inline-flex items-center justify-start text-left min-w-[88px] ${
               isSelected
                 ? 'bg-primary text-white'
@@ -102,7 +142,10 @@ export function CategoryFilterChips({
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
-          onClick={() => onChange('ALL')}
+          onClick={() => {
+            setExpandedMap({})
+            onChange('ALL')
+          }}
           className={`${buttonBaseClassName} ${
             selectedCategory === 'ALL'
               ? 'bg-primary text-white'

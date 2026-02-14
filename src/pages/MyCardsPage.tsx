@@ -1,37 +1,27 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Loader2, Filter, Sparkles, BookOpen } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Sparkles, BookOpen } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { CardForm } from '@/components/CardForm'
 import { InlineError } from '@/components/InlineError'
-import { CategoryFilterChips } from '@/components/CategoryFilterChips'
+import { CategoryFilterSection } from '@/components/CategoryFilterSection'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { getUserCards, createUserCard, updateUserCard, deleteUserCard } from '@/api/cards'
-import { fetchCategories } from '@/api/categories'
 import { useCategoryFilter } from '@/hooks/useCategoryFilter'
+import { useCategories } from '@/hooks/useCategories'
 import type { UserCardResponse, UserCardCreateRequest } from '@/types/card'
-import type { CategoryResponse } from '@/types/category'
 
 export function MyCardsPage() {
   const [cards, setCards] = useState<UserCardResponse[]>([])
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
+  const { categories, isLoading: isCategoriesLoading } = useCategories()
   const [isLoading, setIsLoading] = useState(true)
-  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { selectedCategory, setSelectedCategory, categoryCode } = useCategoryFilter()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<UserCardResponse | null>(null)
   const [deleteTargetCard, setDeleteTargetCard] = useState<UserCardResponse | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // 카테고리 목록 로드
-  useEffect(() => {
-    fetchCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]))
-      .finally(() => setIsCategoriesLoading(false))
-  }, [])
 
   // 카드 목록 로드
   const loadCards = useCallback(async () => {
@@ -132,22 +122,15 @@ export function MyCardsPage() {
         )}
 
         {/* Filter */}
-        <div className="mb-6 flex items-start gap-3">
-          <Filter className="h-4 w-4 text-gray-500" />
-          {isCategoriesLoading ? (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              로딩 중...
-            </div>
-          ) : (
-            <CategoryFilterChips
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onChange={setSelectedCategory}
-              buttonBaseClassName="px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px]"
-            />
-          )}
-        </div>
+        <CategoryFilterSection
+          className="mb-6"
+          categories={categories}
+          isLoading={isCategoriesLoading}
+          selectedCategory={selectedCategory}
+          onChange={setSelectedCategory}
+          loadingText="로딩 중..."
+          buttonBaseClassName="px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px]"
+        />
 
         {/* Cards List */}
         {isLoading ? (

@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, BookOpen, Loader2, Filter, Shield, FolderTree, Sparkles, Users, User } from 'lucide-react'
+import { Plus, Pencil, Trash2, BookOpen, Loader2, Shield, FolderTree, Sparkles, Users, User } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { AdminCardForm } from '@/components/AdminCardForm'
 import { AdminCategoryForm } from '@/components/AdminCategoryForm'
-import { CategoryFilterChips } from '@/components/CategoryFilterChips'
+import { CategoryFilterSection } from '@/components/CategoryFilterSection'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import {
   createAdminCard,
@@ -15,8 +15,8 @@ import {
   updateAdminCategory,
   deleteAdminCategory,
 } from '@/api/admin'
-import { fetchCategories } from '@/api/categories'
 import { useInfiniteAdminCards } from '@/hooks/useInfiniteAdminCards'
+import { useCategories } from '@/hooks/useCategories'
 import type { AdminCardResponse, AdminCardCreateRequest } from '@/types/admin'
 import type { CategoryResponse, CategoryCreateRequest, CategoryUpdateRequest } from '@/types/category'
 import { buildCategoryTreeFromFlat } from '@/lib/categoryHierarchy'
@@ -28,8 +28,13 @@ export function AdminCardsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('cards')
 
   // 카테고리 공통 상태
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
-  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true)
+  const {
+    categories,
+    isLoading: isCategoriesLoading,
+    error: categoriesLoadError,
+    clearError: clearCategoriesLoadError,
+    reload: reloadCategories,
+  } = useCategories()
 
   // 카드 관리 상태
   const [selectedCategory, setSelectedCategory] = useState('ALL')
@@ -61,24 +66,6 @@ export function AdminCardsPage() {
   const [editingCategory, setEditingCategory] = useState<CategoryResponse | null>(null)
   const [deleteTargetCategory, setDeleteTargetCategory] = useState<CategoryResponse | null>(null)
   const [isCategorySubmitting, setIsCategorySubmitting] = useState(false)
-
-  // 카테고리 목록 로드
-  useEffect(() => {
-    loadCategories()
-  }, [])
-
-  async function loadCategories() {
-    try {
-      setIsCategoriesLoading(true)
-      setCategoriesError(null)
-      const data = await fetchCategories()
-      setCategories(data)
-    } catch (err) {
-      setCategoriesError(err instanceof Error ? err.message : '카테고리를 불러오는데 실패했습니다')
-    } finally {
-      setIsCategoriesLoading(false)
-    }
-  }
 
   // 카드 CRUD
   async function handleCreateCard(data: AdminCardCreateRequest) {
@@ -127,7 +114,7 @@ export function AdminCardsPage() {
       setIsCategorySubmitting(true)
       await createAdminCategory(data)
       setIsCategoryFormOpen(false)
-      await loadCategories()
+      await reloadCategories()
     } catch (err) {
       setCategoriesError(err instanceof Error ? err.message : '카테고리 생성에 실패했습니다')
     } finally {
@@ -146,7 +133,7 @@ export function AdminCardsPage() {
       }
       await updateAdminCategory(editingCategory.id, updateData)
       setEditingCategory(null)
-      await loadCategories()
+      await reloadCategories()
     } catch (err) {
       setCategoriesError(err instanceof Error ? err.message : '카테고리 수정에 실패했습니다')
     } finally {
@@ -159,7 +146,7 @@ export function AdminCardsPage() {
       setIsCategorySubmitting(true)
       await deleteAdminCategory(id)
       setDeleteTargetCategory(null)
-      await loadCategories()
+      await reloadCategories()
     } catch (err) {
       setCategoriesError(err instanceof Error ? err.message : '카테고리 삭제에 실패했습니다')
     } finally {
@@ -326,15 +313,14 @@ export function AdminCardsPage() {
             )}
 
             {/* Category Filter */}
-            <div className="mb-6 flex items-start gap-3">
-              <Filter className="h-4 w-4 text-gray-500" />
-              <CategoryFilterChips
-                categories={categories}
-                selectedCategory={selectedCategory}
-                onChange={setSelectedCategory}
-                buttonBaseClassName="px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px]"
-              />
-            </div>
+            <CategoryFilterSection
+              className="mb-6"
+              categories={categories}
+              isLoading={isCategoriesLoading}
+              selectedCategory={selectedCategory}
+              onChange={setSelectedCategory}
+              buttonBaseClassName="px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px]"
+            />
 
             {/* Cards List */}
             {isCardsLoading ? (
@@ -432,11 +418,14 @@ export function AdminCardsPage() {
             </div>
 
             {/* Error Message */}
-            {categoriesError && (
+            {(categoriesError || categoriesLoadError) && (
               <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
-                {categoriesError}
+                {categoriesError || categoriesLoadError}
                 <button
-                  onClick={() => setCategoriesError(null)}
+                  onClick={() => {
+                    setCategoriesError(null)
+                    clearCategoriesLoadError()
+                  }}
                   className="ml-2 text-red-900 hover:underline"
                 >
                   닫기

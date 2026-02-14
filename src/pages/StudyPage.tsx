@@ -1,46 +1,22 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Filter, Loader2, User, CalendarCheck, BookOpen, Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
+import { Loader2, User, CalendarCheck, BookOpen, Sparkles } from 'lucide-react'
 import { CardDeck } from '@/components/CardDeck'
 import { RateLimitModal } from '@/components/RateLimitModal'
 import { RecommendedCardList } from '@/components/RecommendedCardList'
 import { CategoryAccuracyChart } from '@/components/CategoryAccuracyChart'
-import { CategoryFilterChips } from '@/components/CategoryFilterChips'
+import { CategoryFilterSection } from '@/components/CategoryFilterSection'
 import { useStudyCards } from '@/hooks/useStudyCards'
 import { Button } from '@/components/ui/button'
 import { AppHeader } from '@/components/AppHeader'
 import { useAuth } from '@/contexts/useAuth'
-import { fetchCategoryTree } from '@/api/categories'
+import { useCategories } from '@/hooks/useCategories'
 import { fetchRecommendations, fetchCategoryAccuracy } from '@/api/recommendations'
 import { fetchMySubscription } from '@/api/subscriptions'
-import type { CategoryResponse, CategoryTreeResponse } from '@/types/category'
 import type { RecommendationResponse, CategoryAccuracyResponse } from '@/types/recommendation'
 import { STUDY_LOAD_DEBOUNCE_MS } from '@/lib/constants'
 
 type StudyMode = 'all' | 'review' | 'myCards' | 'session-review' | 'recommended'
-
-function flattenCategoryTree(
-  nodes: CategoryTreeResponse[],
-  parent: { id: number; code: string } | null = null
-): CategoryResponse[] {
-  const flattened: CategoryResponse[] = []
-
-  nodes.forEach((node) => {
-    flattened.push({
-      id: node.id,
-      code: node.code,
-      name: node.name,
-      parentId: parent?.id ?? null,
-      parentCode: parent?.code ?? null,
-    })
-
-    if (node.children.length > 0) {
-      flattened.push(...flattenCategoryTree(node.children, { id: node.id, code: node.code }))
-    }
-  })
-
-  return flattened
-}
 
 export function StudyPage() {
   const lastLoadTimeRef = useRef(0)
@@ -48,9 +24,7 @@ export function StudyPage() {
   const category = searchParams.get('deck') || undefined
   const modeParam = (searchParams.get('mode') as StudyMode) || 'all'
 
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
-  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true)
-  const [isCategoryFilterOpen, setIsCategoryFilterOpen] = useState(false)
+  const { categories, isLoading: isCategoriesLoading } = useCategories()
   const [selectedMode, setSelectedMode] = useState<StudyMode>(modeParam)
   const { isLoggedIn, isLoading: authLoading } = useAuth()
 
@@ -75,14 +49,6 @@ export function StudyPage() {
     clearRateLimitError,
     progress,
   } = useStudyCards()
-
-  // 카테고리 트리 로드
-  useEffect(() => {
-    fetchCategoryTree()
-      .then((tree) => setCategories(flattenCategoryTree(tree)))
-      .catch(() => setCategories([]))
-      .finally(() => setIsCategoriesLoading(false))
-  }, [])
 
   // 추천 데이터 로드 함수 (useEffect + retry 버튼에서 공유)
   const loadRecommendations = useCallback(async () => {
@@ -186,11 +152,6 @@ export function StudyPage() {
     }
   }
 
-  const selectedCategoryLabel = useMemo(() => {
-    if (!category) return '전체'
-    return categories.find((item) => item.code === category)?.name ?? category
-  }, [category, categories])
-
   return (
     <div className="min-h-screen bg-background">
       <AppHeader
@@ -269,46 +230,18 @@ export function StudyPage() {
 
         {/* Category Filter (추천 모드에서는 숨김) */}
         {selectedMode !== 'recommended' && (
-          <div className="max-w-2xl mx-auto mb-4 md:mb-6">
-            <div className="rounded-xl border border-gray-200 bg-white">
-              <button
-                type="button"
-                onClick={() => setIsCategoryFilterOpen((prev) => !prev)}
-                className="w-full px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-gray-50 rounded-xl"
-              >
-                <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                  <Filter className="h-4 w-4 text-muted-foreground" />
-                  카테고리
-                </span>
-                <span className="inline-flex items-center gap-2 text-sm text-foreground">
-                  <span className="max-w-[160px] truncate">{selectedCategoryLabel}</span>
-                  {isCategoryFilterOpen ? (
-                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </span>
-              </button>
-
-              {isCategoryFilterOpen && (
-                <div className="border-t border-gray-100 px-4 py-3">
-                  {isCategoriesLoading ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      카테고리 로딩 중...
-                    </div>
-                  ) : (
-                    <CategoryFilterChips
-                      categories={categories}
-                      selectedCategory={category ?? 'ALL'}
-                      onChange={(code) => handleCategoryChange(code === 'ALL' ? undefined : code)}
-                      buttonBaseClassName="px-3 py-2 text-sm rounded-md transition-colors min-h-[38px]"
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+          <CategoryFilterSection
+            className="max-w-2xl mx-auto mb-4 md:mb-6"
+            categories={categories}
+            isLoading={isCategoriesLoading}
+            selectedCategory={category ?? 'ALL'}
+            onChange={(code) => handleCategoryChange(code === 'ALL' ? undefined : code)}
+            collapsible
+            autoCloseOnSelect
+            title="카테고리"
+            loadingText="카테고리 로딩 중..."
+            buttonBaseClassName="px-3 py-2 text-sm rounded-md transition-colors min-h-[38px]"
+          />
         )}
 
         {/* AI 추천 모드 뷰 */}

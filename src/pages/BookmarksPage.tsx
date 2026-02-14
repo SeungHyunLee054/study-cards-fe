@@ -1,35 +1,26 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Filter, Heart } from 'lucide-react'
+import { Loader2, Heart } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { BookmarkButton } from '@/components/BookmarkButton'
-import { CategoryFilterChips } from '@/components/CategoryFilterChips'
+import { CategoryFilterSection } from '@/components/CategoryFilterSection'
 import { Pagination } from '@/components/Pagination'
 import { InlineError } from '@/components/InlineError'
 import { fetchBookmarks } from '@/api/bookmarks'
-import { fetchCategories } from '@/api/categories'
 import { useCategoryFilter } from '@/hooks/useCategoryFilter'
+import { useCategories } from '@/hooks/useCategories'
 import type { BookmarkResponse } from '@/types/bookmark'
-import type { CategoryResponse } from '@/types/category'
 import type { PageResponse } from '@/types/card'
 
 export function BookmarksPage() {
   const [bookmarksPage, setBookmarksPage] = useState<PageResponse<BookmarkResponse> | null>(null)
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
+  const { categories, isLoading: isCategoriesLoading } = useCategories()
   const [isLoading, setIsLoading] = useState(true)
-  const [isCategoriesLoading, setIsCategoriesLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { selectedCategory, setSelectedCategory, categoryCode } = useCategoryFilter()
   const [page, setPage] = useState(0)
   const [removedIds, setRemovedIds] = useState<Set<number>>(new Set())
-
-  useEffect(() => {
-    fetchCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]))
-      .finally(() => setIsCategoriesLoading(false))
-  }, [])
 
   const loadBookmarks = useCallback(async () => {
     try {
@@ -91,21 +82,14 @@ export function BookmarksPage() {
         )}
 
         {/* Category Filter */}
-        <div className="mb-6 flex items-start gap-3">
-          <Filter className="h-4 w-4 text-gray-500 shrink-0" />
-          {isCategoriesLoading ? (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              로딩 중...
-            </div>
-          ) : (
-            <CategoryFilterChips
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onChange={handleCategoryChange}
-            />
-          )}
-        </div>
+        <CategoryFilterSection
+          className="mb-6"
+          categories={categories}
+          isLoading={isCategoriesLoading}
+          selectedCategory={selectedCategory}
+          onChange={handleCategoryChange}
+          loadingText="로딩 중..."
+        />
 
         {/* Bookmarks List */}
         {isLoading ? (

@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { GenerationStats } from '@/components/GenerationStats'
 import { GeneratedCardItem } from '@/components/GeneratedCardItem'
 import { GenerationForm } from '@/components/GenerationForm'
+import { useCategories } from '@/hooks/useCategories'
 import {
   generateCards,
   fetchGenerationStats,
@@ -26,9 +27,7 @@ import {
   batchApproveCards,
   migrateApprovedCards,
 } from '@/api/generation'
-import { fetchCategories } from '@/api/categories'
 import { useInfiniteGeneratedCards } from '@/hooks/useInfiniteGeneratedCards'
-import type { CategoryResponse } from '@/types/category'
 import type {
   GenerationStatsResponse,
   GeneratedCardStatus,
@@ -49,7 +48,7 @@ export function AdminGenerationPage() {
   const [activeTab, setActiveTab] = useState<Tab>('stats')
 
   // 공통 상태
-  const [categories, setCategories] = useState<CategoryResponse[]>([])
+  const { categories } = useCategories()
 
   // 통계 상태
   const [stats, setStats] = useState<GenerationStatsResponse | null>(null)
@@ -90,26 +89,12 @@ export function AdminGenerationPage() {
   const [isGenerateFormOpen, setIsGenerateFormOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
 
-  // 카테고리 로드
-  useEffect(() => {
-    loadCategories()
-  }, [])
-
   // 통계 로드
   useEffect(() => {
     if (activeTab === 'stats') {
       loadStats()
     }
   }, [activeTab])
-
-  async function loadCategories() {
-    try {
-      const data = await fetchCategories()
-      setCategories(data)
-    } catch {
-      // 카테고리 로드 실패 시 무시
-    }
-  }
 
   async function loadStats() {
     try {
