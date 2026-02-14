@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AppHeader } from '@/components/AppHeader'
+import { AppFooter } from '@/components/AppFooter'
 import { getSessions, getSessionStats } from '@/api/sessions'
 import { fetchCard } from '@/api/cards'
 import type { PageResponse, CardResponse } from '@/types/card'
@@ -381,12 +382,7 @@ export function SessionHistoryPage() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 mt-16">
-        <div className="max-w-4xl mx-auto px-6 text-center text-sm text-gray-500">
-          <p>&copy; 2025 Study Cards. Built with React + Vite.</p>
-        </div>
-      </footer>
+      <AppFooter container="max-w-4xl" />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronRight, Check, RotateCcw, X } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
+import { AppFooter } from '@/components/AppFooter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
@@ -250,12 +251,7 @@ export function HomePage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8">
-        <div className="max-w-6xl mx-auto px-6 text-center text-sm text-gray-500">
-          <p>© 2025 Study Cards. All rights reserved.</p>
-        </div>
-      </footer>
+      <AppFooter container="max-w-6xl" withTopMargin={false} />
     </div>
   )
 }

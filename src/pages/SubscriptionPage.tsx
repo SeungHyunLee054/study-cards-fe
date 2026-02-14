@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Loader2, CreditCard, Check, Sparkles } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
+import { AppFooter } from '@/components/AppFooter'
 import { Button } from '@/components/ui/button'
 import { BillingCycleToggle } from '@/components/BillingCycleToggle'
 import { CurrentSubscription } from '@/components/CurrentSubscription'
@@ -317,12 +318,7 @@ export function SubscriptionPage() {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 mt-16">
-        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center text-sm text-gray-500">
-          <p>© 2025 Study Cards. All rights reserved.</p>
-        </div>
-      </footer>
+      <AppFooter container="max-w-4xl" />
     </div>
   )
 }

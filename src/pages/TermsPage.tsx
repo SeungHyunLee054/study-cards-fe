@@ -1,4 +1,5 @@
 import { AppHeader } from '@/components/AppHeader'
+import { AppFooter } from '@/components/AppFooter'
 
 export function TermsPage() {
   return (
@@ -126,12 +127,7 @@ export function TermsPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 mt-16">
-        <div className="max-w-6xl mx-auto px-6 text-center text-sm text-gray-500">
-          <p>© 2025 Study Cards. All rights reserved.</p>
-        </div>
-      </footer>
+      <AppFooter container="max-w-6xl" />
     </div>
   )
 }

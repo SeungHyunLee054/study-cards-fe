@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AppHeader } from '@/components/AppHeader'
+import { AppFooter } from '@/components/AppFooter'
 import { CategoryTree } from '@/components/CategoryTree'
 import { fetchStats } from '@/api/stats'
 import { fetchCategoryTree } from '@/api/categories'
@@ -200,12 +201,7 @@ export function MyPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8 mt-16">
-        <div className="max-w-6xl mx-auto px-6 text-center text-sm text-gray-500">
-          <p>© 2025 Study Cards. All rights reserved.</p>
-        </div>
-      </footer>
+      <AppFooter container="max-w-6xl" />
     </div>
   )
 }
