@@ -258,19 +258,19 @@ export function AdminGenerationPage() {
               관리자
             </span>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/admin/users">
+              <Link to="/admin/users" aria-label="사용자 관리">
                 <Users className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">사용자 관리</span>
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/admin/cards">
+              <Link to="/admin/cards" aria-label="카드 관리">
                 <BookOpen className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">카드 관리</span>
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/mypage">
+              <Link to="/mypage" aria-label="마이페이지">
                 <User className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">마이페이지</span>
               </Link>

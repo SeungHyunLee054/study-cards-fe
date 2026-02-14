@@ -104,7 +104,7 @@ export function SearchPage() {
         </div>
 
         {/* Category Filter */}
-        <div className="mb-6 flex items-center gap-3">
+        <div className="mb-6 flex items-start gap-3">
           <Filter className="h-4 w-4 text-gray-500 shrink-0" />
           {isCategoriesLoading ? (
             <div className="flex items-center gap-2 text-sm text-gray-500">

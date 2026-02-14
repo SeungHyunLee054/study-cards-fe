@@ -4,6 +4,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useAuth } from '@/contexts/useAuth'
 import { updateUserProfile, changePassword, withdrawMyAccount } from '@/api/users'
 import { getPushSettings, updatePushSettings, registerFcmToken, removeFcmToken } from '@/api/notifications'
@@ -59,6 +60,8 @@ export function SettingsPage() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default')
   const [withdrawError, setWithdrawError] = useState<string | null>(null)
   const [isWithdrawSubmitting, setIsWithdrawSubmitting] = useState(false)
+  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false)
+  const [withdrawConfirmText, setWithdrawConfirmText] = useState('')
 
   useEffect(() => {
     if (user) {
@@ -229,18 +232,22 @@ export function SettingsPage() {
     }
   }
 
+  function openWithdrawDialog() {
+    setWithdrawError(null)
+    setWithdrawConfirmText('')
+    setIsWithdrawDialogOpen(true)
+  }
+
+  function closeWithdrawDialog() {
+    if (isWithdrawSubmitting) return
+    setIsWithdrawDialogOpen(false)
+    setWithdrawConfirmText('')
+  }
+
   async function handleWithdrawAccount() {
     setWithdrawError(null)
 
-    const firstConfirm = confirm(
-      '회원 탈퇴를 진행하시겠습니까?\n탈퇴 후 계정은 복구할 수 없습니다.'
-    )
-    if (!firstConfirm) {
-      return
-    }
-
-    const finalCheck = prompt('탈퇴를 진행하려면 "탈퇴"를 입력하세요.')
-    if (finalCheck !== '탈퇴') {
+    if (withdrawConfirmText.trim() !== '탈퇴') {
       setWithdrawError('탈퇴 확인 문구가 일치하지 않습니다.')
       return
     }
@@ -538,7 +545,7 @@ export function SettingsPage() {
               </p>
               <Button
                 variant="destructive"
-                onClick={handleWithdrawAccount}
+                onClick={openWithdrawDialog}
                 disabled={isWithdrawSubmitting}
               >
                 {isWithdrawSubmitting ? (
@@ -555,6 +562,43 @@ export function SettingsPage() {
 
         </div>
       </main>
+
+      <ConfirmDialog
+        isOpen={isWithdrawDialogOpen}
+        title="회원 탈퇴 확인"
+        description={(
+          <>
+            계정 복구가 불가능합니다. 진행하려면 아래 입력칸에
+            {' '}
+            <span className="font-semibold text-gray-900">탈퇴</span>
+            {' '}
+            를 입력하세요.
+          </>
+        )}
+        confirmLabel="회원 탈퇴"
+        confirmVariant="destructive"
+        isConfirming={isWithdrawSubmitting}
+        onCancel={closeWithdrawDialog}
+        onConfirm={() => void handleWithdrawAccount()}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="withdraw-confirm-text">확인 문구</Label>
+          <Input
+            id="withdraw-confirm-text"
+            value={withdrawConfirmText}
+            onChange={(e) => setWithdrawConfirmText(e.target.value)}
+            placeholder="탈퇴"
+            disabled={isWithdrawSubmitting}
+            autoFocus
+          />
+        </div>
+
+        {withdrawError && (
+          <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            {withdrawError}
+          </div>
+        )}
+      </ConfirmDialog>
     </div>
   )
 }

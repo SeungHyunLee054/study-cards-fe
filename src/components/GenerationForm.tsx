@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { X, Loader2, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { CategoryResponse } from '@/types/category'
 import type { GenerationRequest } from '@/types/generation'
+import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
 
 interface GenerationFormProps {
   isOpen: boolean
@@ -25,16 +26,17 @@ export function GenerationForm({
   const [count, setCount] = useState(5)
   const [model, setModel] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const categoryOptions = useMemo(() => flattenCategoriesForSelect(categories), [categories])
 
   // 폼 초기화
   useEffect(() => {
     if (isOpen) {
-      setCategoryCode(categories[0]?.code || '')
+      setCategoryCode(categoryOptions[0]?.code || '')
       setCount(5)
       setModel('')
       setErrors({})
     }
-  }, [isOpen, categories])
+  }, [isOpen, categoryOptions])
 
   function validate(): boolean {
     const newErrors: Record<string, string> = {}
@@ -96,9 +98,9 @@ export function GenerationForm({
               disabled={isLoading}
             >
               <option value="">카테고리 선택</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.code}>
-                  {cat.name} ({cat.code})
+              {categoryOptions.map((option) => (
+                <option key={option.id} value={option.code}>
+                  {option.pathLabel} ({option.code})
                 </option>
               ))}
             </select>

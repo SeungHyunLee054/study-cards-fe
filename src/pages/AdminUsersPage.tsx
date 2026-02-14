@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Eye, Filter, Loader2, Shield, UserX, Users, Sparkles, BookOpen, User } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { banAdminUser, fetchAdminUser, fetchAdminUsers } from '@/api/admin-users'
 import type { AdminUserResponse, AdminUserStatus } from '@/types/admin'
 import type { PageResponse } from '@/types/card'
@@ -42,6 +43,26 @@ function getStatusChip(status: AdminUserStatus): { label: string; className: str
   }
 }
 
+function getStatusLabel(status: AdminUserStatus): string {
+  if (status === 'ACTIVE') return '활성'
+  if (status === 'BANNED') return '이용 제한'
+  return '탈퇴'
+}
+
+function getRoleLabel(role: string): string {
+  if (role === 'ROLE_ADMIN') return '관리자'
+  if (role === 'ROLE_USER') return '일반 사용자'
+  return role
+}
+
+function getProviderLabel(provider: string): string {
+  if (provider === 'LOCAL') return '이메일'
+  if (provider === 'GOOGLE') return 'Google'
+  if (provider === 'KAKAO') return 'Kakao'
+  if (provider === 'NAVER') return 'Naver'
+  return provider
+}
+
 export function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('ALL')
   const [page, setPage] = useState(0)
@@ -53,6 +74,7 @@ export function AdminUsersPage() {
   const [selectedUser, setSelectedUser] = useState<AdminUserResponse | null>(null)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
   const [actionLoadingId, setActionLoadingId] = useState<number | null>(null)
+  const [banTargetUser, setBanTargetUser] = useState<AdminUserResponse | null>(null)
 
   const loadUsers = useCallback(async (isManualRefresh: boolean) => {
     try {
@@ -103,23 +125,28 @@ export function AdminUsersPage() {
     }
   }
 
-  async function handleBanUser(user: AdminUserResponse) {
+  function handleOpenBanDialog(user: AdminUserResponse) {
     if (user.status !== 'ACTIVE') {
       return
     }
+    setBanTargetUser(user)
+  }
 
-    if (!confirm(`"${user.nickname}" 사용자를 이용 제한 처리하시겠습니까?\n되돌릴 수 없습니다.`)) {
+  async function handleConfirmBanUser() {
+    if (!banTargetUser || banTargetUser.status !== 'ACTIVE') {
       return
     }
+    const targetUser = banTargetUser
 
     try {
-      setActionLoadingId(user.id)
+      setActionLoadingId(targetUser.id)
       setError(null)
-      await banAdminUser(user.id)
+      await banAdminUser(targetUser.id)
+      setBanTargetUser(null)
       await loadUsers(true)
 
-      if (selectedUserId === user.id) {
-        const refreshed = await fetchAdminUser(user.id)
+      if (selectedUserId === targetUser.id) {
+        const refreshed = await fetchAdminUser(targetUser.id)
         setSelectedUser(refreshed)
       }
     } catch (err) {
@@ -152,19 +179,19 @@ export function AdminUsersPage() {
               관리자
             </span>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/admin/cards">
+              <Link to="/admin/cards" aria-label="카드 관리">
                 <BookOpen className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">카드 관리</span>
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/admin/generation">
+              <Link to="/admin/generation" aria-label="AI 생성">
                 <Sparkles className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">AI 생성</span>
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/mypage">
+              <Link to="/mypage" aria-label="마이페이지">
                 <User className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">마이페이지</span>
               </Link>
@@ -256,7 +283,7 @@ export function AdminUsersPage() {
                       <p className="font-medium text-gray-900 truncate">{user.nickname}</p>
                       <p className="text-sm text-gray-600 truncate">{user.email}</p>
                       <p className="text-xs text-gray-500 mt-1">
-                        권한: {user.roles.join(', ')} · 제공자: {user.provider}
+                        권한: {user.roles.map(getRoleLabel).join(', ')} · 제공자: {getProviderLabel(user.provider)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -282,7 +309,7 @@ export function AdminUsersPage() {
                           size="sm"
                           className="min-h-[44px]"
                           disabled={isActionLoading}
-                          onClick={() => void handleBanUser(user)}
+                          onClick={() => handleOpenBanDialog(user)}
                         >
                           {isActionLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -349,7 +376,7 @@ export function AdminUsersPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">상태</p>
-                    <p className="font-medium text-gray-900">{selectedUser.status}</p>
+                    <p className="font-medium text-gray-900">{getStatusLabel(selectedUser.status)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">닉네임</p>
@@ -361,11 +388,11 @@ export function AdminUsersPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">권한</p>
-                    <p className="font-medium text-gray-900">{selectedUser.roles.join(', ')}</p>
+                    <p className="font-medium text-gray-900">{selectedUser.roles.map(getRoleLabel).join(', ')}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">로그인 제공자</p>
-                    <p className="font-medium text-gray-900">{selectedUser.provider}</p>
+                    <p className="font-medium text-gray-900">{getProviderLabel(selectedUser.provider)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">이메일 인증</p>
@@ -387,6 +414,29 @@ export function AdminUsersPage() {
           </div>
         )}
       </main>
+
+      <ConfirmDialog
+        isOpen={!!banTargetUser}
+        title="사용자 이용 제한"
+        description={banTargetUser ? (
+          <>
+            <span className="font-medium text-gray-900">{banTargetUser.nickname}</span>
+            {' '}
+            사용자를 이용 제한 처리하시겠습니까?
+            <br />
+            처리 후 사용자는 즉시 서비스 이용이 제한되며 되돌릴 수 없습니다.
+          </>
+        ) : undefined}
+        confirmLabel="이용 제한"
+        confirmVariant="destructive"
+        isConfirming={!!banTargetUser && actionLoadingId === banTargetUser.id}
+        onCancel={() => {
+          if (!(banTargetUser && actionLoadingId === banTargetUser.id)) {
+            setBanTargetUser(null)
+          }
+        }}
+        onConfirm={() => void handleConfirmBanUser()}
+      />
     </div>
   )
 }

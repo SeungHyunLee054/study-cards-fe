@@ -190,7 +190,7 @@ export function AppHeader(props: AppHeaderProps) {
             size="sm"
             onClick={() => setIsMobileMenuOpen(prev => !prev)}
             aria-expanded={isMobileMenuOpen}
-            aria-label="모바일 메뉴 열기"
+            aria-label={isMobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기'}
             className="min-h-[44px] min-w-[44px]"
           >
             {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -217,9 +217,9 @@ export function AppHeader(props: AppHeaderProps) {
 
   function renderBrandActionsHeader({ rightSlot }: BrandActionsHeaderProps) {
     return (
-      <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-4 flex items-center justify-between gap-3')}>
+      <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3')}>
         {renderBrand()}
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-2 md:gap-3 flex-wrap sm:justify-end w-full sm:w-auto">
           {rightSlot}
         </div>
       </div>

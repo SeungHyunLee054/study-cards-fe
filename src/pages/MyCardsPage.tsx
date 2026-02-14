@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { CardForm } from '@/components/CardForm'
 import { InlineError } from '@/components/InlineError'
 import { CategoryFilterChips } from '@/components/CategoryFilterChips'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { getUserCards, createUserCard, updateUserCard, deleteUserCard } from '@/api/cards'
 import { fetchCategories } from '@/api/categories'
 import { useCategoryFilter } from '@/hooks/useCategoryFilter'
@@ -21,8 +22,8 @@ export function MyCardsPage() {
   const { selectedCategory, setSelectedCategory, categoryCode } = useCategoryFilter()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<UserCardResponse | null>(null)
+  const [deleteTargetCard, setDeleteTargetCard] = useState<UserCardResponse | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
 
   // 카테고리 목록 로드
   useEffect(() => {
@@ -82,7 +83,7 @@ export function MyCardsPage() {
     try {
       setIsSubmitting(true)
       await deleteUserCard(id)
-      setDeleteConfirmId(null)
+      setDeleteTargetCard(null)
       await loadCards()
     } catch (err) {
       setError(err instanceof Error ? err.message : '카드 삭제에 실패했습니다')
@@ -131,7 +132,7 @@ export function MyCardsPage() {
         )}
 
         {/* Filter */}
-        <div className="mb-6 flex items-center gap-3">
+        <div className="mb-6 flex items-start gap-3">
           <Filter className="h-4 w-4 text-gray-500" />
           {isCategoriesLoading ? (
             <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -208,39 +209,14 @@ export function MyCardsPage() {
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    {deleteConfirmId === card.id ? (
-                      <div className="flex gap-1">
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteCard(card.id)}
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            '삭제'
-                          )}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDeleteConfirmId(null)}
-                          disabled={isSubmitting}
-                        >
-                          취소
-                        </Button>
-                      </div>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeleteConfirmId(card.id)}
-                        className="min-h-[44px] min-w-[44px]"
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteTargetCard(card)}
+                      className="min-h-[44px] min-w-[44px]"
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -255,6 +231,31 @@ export function MyCardsPage() {
           </div>
         )}
       </main>
+
+      <ConfirmDialog
+        isOpen={!!deleteTargetCard}
+        title="카드 삭제"
+        description={deleteTargetCard ? (
+          <>
+            이 카드를 삭제하시겠습니까?
+            <br />
+            삭제된 카드는 복구할 수 없습니다.
+          </>
+        ) : undefined}
+        confirmLabel="삭제"
+        confirmVariant="destructive"
+        isConfirming={isSubmitting}
+        onCancel={() => {
+          if (!isSubmitting) {
+            setDeleteTargetCard(null)
+          }
+        }}
+        onConfirm={() => {
+          if (deleteTargetCard) {
+            void handleDeleteCard(deleteTargetCard.id)
+          }
+        }}
+      />
 
       {/* Create Form Modal */}
       <CardForm

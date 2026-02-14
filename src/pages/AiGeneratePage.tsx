@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Sparkles,
@@ -16,6 +16,7 @@ import { fetchCategories } from '@/api/categories'
 import { generateUserCards, fetchAiGenerationLimit } from '@/api/ai'
 import type { CategoryResponse } from '@/types/category'
 import type { AiCardResponse, AiLimitResponse } from '@/types/ai'
+import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
 
 export function AiGeneratePage() {
   const { isLoggedIn } = useAuth()
@@ -32,15 +33,24 @@ export function AiGeneratePage() {
   const [error, setError] = useState<string | null>(null)
   const [limitInfo, setLimitInfo] = useState<AiLimitResponse | null>(null)
   const [isLoadingLimit, setIsLoadingLimit] = useState(true)
+  const categoryOptions = useMemo(() => flattenCategoriesForSelect(categories), [categories])
 
   useEffect(() => {
     fetchCategories()
-      .then((cats) => {
-        setCategories(cats)
-        if (cats.length > 0) setCategoryCode(cats[0].code)
-      })
+      .then(setCategories)
       .catch(() => setCategories([]))
   }, [])
+
+  useEffect(() => {
+    if (categoryOptions.length === 0) {
+      setCategoryCode('')
+      return
+    }
+
+    if (!categoryCode || !categoryOptions.some((option) => option.code === categoryCode)) {
+      setCategoryCode(categoryOptions[0].code)
+    }
+  }, [categoryCode, categoryOptions])
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -206,8 +216,10 @@ export function AiGeneratePage() {
                 className="w-full h-11 px-3 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                 disabled={!canGenerate}
               >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.code}>{cat.name}</option>
+                {categoryOptions.map((option) => (
+                  <option key={option.id} value={option.code}>
+                    {option.pathLabel}
+                  </option>
                 ))}
               </select>
             </div>

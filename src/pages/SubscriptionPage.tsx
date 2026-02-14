@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { BillingCycleToggle } from '@/components/BillingCycleToggle'
 import { CurrentSubscription } from '@/components/CurrentSubscription'
 import { InvoiceList } from '@/components/InvoiceList'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useAuth } from '@/contexts/useAuth'
 import {
   fetchPlans,
@@ -35,6 +36,7 @@ export function SubscriptionPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
@@ -131,15 +133,12 @@ export function SubscriptionPage() {
   }
 
   async function handleCancelSubscription() {
-    if (!confirm('월간 정기결제 자동결제를 해제하시겠습니까? 남은 구독 기간 동안은 계속 이용할 수 있습니다.')) {
-      return
-    }
-
     try {
       setIsCancelling(true)
       setError(null)
       const updated = await cancelSubscription()
       setSubscription(updated)
+      setIsCancelDialogOpen(false)
       setSuccessMessage('자동결제가 해제되었습니다. 만료일까지 프리미엄 기능을 이용할 수 있습니다.')
     } catch (err) {
       setError(err instanceof Error ? err.message : '자동결제 해제에 실패했습니다')
@@ -200,7 +199,7 @@ export function SubscriptionPage() {
           <div className="mb-8">
             <CurrentSubscription
               subscription={subscription}
-              onCancel={handleCancelSubscription}
+              onCancel={() => setIsCancelDialogOpen(true)}
               isCancelling={isCancelling}
             />
           </div>
@@ -336,6 +335,27 @@ export function SubscriptionPage() {
           <InvoiceList invoices={invoices} />
         )}
       </main>
+
+      <ConfirmDialog
+        isOpen={isCancelDialogOpen}
+        title="월간 자동결제 해제"
+        description={(
+          <>
+            월간 정기결제 자동결제를 해제하시겠습니까?
+            <br />
+            남은 구독 기간 동안은 계속 이용할 수 있습니다.
+          </>
+        )}
+        confirmLabel="자동결제 해제"
+        confirmVariant="destructive"
+        isConfirming={isCancelling}
+        onCancel={() => {
+          if (!isCancelling) {
+            setIsCancelDialogOpen(false)
+          }
+        }}
+        onConfirm={() => void handleCancelSubscription()}
+      />
 
       <AppFooter container="max-w-4xl" />
     </div>
