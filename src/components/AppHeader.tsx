@@ -1,9 +1,8 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   BookOpen,
-  Settings,
   LogOut,
   User,
   Users,
@@ -23,7 +22,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { useAuth } from '@/contexts/useAuth'
-import { DASHBOARD_PATH, MYPAGE_PATH, MYPAGE_SETTINGS_PATH } from '@/constants/routes'
+import { DASHBOARD_PATH, MYPAGE_PATH } from '@/constants/routes'
 
 type HeaderContainer = 'max-w-6xl' | 'max-w-4xl' | 'max-w-3xl' | 'container'
 type StickyTone = 'white' | 'background'
@@ -101,6 +100,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 export function AppHeader(props: AppHeaderProps) {
   const { logout, isAdmin, user } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -126,6 +126,15 @@ export function AppHeader(props: AppHeaderProps) {
     )
   }
 
+  function handleBackNavigation(fallbackTo: string) {
+    const historyIndex = window.history.state?.idx
+    if (typeof historyIndex === 'number' && historyIndex > 0) {
+      navigate(-1)
+      return
+    }
+    navigate(fallbackTo)
+  }
+
   function renderAppNavHeader({
     dashboardLink,
     dashboardLabel,
@@ -144,14 +153,12 @@ export function AppHeader(props: AppHeaderProps) {
       { to: '/my-cards', label: '내 카드', icon: NotebookText },
       { to: '/stats', label: '통계', icon: BarChart3 },
       { to: '/subscription', label: '구독', icon: CreditCard },
-      { to: MYPAGE_SETTINGS_PATH, label: '설정', icon: Settings },
       { to: '/admin/users', label: '관리 사용자', icon: Users, adminOnly: true, accent: 'purple' },
       { to: '/admin/cards', label: '관리 카드', icon: Shield, adminOnly: true, accent: 'purple' },
       { to: '/admin/generation', label: '관리 생성', icon: Sparkles, adminOnly: true, accent: 'purple' },
     ]
 
     const visibleItems = navItems.filter(item => !item.adminOnly || isAdmin)
-    const desktopItems = visibleItems.filter(item => item.to !== MYPAGE_SETTINGS_PATH)
 
     return (
       <>
@@ -164,7 +171,7 @@ export function AppHeader(props: AppHeaderProps) {
                 <User className="h-4 w-4" />
                 {user?.nickname && <span>{user.nickname}</span>}
               </div>
-              {desktopItems.map((item) => (
+              {visibleItems.map((item) => (
                 <Button key={item.to} variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
                   <Link to={item.to} className={getLinkClassName(item)}>
                     <item.icon className="h-4 w-4" />
@@ -174,11 +181,6 @@ export function AppHeader(props: AppHeaderProps) {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <NotificationDropdown />
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-                <Link to={MYPAGE_SETTINGS_PATH} className={location.pathname === MYPAGE_PATH ? 'text-primary' : ''}>
-                  <Settings className="h-4 w-4" />
-                </Link>
-              </Button>
               <Button variant="ghost" size="sm" onClick={() => { void logout() }} className="min-h-[44px]">
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -241,15 +243,19 @@ export function AppHeader(props: AppHeaderProps) {
     return (
       <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-4 flex items-center justify-between gap-3')}>
         {renderBrand()}
-        <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-          <Link to={backTo} aria-label={backAriaLabel}>
-            <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            {hideBackLabelOnMobile ? (
-              <span className="hidden sm:inline">{backLabel}</span>
-            ) : (
-              <span>{backLabel}</span>
-            )}
-          </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="min-h-[44px]"
+          aria-label={backAriaLabel}
+          onClick={() => handleBackNavigation(backTo)}
+        >
+          <ArrowLeft className="h-4 w-4 sm:mr-2" />
+          {hideBackLabelOnMobile ? (
+            <span className="hidden sm:inline">{backLabel}</span>
+          ) : (
+            <span>{backLabel}</span>
+          )}
         </Button>
       </div>
     )
@@ -266,15 +272,19 @@ export function AppHeader(props: AppHeaderProps) {
   }: BackTitleHeaderProps) {
     return (
       <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-4xl'], 'py-3 md:py-4 flex items-center gap-3')}>
-        <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-          <Link to={backTo} aria-label={backAriaLabel}>
-            <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
-            {hideBackLabelOnMobile ? (
-              <span className="hidden sm:inline">{backLabel}</span>
-            ) : (
-              <span>{backLabel}</span>
-            )}
-          </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="min-h-[44px] shrink-0"
+          aria-label={backAriaLabel}
+          onClick={() => handleBackNavigation(backTo)}
+        >
+          <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+          {hideBackLabelOnMobile ? (
+            <span className="hidden sm:inline">{backLabel}</span>
+          ) : (
+            <span>{backLabel}</span>
+          )}
         </Button>
         <h1 className={titleClassName ?? 'text-base md:text-lg font-semibold truncate'}>
           {title}

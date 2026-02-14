@@ -10,11 +10,9 @@ import {
   History,
   Loader2,
   Play,
-  Settings,
   Shield,
   Sparkles,
   Target,
-  User,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AppHeader } from '@/components/AppHeader'
@@ -22,7 +20,7 @@ import { AppFooter } from '@/components/AppFooter'
 import { AccountSettingsPanel } from '@/components/AccountSettingsPanel'
 import { fetchStats } from '@/api/stats'
 import { useAuth } from '@/contexts/useAuth'
-import { DASHBOARD_PATH, MYPAGE_SETTINGS_PATH } from '@/constants/routes'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { StatsResponse } from '@/types/stats'
 
 interface QuickAction {
@@ -73,12 +71,6 @@ export function MyPage() {
   const recentActivity = stats?.recentActivity ?? []
 
   const quickActions = useMemo<QuickAction[]>(() => [
-    {
-      to: MYPAGE_SETTINGS_PATH,
-      title: '계정 설정',
-      description: '프로필, 비밀번호, 알림',
-      icon: Settings,
-    },
     {
       to: '/subscription',
       title: '구독 관리',
@@ -145,14 +137,8 @@ export function MyPage() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <div className="w-full md:w-auto">
               <Button asChild className="w-full sm:w-auto">
-                <Link to={MYPAGE_SETTINGS_PATH}>
-                  <User className="mr-2 h-4 w-4" />
-                  계정 설정
-                </Link>
-              </Button>
-              <Button variant="outline" asChild className="w-full sm:w-auto">
                 <Link to="/study">
                   <Play className="mr-2 h-4 w-4" />
                   학습 시작
