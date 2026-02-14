@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Loader2, User, Lock, Bell, Smartphone } from 'lucide-react'
+import { Loader2, User, Lock, Bell, Smartphone, AlertTriangle } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/useAuth'
-import { updateUserProfile, changePassword } from '@/api/users'
+import { updateUserProfile, changePassword, withdrawMyAccount } from '@/api/users'
 import { getPushSettings, updatePushSettings, registerFcmToken, removeFcmToken } from '@/api/notifications'
 import { requestFcmToken, isFcmSupported, getNotificationPermission } from '@/lib/firebase'
 import type { PushSettingResponse } from '@/types/notification'
@@ -36,7 +36,7 @@ function ToggleSwitch({ enabled, onChange, disabled }: ToggleSwitchProps) {
 }
 
 export function SettingsPage() {
-  const { user, isLoading: authLoading, refreshUser } = useAuth()
+  const { user, isLoading: authLoading, refreshUser, logout } = useAuth()
 
   const [nickname, setNickname] = useState('')
   const [profileError, setProfileError] = useState<string | null>(null)
@@ -57,6 +57,8 @@ export function SettingsPage() {
   const [isFcmAvailable, setIsFcmAvailable] = useState(false)
   const [isDeviceRegistering, setIsDeviceRegistering] = useState(false)
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default')
+  const [withdrawError, setWithdrawError] = useState<string | null>(null)
+  const [isWithdrawSubmitting, setIsWithdrawSubmitting] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -224,6 +226,36 @@ export function SettingsPage() {
       setPasswordError(err instanceof Error ? err.message : '비밀번호 변경에 실패했습니다')
     } finally {
       setIsPasswordSubmitting(false)
+    }
+  }
+
+  async function handleWithdrawAccount() {
+    setWithdrawError(null)
+
+    const firstConfirm = confirm(
+      '회원 탈퇴를 진행하시겠습니까?\n탈퇴 후 계정은 복구할 수 없습니다.'
+    )
+    if (!firstConfirm) {
+      return
+    }
+
+    const finalCheck = prompt('탈퇴를 진행하려면 "탈퇴"를 입력하세요.')
+    if (finalCheck !== '탈퇴') {
+      setWithdrawError('탈퇴 확인 문구가 일치하지 않습니다.')
+      return
+    }
+
+    try {
+      setIsWithdrawSubmitting(true)
+      await withdrawMyAccount()
+      await logout({
+        redirectTo: '/login',
+        replace: true,
+        state: { message: '회원 탈퇴가 완료되었습니다.' },
+      })
+    } catch (err) {
+      setWithdrawError(err instanceof Error ? err.message : '회원 탈퇴에 실패했습니다')
+      setIsWithdrawSubmitting(false)
     }
   }
 
@@ -482,6 +514,42 @@ export function SettingsPage() {
               ) : (
                 <p className="text-gray-500">알림 설정을 불러올 수 없습니다</p>
               )}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-red-200 bg-red-50/40">
+            <div className="p-6 border-b border-red-200">
+              <h2 className="text-lg font-semibold text-red-700 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                계정 탈퇴
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
+              {withdrawError && (
+                <div className="p-3 rounded-lg bg-red-100 border border-red-200 text-red-700 text-sm">
+                  {withdrawError}
+                </div>
+              )}
+              <p className="text-sm text-gray-700">
+                회원 탈퇴 시 계정 정보와 로그인 세션이 비활성화되며, 동일 계정으로 자동 복구할 수 없습니다.
+              </p>
+              <p className="text-xs text-gray-500">
+                탈퇴를 진행하면 즉시 로그아웃됩니다.
+              </p>
+              <Button
+                variant="destructive"
+                onClick={handleWithdrawAccount}
+                disabled={isWithdrawSubmitting}
+              >
+                {isWithdrawSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    탈퇴 처리 중...
+                  </>
+                ) : (
+                  '회원 탈퇴'
+                )}
+              </Button>
             </div>
           </div>
 

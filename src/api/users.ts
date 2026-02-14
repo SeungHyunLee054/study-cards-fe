@@ -27,3 +27,9 @@ export async function changePassword(request: PasswordChangeRequest): Promise<vo
     await apiClient.patch('/api/users/me/password', request)
   }, '비밀번호 변경에 실패했습니다.')
 }
+
+export async function withdrawMyAccount(): Promise<void> {
+  return withApiErrorHandling(async () => {
+    await apiClient.delete('/api/users/me')
+  }, '회원 탈퇴에 실패했습니다.')
+}

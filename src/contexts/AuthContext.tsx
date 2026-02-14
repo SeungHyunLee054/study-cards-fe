@@ -7,6 +7,12 @@ import { AuthContext } from '@/contexts/auth-context'
 import type { SignInRequest, SignUpRequest, UserResponse } from '@/types/auth'
 import type { UserProfileResponse } from '@/types/user'
 
+export interface LogoutOptions {
+  redirectTo?: string
+  replace?: boolean
+  state?: unknown
+}
+
 export interface AuthContextType {
   isLoggedIn: boolean
   isLoading: boolean
@@ -14,7 +20,7 @@ export interface AuthContextType {
   isAdmin: boolean
   login: (request: SignInRequest) => Promise<void>
   signup: (request: SignUpRequest) => Promise<UserResponse>
-  logout: () => Promise<void>
+  logout: (options?: LogoutOptions) => Promise<void>
   setLoggedIn: (value: boolean) => void
   refreshUser: () => Promise<void>
 }
@@ -109,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return await apiSignUp(request)
   }, [])
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (options?: LogoutOptions) => {
     try {
       await apiSignOut()
     } catch {
@@ -118,7 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('accessToken')
     setIsLoggedIn(false)
     setUser(null)
-    navigate('/')
+    navigate(options?.redirectTo ?? '/', {
+      replace: options?.replace ?? false,
+      state: options?.state,
+    })
   }, [navigate])
 
   return (
