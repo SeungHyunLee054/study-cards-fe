@@ -22,13 +22,17 @@ export function GeneratedCardItem({
   isRejecting,
 }: GeneratedCardItemProps) {
   const isActionInProgress = isApproving || isRejecting
-  const canAction = card.status === 'PENDING'
+  const canApprove = card.status !== 'APPROVED' && card.status !== 'MIGRATED'
+  const canReject = card.status !== 'REJECTED' && card.status !== 'MIGRATED'
+  const canSelectForBatchApprove = canApprove
+  const approveLabel = card.status === 'REJECTED' ? '재승인' : '승인'
+  const rejectLabel = card.status === 'APPROVED' ? '승인 취소' : '거부'
 
   return (
     <div className="p-4 rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow">
       <div className="flex items-start gap-4">
         {/* 체크박스 */}
-        {canAction && (
+        {canSelectForBatchApprove && (
           <div className="pt-1">
             <input
               type="checkbox"
@@ -82,40 +86,44 @@ export function GeneratedCardItem({
         </div>
 
         {/* 액션 버튼 */}
-        {canAction && (
+        {(canApprove || canReject) && (
           <div className="flex flex-col gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onApprove(card.id)}
-              disabled={isActionInProgress}
-              className="text-green-600 hover:text-green-700 hover:bg-green-50 min-h-[44px]"
-            >
-              {isApproving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle className="h-4 w-4 mr-1" />
-                  승인
-                </>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onReject(card.id)}
-              disabled={isActionInProgress}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px]"
-            >
-              {isRejecting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <XCircle className="h-4 w-4 mr-1" />
-                  거부
-                </>
-              )}
-            </Button>
+            {canApprove && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onApprove(card.id)}
+                disabled={isActionInProgress}
+                className="text-green-600 hover:text-green-700 hover:bg-green-50 min-h-[44px]"
+              >
+                {isApproving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    {approveLabel}
+                  </>
+                )}
+              </Button>
+            )}
+            {canReject && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onReject(card.id)}
+                disabled={isActionInProgress}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px]"
+              >
+                {isRejecting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <XCircle className="h-4 w-4 mr-1" />
+                    {rejectLabel}
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         )}
       </div>

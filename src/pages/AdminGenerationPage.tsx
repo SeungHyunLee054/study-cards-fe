@@ -139,11 +139,15 @@ export function AdminGenerationPage() {
 
   // 전체 선택
   function handleSelectAll() {
-    const pendingCards = cards.filter((c) => c.status === 'PENDING')
-    if (selectedCardIds.size === pendingCards.length) {
+    const approvableCards = cards.filter((c) => c.status === 'PENDING' || c.status === 'REJECTED')
+    if (approvableCards.length === 0) {
+      return
+    }
+
+    if (selectedCardIds.size === approvableCards.length) {
       setSelectedCardIds(new Set())
     } else {
-      setSelectedCardIds(new Set(pendingCards.map((c) => c.id)))
+      setSelectedCardIds(new Set(approvableCards.map((c) => c.id)))
     }
   }
 
@@ -245,7 +249,24 @@ export function AdminGenerationPage() {
   // 모델 목록 추출 (중복 제거)
   const availableModels = [...new Set(cards.map((c) => c.model))].filter(Boolean)
 
-  const pendingCardsCount = cards.filter((c) => c.status === 'PENDING').length
+  useEffect(() => {
+    setSelectedCardIds((prev) => {
+      if (prev.size === 0) return prev
+
+      const approvableCardIdSet = new Set(
+        cards
+          .filter((c) => c.status === 'PENDING' || c.status === 'REJECTED')
+          .map((c) => c.id)
+      )
+      const next = new Set(Array.from(prev).filter((id) => approvableCardIdSet.has(id)))
+
+      return next.size === prev.size ? prev : next
+    })
+  }, [cards])
+
+  const approvableCardsCount = cards.filter(
+    (c) => c.status === 'PENDING' || c.status === 'REJECTED'
+  ).length
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -436,12 +457,12 @@ export function AdminGenerationPage() {
                 </div>
               )}
 
-              {pendingCardsCount > 0 && (
+              {approvableCardsCount > 0 && (
                 <button
                   onClick={handleSelectAll}
                   className="text-sm text-primary hover:underline"
                 >
-                  {selectedCardIds.size === pendingCardsCount ? '전체 해제' : '전체 선택'}
+                  {selectedCardIds.size === approvableCardsCount ? '전체 해제' : '전체 선택'}
                 </button>
               )}
             </div>

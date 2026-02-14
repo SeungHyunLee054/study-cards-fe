@@ -7,6 +7,11 @@ interface GenerationStatsProps {
   error: string | null
 }
 
+function normalizeRate(rate: number): number {
+  if (!Number.isFinite(rate)) return 0
+  return Math.min(100, Math.max(0, rate))
+}
+
 export function GenerationStats({ stats, isLoading, error }: GenerationStatsProps) {
   if (isLoading) {
     return (
@@ -27,6 +32,7 @@ export function GenerationStats({ stats, isLoading, error }: GenerationStatsProp
   }
 
   const { overall, byModel } = stats
+  const overallApprovalRate = normalizeRate(overall.approvalRate)
 
   return (
     <div className="space-y-6">
@@ -69,13 +75,13 @@ export function GenerationStats({ stats, isLoading, error }: GenerationStatsProp
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-700">전체 승인률</span>
           <span className="text-lg font-bold text-primary">
-            {(overall.approvalRate * 100).toFixed(1)}%
+            {overallApprovalRate.toFixed(1)}%
           </span>
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
           <div
             className="h-full bg-primary rounded-full transition-all"
-            style={{ width: `${overall.approvalRate * 100}%` }}
+            style={{ width: `${overallApprovalRate}%` }}
           />
         </div>
       </div>
@@ -135,7 +141,7 @@ export function GenerationStats({ stats, isLoading, error }: GenerationStatsProp
                       {modelStat.migrated}
                     </td>
                     <td className="px-4 py-3 text-sm text-right font-medium text-primary">
-                      {(modelStat.approvalRate * 100).toFixed(1)}%
+                      {normalizeRate(modelStat.approvalRate).toFixed(1)}%
                     </td>
                   </tr>
                 ))}
