@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { BookOpen, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { AppHeader } from '@/components/AppHeader'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function OAuthCallbackPage() {
@@ -30,24 +31,29 @@ export function OAuthCallbackPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white text-gray-900 flex flex-col items-center justify-center">
-        <BookOpen className="h-12 w-12 text-primary mb-4" />
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">로그인 실패</h1>
-        <p className="text-gray-600 mb-6">{error}</p>
-        <button
-          onClick={() => navigate('/login')}
-          className="text-primary hover:underline"
-        >
-          로그인 페이지로 돌아가기
-        </button>
+      <div className="min-h-screen bg-white text-gray-900 flex flex-col">
+        <AppHeader variant="brand-only" />
+        <main className="flex-1 flex flex-col items-center justify-center px-4">
+          <h1 className="text-xl font-semibold text-gray-900 mb-2">로그인 실패</h1>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="text-primary hover:underline"
+          >
+            로그인 페이지로 돌아가기
+          </button>
+        </main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col items-center justify-center">
-      <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
-      <p className="text-gray-600">로그인 처리 중...</p>
+    <div className="min-h-screen bg-white text-gray-900 flex flex-col">
+      <AppHeader variant="brand-only" />
+      <main className="flex-1 flex flex-col items-center justify-center px-4">
+        <Loader2 className="h-8 w-8 text-primary animate-spin mb-4" />
+        <p className="text-gray-600">로그인 처리 중...</p>
+      </main>
     </div>
   )
 }

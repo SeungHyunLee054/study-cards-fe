@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, Filter, Loader2, User, CalendarCheck, BookOpen, Sparkles } from 'lucide-react'
+import { Filter, Loader2, User, CalendarCheck, BookOpen, Sparkles } from 'lucide-react'
 import { CardDeck } from '@/components/CardDeck'
 import { RateLimitModal } from '@/components/RateLimitModal'
 import { RecommendedCardList } from '@/components/RecommendedCardList'
 import { CategoryAccuracyChart } from '@/components/CategoryAccuracyChart'
 import { useStudyCards } from '@/hooks/useStudyCards'
 import { Button } from '@/components/ui/button'
+import { AppHeader } from '@/components/AppHeader'
 import { useAuth } from '@/contexts/AuthContext'
 import { fetchCategoryTree } from '@/api/categories'
 import { fetchRecommendations, fetchCategoryAccuracy } from '@/api/recommendations'
@@ -163,27 +164,21 @@ export function StudyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-10">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-            <Link to={isLoggedIn ? '/dashboard' : '/'}>
-              <ArrowLeft className="mr-1 h-4 w-4" />
-              <span className="hidden sm:inline">뒤로</span>
-            </Link>
-          </Button>
-          <h1 className="text-base md:text-lg font-semibold truncate">
-            {getModeLabel()}{getModeLabel() && ' '}{category ? `${category} 학습` : '학습 세션'}
-          </h1>
-          {/* Progress Counter */}
-          {progress.total > 0 && (
-            <div className="text-sm font-medium text-primary">
-              {progress.completed}/{progress.total}
-            </div>
-          )}
-          {progress.total === 0 && <div className="w-16" />}
-        </div>
-      </header>
+      <AppHeader
+        variant="back-title"
+        container="container"
+        backTo={isLoggedIn ? '/dashboard' : '/'}
+        backLabel="뒤로"
+        hideBackLabelOnMobile
+        title={`${getModeLabel()}${getModeLabel() && ' '}${category ? `${category} 학습` : '학습 세션'}`}
+        sticky
+        stickyTone="background"
+        rightSlot={progress.total > 0 ? (
+          <div className="text-sm font-medium text-primary">
+            {progress.completed}/{progress.total}
+          </div>
+        ) : undefined}
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-4 md:py-8">

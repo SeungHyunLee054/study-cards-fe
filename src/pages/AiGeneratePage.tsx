@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  ArrowLeft,
   Sparkles,
   Loader2,
   BookOpen,
@@ -10,6 +9,7 @@ import {
   Wand2,
   AlertCircle,
 } from 'lucide-react'
+import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { fetchCategories } from '@/api/categories'
@@ -85,17 +85,20 @@ export function AiGeneratePage() {
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-background">
-        <header className="border-b">
-          <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <h1 className="text-lg font-semibold flex items-center gap-2">
+        <AppHeader
+          variant="back-title"
+          container="max-w-3xl"
+          backTo="/"
+          backLabel="뒤로"
+          hideBackLabelOnMobile
+          title={(
+            <span className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
               AI 카드 생성
-            </h1>
-          </div>
-        </header>
+            </span>
+          )}
+          titleClassName="text-lg font-semibold"
+        />
         <main className="max-w-3xl mx-auto px-4 py-16 text-center">
           <Sparkles className="h-16 w-16 mx-auto mb-6 text-primary/30" />
           <h2 className="text-2xl font-bold mb-3">로그인이 필요합니다</h2>
@@ -110,29 +113,30 @@ export function AiGeneratePage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="border-b shrink-0">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/dashboard"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <h1 className="text-lg font-semibold flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              AI 카드 생성
-            </h1>
+      <AppHeader
+        variant="back-title"
+        container="max-w-3xl"
+        backTo="/dashboard"
+        backLabel="뒤로"
+        hideBackLabelOnMobile
+        title={(
+          <span className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            AI 카드 생성
+          </span>
+        )}
+        titleClassName="text-lg font-semibold"
+        rightSlot={!isLoadingLimit && limitInfo ? (
+          <div className="text-sm text-muted-foreground">
+            {limitInfo.isLifetime ? (
+              <span>남은 횟수: <strong className="text-foreground">{limitInfo.remaining}</strong>/{limitInfo.limit}</span>
+            ) : (
+              <span>오늘: <strong className="text-foreground">{limitInfo.used}</strong>/{limitInfo.limit}</span>
+            )}
           </div>
-          {!isLoadingLimit && limitInfo && (
-            <div className="text-sm text-muted-foreground">
-              {limitInfo.isLifetime ? (
-                <span>남은 횟수: <strong className="text-foreground">{limitInfo.remaining}</strong>/{limitInfo.limit}</span>
-              ) : (
-                <span>오늘: <strong className="text-foreground">{limitInfo.used}</strong>/{limitInfo.limit}</span>
-              )}
-            </div>
-          )}
-        </div>
-      </header>
+        ) : undefined}
+        className="shrink-0"
+      />
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-32">

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  BookOpen,
   Clock,
   CheckCircle,
   Sparkles,
@@ -9,22 +8,10 @@ import {
   TrendingUp,
   Calendar,
   Loader2,
-  Settings,
-  LogOut,
-  User,
-  NotebookText,
-  BarChart3,
-  Shield,
-  History,
-  LayoutDashboard,
-  CreditCard,
   Wand2,
-  Search,
-  Heart,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { NotificationDropdown } from '@/components/NotificationDropdown'
-import { useAuth } from '@/contexts/AuthContext'
+import { AppHeader } from '@/components/AppHeader'
 import { fetchDashboard } from '@/api/dashboard'
 import { fetchCategoryTree } from '@/api/categories'
 import type { CategoryTreeResponse } from '@/types/category'
@@ -60,7 +47,6 @@ function getWeekday(dateStr: string): string {
 }
 
 export function DashboardPage() {
-  const { logout, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [dashboard, setDashboard] = useState<DashboardResponse | null>(null)
   const [categoryTree, setCategoryTree] = useState<CategoryTreeResponse[]>([])
@@ -116,88 +102,7 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold hidden sm:inline">Study Cards</span>
-          </Link>
-          <div className="flex items-center gap-2 md:gap-4">
-            <div className="flex items-center gap-2 overflow-x-auto">
-              <div className="hidden md:flex items-center gap-2 text-sm text-gray-600 shrink-0">
-                <User className="h-4 w-4" />
-                {user?.nickname && <span>{user.nickname}</span>}
-              </div>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/mypage">
-                  <LayoutDashboard className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/search">
-                  <Search className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/bookmarks">
-                  <Heart className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/ai-generate" className="text-primary">
-                  <Wand2 className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/sessions">
-                  <History className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/my-cards">
-                  <NotebookText className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/stats">
-                  <BarChart3 className="h-4 w-4" />
-                </Link>
-              </Button>
-              {isAdmin && (
-                <>
-                  <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                    <Link to="/admin/cards" className="text-purple-600">
-                      <Shield className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                    <Link to="/admin/generation" className="text-purple-600">
-                      <Sparkles className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </>
-              )}
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/subscription">
-                  <CreditCard className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <NotificationDropdown />
-              <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
-                <Link to="/settings">
-                  <Settings className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={logout} className="min-h-[44px]">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader variant="app-nav" dashboardLink="/mypage" dashboardLabel="마이페이지" includeAiGenerate />
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {error && (

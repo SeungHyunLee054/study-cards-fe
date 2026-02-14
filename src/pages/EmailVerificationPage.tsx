@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { BookOpen, Mail, CheckCircle } from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { Mail, CheckCircle } from 'lucide-react'
+import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -158,15 +159,7 @@ export function EmailVerificationPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <Link to="/" className="flex items-center gap-2 w-fit">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
-          </Link>
-        </div>
-      </header>
+      <AppHeader variant="brand-only" />
 
       {/* Main */}
       <main className="max-w-md mx-auto px-6 py-16">

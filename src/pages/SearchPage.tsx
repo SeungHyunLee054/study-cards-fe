@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Link } from 'react-router-dom'
-import { BookOpen, ArrowLeft, Loader2, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Loader2, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react'
+import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { BookmarkButton } from '@/components/BookmarkButton'
@@ -69,21 +69,13 @@ export function SearchPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200 sticky top-0 bg-white/95 backdrop-blur z-10">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
-          </Link>
-          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-            <Link to={isLoggedIn ? '/mypage' : '/'}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">돌아가기</span>
-            </Link>
-          </Button>
-        </div>
-      </header>
+      <AppHeader
+        variant="brand-back"
+        backTo={isLoggedIn ? '/mypage' : '/'}
+        backLabel="돌아가기"
+        hideBackLabelOnMobile
+        sticky
+      />
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Page Title */}

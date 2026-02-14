@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, BookOpen, ArrowLeft, Loader2, Filter, Sparkles } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Filter, Sparkles, BookOpen } from 'lucide-react'
+import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { CardForm } from '@/components/CardForm'
 import { getUserCards, createUserCard, updateUserCard, deleteUserCard } from '@/api/cards'
@@ -99,21 +100,7 @@ export function MyCardsPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
-          </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/mypage">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              마이페이지
-            </Link>
-          </Button>
-        </div>
-      </header>
+      <AppHeader variant="brand-back" backTo="/mypage" backLabel="마이페이지" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         {/* Page Title */}

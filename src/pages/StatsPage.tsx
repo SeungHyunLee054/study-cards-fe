@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  ArrowLeft,
   TrendingUp,
   Target,
   Flame,
@@ -11,6 +10,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AppHeader } from '@/components/AppHeader'
 import { fetchStats } from '@/api/stats'
 import type { StatsResponse, DeckStats, RecentActivity } from '@/types/stats'
 
@@ -79,18 +79,14 @@ export function StatsPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-            <Link to="/mypage">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              뒤로
-            </Link>
-          </Button>
-          <h1 className="text-xl font-semibold">학습 통계</h1>
-        </div>
-      </header>
+      <AppHeader
+        variant="back-title"
+        container="max-w-4xl"
+        backTo="/mypage"
+        backLabel="뒤로"
+        title="학습 통계"
+        titleClassName="text-xl font-semibold"
+      />
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         {error && (

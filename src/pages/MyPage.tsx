@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Play, Clock, CheckCircle, AlertCircle, BarChart3, Calendar, Settings, LogOut, User, BookOpen, Loader2, NotebookText, Shield, LayoutDashboard, History, Sparkles, CreditCard, Search, Heart } from 'lucide-react'
+import {
+  Play,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  BarChart3,
+  Calendar,
+  Loader2,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AppHeader } from '@/components/AppHeader'
 import { CategoryTree } from '@/components/CategoryTree'
-import { NotificationDropdown } from '@/components/NotificationDropdown'
-import { useAuth } from '@/contexts/AuthContext'
 import { fetchStats } from '@/api/stats'
 import { fetchCategoryTree } from '@/api/categories'
 import type { StatsResponse } from '@/types/stats'
@@ -29,7 +36,6 @@ function formatDate(dateStr: string): string {
 }
 
 export function MyPage() {
-  const { logout, isAdmin, user } = useAuth()
   const [stats, setStats] = useState<StatsResponse | null>(null)
   const [categoryTree, setCategoryTree] = useState<CategoryTreeResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -71,83 +77,7 @@ export function MyPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 overflow-x-auto">
-              <div className="flex items-center gap-2 text-sm text-gray-600 shrink-0">
-                <User className="h-4 w-4" />
-                {user?.nickname && <span>{user.nickname}</span>}
-              </div>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/dashboard">
-                  <LayoutDashboard className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/search">
-                  <Search className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/bookmarks">
-                  <Heart className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/sessions">
-                  <History className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/my-cards">
-                  <NotebookText className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/stats">
-                  <BarChart3 className="h-4 w-4" />
-                </Link>
-              </Button>
-              {isAdmin && (
-                <>
-                  <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                    <Link to="/admin/cards" className="text-purple-600">
-                      <Shield className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                  <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                    <Link to="/admin/generation" className="text-purple-600">
-                      <Sparkles className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </>
-              )}
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to="/subscription">
-                  <CreditCard className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <NotificationDropdown />
-              <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-                <Link to="/settings">
-                  <Settings className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={logout} className="min-h-[44px]">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader variant="app-nav" dashboardLink="/dashboard" dashboardLabel="대시보드" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         {error && (

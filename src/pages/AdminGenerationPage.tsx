@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Sparkles,
-  BookOpen,
   Loader2,
   Filter,
   Shield,
@@ -11,6 +10,7 @@ import {
   ArrowRight,
   CheckCircle,
 } from 'lucide-react'
+import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { GenerationStats } from '@/components/GenerationStats'
 import { GeneratedCardItem } from '@/components/GeneratedCardItem'
@@ -246,27 +246,23 @@ export function AdminGenerationPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-sm font-medium">
+      <AppHeader
+        variant="brand-actions"
+        rightSlot={(
+          <>
+            <span className="hidden sm:flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-sm font-medium">
               <Shield className="h-4 w-4" />
               관리자
             </span>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/admin/cards">카드 관리</Link>
             </Button>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/mypage">마이페이지</Link>
             </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        )}
+      />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         {/* Page Title */}

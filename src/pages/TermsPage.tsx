@@ -1,25 +1,9 @@
-import { Link } from 'react-router-dom'
-import { BookOpen, ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { AppHeader } from '@/components/AppHeader'
 
 export function TermsPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
-          </Link>
-          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-            <Link to="/signup">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              돌아가기
-            </Link>
-          </Button>
-        </div>
-      </header>
+      <AppHeader variant="brand-back" backTo="/signup" backLabel="돌아가기" />
 
       {/* Main */}
       <main className="max-w-3xl mx-auto px-6 py-12">

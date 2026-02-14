@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BookOpen, ChevronRight, Check, RotateCcw, X } from 'lucide-react'
+import { ChevronRight, Check, RotateCcw, X } from 'lucide-react'
+import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
@@ -54,26 +55,22 @@ export function HomePage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
-          </div>
-          <div className="flex gap-4 items-center">
+      <AppHeader
+        variant="brand-actions"
+        rightSlot={(
+          <>
             <Link
               to="/login"
               className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
               로그인
             </Link>
-            <Button size="sm" asChild>
+            <Button size="sm" asChild className="min-h-[44px]">
               <Link to="/signup">시작하기</Link>
             </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        )}
+      />
 
       {/* Hero */}
       <main>

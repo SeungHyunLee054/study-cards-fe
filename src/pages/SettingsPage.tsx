@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { BookOpen, ArrowLeft, Loader2, User, Lock, Bell, Smartphone } from 'lucide-react'
+import { Loader2, User, Lock, Bell, Smartphone } from 'lucide-react'
+import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -237,21 +237,7 @@ export function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
-          </Link>
-          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-            <Link to="/mypage">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              마이페이지
-            </Link>
-          </Button>
-        </div>
-      </header>
+      <AppHeader variant="brand-back" container="max-w-4xl" backTo="/mypage" backLabel="마이페이지" />
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">

@@ -1,23 +1,11 @@
-import { Link } from 'react-router-dom'
-import { ArrowLeft, Github, BookOpen, Brain, ExternalLink } from 'lucide-react'
+import { Github, BookOpen, Brain, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AppHeader } from '@/components/AppHeader'
 
 export function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-            <Link to="/">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              홈으로
-            </Link>
-          </Button>
-          <h1 className="text-lg font-semibold">About</h1>
-          <div className="w-20" />
-        </div>
-      </header>
+      <AppHeader variant="back-title" container="container" backTo="/" backLabel="홈으로" title="About" />
 
       {/* Content */}
       <main className="container mx-auto px-4 py-12 max-w-2xl">

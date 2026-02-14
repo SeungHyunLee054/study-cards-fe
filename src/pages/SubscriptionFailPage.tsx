@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { BookOpen, XCircle } from 'lucide-react'
+import { XCircle } from 'lucide-react'
+import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 
 export function SubscriptionFailPage() {
@@ -23,14 +24,7 @@ export function SubscriptionFailPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <header className="border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span className="text-xl font-semibold">Study Cards</span>
-          </Link>
-        </div>
-      </header>
+      <AppHeader variant="brand-only" container="max-w-4xl" />
 
       <main className="max-w-4xl mx-auto px-6 py-16 text-center">
         <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">
