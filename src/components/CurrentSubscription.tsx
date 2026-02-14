@@ -5,7 +5,9 @@ import type { SubscriptionResponse } from '@/types/subscription'
 interface CurrentSubscriptionProps {
   subscription: SubscriptionResponse
   onCancel: () => void
+  onResume?: () => void
   isCancelling?: boolean
+  isResuming?: boolean
 }
 
 function formatDate(dateStr: string): string {
@@ -35,7 +37,9 @@ function getStatusLabel(status: SubscriptionResponse['status']): { label: string
 export function CurrentSubscription({
   subscription,
   onCancel,
+  onResume,
   isCancelling,
+  isResuming,
 }: CurrentSubscriptionProps) {
   const status = getStatusLabel(subscription.status)
   const billingLabel = subscription.billingCycle === 'MONTHLY' ? '월간 정기결제' : '연간 선결제'
@@ -44,6 +48,11 @@ export function CurrentSubscription({
     subscription.status === 'ACTIVE'
     && isMonthly
     && subscription.autoRenewalEnabled
+  const canEnableAutoRenewal =
+    subscription.status !== 'EXPIRED'
+    && subscription.isActive
+    && isMonthly
+    && !subscription.autoRenewalEnabled
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
@@ -92,6 +101,23 @@ export function CurrentSubscription({
               </>
             ) : (
               '자동결제 해제'
+            )}
+          </Button>
+        )}
+
+        {canEnableAutoRenewal && onResume && (
+          <Button
+            className="w-full"
+            onClick={onResume}
+            disabled={isResuming}
+          >
+            {isResuming ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                처리 중...
+              </>
+            ) : (
+              '자동결제 다시 켜기'
             )}
           </Button>
         )}

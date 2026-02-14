@@ -69,3 +69,11 @@ export interface PaymentConfirmRequest {
 export interface CancelRequest {
   reason?: string
 }
+
+export interface ResumeRequest {
+  authKey?: string
+}
+
+export interface ResumePrepareResponse {
+  customerKey: string
+}

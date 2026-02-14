@@ -11,6 +11,8 @@ import type {
   PaymentConfirmRequest,
   InvoiceResponse,
   CancelRequest,
+  ResumeRequest,
+  ResumePrepareResponse,
 } from '@/types/subscription'
 
 // 요금제 목록 조회 (인증 불필요)
@@ -67,6 +69,30 @@ export async function cancelSubscription(request?: CancelRequest): Promise<Subsc
     const response = await apiClient.post<SubscriptionResponse>('/api/subscriptions/cancel', request || {})
     return response.data
   }, '자동결제 해제에 실패했습니다.')
+}
+
+// 월간 구독 자동 갱신 재개
+export async function resumeSubscription(request?: ResumeRequest): Promise<SubscriptionResponse> {
+  return withApiErrorHandling(async () => {
+    try {
+      const response = await apiClient.post<SubscriptionResponse>('/api/subscriptions/resume', request || {})
+      return response.data
+    } catch (error) {
+      // 백엔드 네이밍 차이를 위한 호환 fallback
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        const fallbackResponse = await apiClient.post<SubscriptionResponse>('/api/subscriptions/reactivate', request || {})
+        return fallbackResponse.data
+      }
+      throw error
+    }
+  }, '자동결제 재개에 실패했습니다.')
+}
+
+export async function prepareResumeSubscription(): Promise<ResumePrepareResponse> {
+  return withApiErrorHandling(async () => {
+    const response = await apiClient.post<ResumePrepareResponse>('/api/subscriptions/resume/prepare', {})
+    return response.data
+  }, '카드 재등록 준비에 실패했습니다.')
 }
 
 // 결제 내역 조회

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Loader2, CreditCard, Check, Sparkles } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
@@ -15,6 +15,8 @@ import {
   fetchMySubscription,
   createCheckoutSession,
   cancelSubscription,
+  resumeSubscription,
+  prepareResumeSubscription,
   fetchInvoices,
 } from '@/api/subscriptions'
 import { requestBillingAuth, requestPayment } from '@/lib/tosspayments'
@@ -27,7 +29,8 @@ import type {
 
 export function SubscriptionPage() {
   const { isLoading: authLoading, isLoggedIn } = useAuth()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const isResumeCallbackProcessing = useRef(false)
 
   const [plan, setPlan] = useState<PlanResponse | null>(null)
   const [subscription, setSubscription] = useState<SubscriptionResponse | null>(null)
@@ -37,7 +40,9 @@ export function SubscriptionPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [isResuming, setIsResuming] = useState(false)
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
+  const [isResumeDialogOpen, setIsResumeDialogOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
@@ -47,6 +52,49 @@ export function SubscriptionPage() {
       setSuccessMessage('결제가 완료되었습니다.')
     }
   }, [searchParams])
+
+  const clearResumeParams = useCallback(() => {
+    const next = new URLSearchParams(searchParams)
+    next.delete('resumeBilling')
+    next.delete('authKey')
+    next.delete('customerKey')
+    next.delete('code')
+    next.delete('message')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
+
+  useEffect(() => {
+    const isResumeFlow = searchParams.get('resumeBilling') === 'true'
+    if (!isResumeFlow || isResumeCallbackProcessing.current) return
+
+    const authKey = searchParams.get('authKey')
+    const failMessage = searchParams.get('message')
+
+    if (!authKey) {
+      if (failMessage) {
+        setError(failMessage)
+      }
+      clearResumeParams()
+      return
+    }
+
+    isResumeCallbackProcessing.current = true
+    ;(async () => {
+      try {
+        setIsResuming(true)
+        setError(null)
+        const updated = await resumeSubscription({ authKey })
+        setSubscription(updated)
+        setSuccessMessage('카드 재등록 후 자동결제가 다시 활성화되었습니다.')
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '자동결제 재개에 실패했습니다')
+      } finally {
+        setIsResuming(false)
+        clearResumeParams()
+        isResumeCallbackProcessing.current = false
+      }
+    })()
+  }, [searchParams, clearResumeParams])
 
   const loadData = useCallback(async () => {
     try {
@@ -148,6 +196,43 @@ export function SubscriptionPage() {
     }
   }
 
+  async function handleResumeSubscription() {
+    try {
+      setIsResuming(true)
+      setError(null)
+      const updated = await resumeSubscription()
+      setSubscription(updated)
+      setIsResumeDialogOpen(false)
+      setSuccessMessage('자동결제가 다시 활성화되었습니다.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '자동결제 재개에 실패했습니다'
+
+      if (message.includes('카드를 다시 등록')) {
+        try {
+          const { customerKey } = await prepareResumeSubscription()
+          const baseUrl = window.location.origin
+          const successUrl = `${baseUrl}/subscription?resumeBilling=true`
+          const failUrl = `${baseUrl}/subscription?resumeBilling=true`
+
+          setIsResumeDialogOpen(false)
+          await requestBillingAuth({
+            customerKey,
+            successUrl,
+            failUrl,
+          })
+          return
+        } catch (prepareErr) {
+          setError(prepareErr instanceof Error ? prepareErr.message : '카드 재등록을 시작할 수 없습니다')
+          return
+        }
+      }
+
+      setError(message)
+    } finally {
+      setIsResuming(false)
+    }
+  }
+
   if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -206,7 +291,9 @@ export function SubscriptionPage() {
             <CurrentSubscription
               subscription={subscription}
               onCancel={() => setIsCancelDialogOpen(true)}
+              onResume={() => setIsResumeDialogOpen(true)}
               isCancelling={isCancelling}
+              isResuming={isResuming}
             />
           </div>
         )}
@@ -369,6 +456,26 @@ export function SubscriptionPage() {
           }
         }}
         onConfirm={() => void handleCancelSubscription()}
+      />
+
+      <ConfirmDialog
+        isOpen={isResumeDialogOpen}
+        title="월간 자동결제 재개"
+        description={(
+          <>
+            월간 정기결제 자동결제를 다시 활성화하시겠습니까?
+            <br />
+            다음 결제일부터 자동 청구가 재개됩니다.
+          </>
+        )}
+        confirmLabel="자동결제 재개"
+        isConfirming={isResuming}
+        onCancel={() => {
+          if (!isResuming) {
+            setIsResumeDialogOpen(false)
+          }
+        }}
+        onConfirm={() => void handleResumeSubscription()}
       />
 
       <AppFooter container="max-w-4xl" />
