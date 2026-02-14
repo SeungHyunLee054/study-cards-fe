@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/useAuth'
 import { fetchCategories } from '@/api/categories'
 import { generateUserCards, fetchAiGenerationLimit } from '@/api/ai'
 import type { CategoryResponse } from '@/types/category'

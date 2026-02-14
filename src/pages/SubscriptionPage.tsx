@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { BillingCycleToggle } from '@/components/BillingCycleToggle'
 import { CurrentSubscription } from '@/components/CurrentSubscription'
 import { InvoiceList } from '@/components/InvoiceList'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/useAuth'
 import {
   fetchPlans,
   fetchMySubscription,

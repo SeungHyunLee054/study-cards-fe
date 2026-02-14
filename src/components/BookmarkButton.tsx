@@ -1,7 +1,7 @@
 import { Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useBookmark } from '@/hooks/useBookmark'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/useAuth'
 import type { CardType } from '@/types/card'
 
 interface BookmarkButtonProps {

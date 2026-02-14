@@ -4,8 +4,11 @@ import { Plus, Pencil, Trash2, Loader2, Filter, Sparkles, BookOpen } from 'lucid
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { CardForm } from '@/components/CardForm'
+import { InlineError } from '@/components/InlineError'
+import { CategoryFilterChips } from '@/components/CategoryFilterChips'
 import { getUserCards, createUserCard, updateUserCard, deleteUserCard } from '@/api/cards'
 import { fetchCategories } from '@/api/categories'
+import { useCategoryFilter } from '@/hooks/useCategoryFilter'
 import type { UserCardResponse, UserCardCreateRequest } from '@/types/card'
 import type { CategoryResponse } from '@/types/category'
 
@@ -15,7 +18,7 @@ export function MyCardsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedCategory, setSelectedCategory] = useState('ALL')
+  const { selectedCategory, setSelectedCategory, categoryCode } = useCategoryFilter()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<UserCardResponse | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -34,7 +37,6 @@ export function MyCardsPage() {
     try {
       setIsLoading(true)
       setError(null)
-      const categoryCode = selectedCategory === 'ALL' ? undefined : selectedCategory
       const data = await getUserCards(categoryCode)
       setCards(data)
     } catch (err) {
@@ -42,7 +44,7 @@ export function MyCardsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [selectedCategory])
+  }, [categoryCode])
 
   useEffect(() => {
     loadCards()
@@ -125,15 +127,7 @@ export function MyCardsPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
-            {error}
-            <button
-              onClick={() => setError(null)}
-              className="ml-2 text-red-900 hover:underline"
-            >
-              닫기
-            </button>
-          </div>
+          <InlineError message={error} onClose={() => setError(null)} className="mb-6" />
         )}
 
         {/* Filter */}
@@ -145,31 +139,11 @@ export function MyCardsPage() {
               로딩 중...
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedCategory('ALL')}
-                className={`px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
-                  selectedCategory === 'ALL'
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                전체
-              </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.code)}
-                  className={`px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
-                    selectedCategory === cat.code
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
+            <CategoryFilterChips
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onChange={setSelectedCategory}
+            />
           )}
         </div>
 

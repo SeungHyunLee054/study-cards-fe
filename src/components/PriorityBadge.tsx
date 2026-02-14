@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 import type { PriorityLevel } from '@/types/recommendation'
 
-export function getPriorityLevel(score: number): PriorityLevel {
+function getPriorityLevel(score: number): PriorityLevel {
   if (score >= 1000) return 'critical'
   if (score >= 500) return 'high'
   if (score >= 300) return 'medium'

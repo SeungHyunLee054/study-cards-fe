@@ -3,7 +3,7 @@ import { Check, X, RotateCcw } from 'lucide-react'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { BookmarkButton } from '@/components/BookmarkButton'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/useAuth'
 import { cn } from '@/lib/utils'
 import type { StudyCard } from '@/types/card'
 

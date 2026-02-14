@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/useAuth'
 
 type HeaderContainer = 'max-w-6xl' | 'max-w-4xl' | 'max-w-3xl' | 'container'
 type StickyTone = 'white' | 'background'

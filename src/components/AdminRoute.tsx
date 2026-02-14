@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/useAuth'
 import type { ReactNode } from 'react'
 
 interface AdminRouteProps {

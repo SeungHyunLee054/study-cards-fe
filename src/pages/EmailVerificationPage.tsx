@@ -61,7 +61,7 @@ export function EmailVerificationPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft)
-  const [canResend, setCanResend] = useState(() => calculateTimeLeft() <= 0)
+  const canResend = timeLeft <= 0
 
   // 이메일이 없으면 회원가입 페이지로 리다이렉트
   useEffect(() => {
@@ -72,20 +72,12 @@ export function EmailVerificationPage() {
 
   // 타이머 동작
   useEffect(() => {
-    if (step !== 'input' || timeLeft <= 0) {
-      if (timeLeft <= 0) {
-        setCanResend(true)
-      }
-      return
-    }
+    if (step !== 'input') return
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setCanResend(true)
-          return 0
-        }
-        return prev - 1
+        if (prev <= 0) return 0
+        return prev <= 1 ? 0 : prev - 1
       })
     }, 1000)
 
@@ -143,7 +135,6 @@ export function EmailVerificationPage() {
       sessionStorage.setItem('pendingEmailVerification', JSON.stringify(newData))
 
       setTimeLeft(EMAIL_VERIFICATION_TIMEOUT_SECONDS) // 타이머 리셋
-      setCanResend(false)
       setCode('')
       setError(null)
     } catch (err) {

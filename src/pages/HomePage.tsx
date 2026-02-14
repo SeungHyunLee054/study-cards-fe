@@ -5,7 +5,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/useAuth'
 import { cn } from '@/lib/utils'
 import { fetchCardCount } from '@/api/cards'
 
