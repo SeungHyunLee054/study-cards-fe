@@ -74,7 +74,7 @@ function TreeNode({ node, deckStats, depth, colorIndex }: TreeNodeProps) {
         className={`p-4 rounded-lg border-l-4 ${getDeckColor(colorIndex)} bg-gray-50 hover:bg-gray-100 transition-colors`}
         style={{ marginLeft: Math.min(depth, 3) * 16 }}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2">
             {hasChildren && (
               <button
@@ -108,7 +108,7 @@ function TreeNode({ node, deckStats, depth, colorIndex }: TreeNodeProps) {
               )}
             </div>
           </div>
-          <Button size="sm" variant="outline" asChild className="min-h-[44px]">
+          <Button size="sm" variant="outline" asChild className="min-h-[44px] w-full sm:w-auto">
             <Link to={`/study?deck=${encodeURIComponent(node.code)}`}>학습</Link>
           </Button>
         </div>

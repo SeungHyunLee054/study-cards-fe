@@ -129,8 +129,10 @@ export function AppHeader(props: AppHeaderProps) {
     dashboardLabel,
     includeAiGenerate = false,
   }: AppNavHeaderProps) {
+    const dashboardEntryIcon = dashboardLink === '/mypage' ? User : LayoutDashboard
+
     const navItems: NavItem[] = [
-      { to: dashboardLink, label: dashboardLabel, icon: LayoutDashboard },
+      { to: dashboardLink, label: dashboardLabel, icon: dashboardEntryIcon },
       { to: '/search', label: '검색', icon: Search },
       { to: '/bookmarks', label: '북마크', icon: Heart },
       ...(includeAiGenerate
@@ -150,51 +152,53 @@ export function AppHeader(props: AppHeaderProps) {
     const desktopItems = visibleItems.filter(item => item.to !== '/settings')
 
     return (
-      <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-4 flex items-center justify-between gap-2')}>
-        {renderBrand(true)}
+      <>
+        <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-4 flex items-center justify-between gap-2')}>
+          {renderBrand(true)}
 
-        <div className="hidden md:flex items-center gap-2 md:gap-4">
-          <div className="flex items-center gap-2">
-            <div className="hidden xl:flex items-center gap-2 text-sm text-gray-600 shrink-0">
-              <User className="h-4 w-4" />
-              {user?.nickname && <span>{user.nickname}</span>}
+          <div className="hidden md:flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-2">
+              <div className="hidden xl:flex items-center gap-2 text-sm text-gray-600 shrink-0">
+                <User className="h-4 w-4" />
+                {user?.nickname && <span>{user.nickname}</span>}
+              </div>
+              {desktopItems.map((item) => (
+                <Button key={item.to} variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                  <Link to={item.to} className={getLinkClassName(item)}>
+                    <item.icon className="h-4 w-4" />
+                  </Link>
+                </Button>
+              ))}
             </div>
-            {desktopItems.map((item) => (
-              <Button key={item.to} variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                <Link to={item.to} className={getLinkClassName(item)}>
-                  <item.icon className="h-4 w-4" />
+            <div className="flex items-center gap-2 shrink-0">
+              <NotificationDropdown />
+              <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
+                <Link to="/settings" className={location.pathname === '/settings' ? 'text-primary' : ''}>
+                  <Settings className="h-4 w-4" />
                 </Link>
               </Button>
-            ))}
+              <Button variant="ghost" size="sm" onClick={() => { void logout() }} className="min-h-[44px]">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+
+          <div className="flex md:hidden items-center gap-1">
             <NotificationDropdown />
-            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/settings" className={location.pathname === '/settings' ? 'text-primary' : ''}>
-                <Settings className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => { void logout() }} className="min-h-[44px]">
+            <Button variant="ghost" size="sm" onClick={() => { void logout() }} className="min-h-[44px] min-w-[44px]">
               <LogOut className="h-4 w-4" />
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMobileMenuOpen(prev => !prev)}
+              aria-expanded={isMobileMenuOpen}
+              aria-label={isMobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기'}
+              className="min-h-[44px] min-w-[44px]"
+            >
+              {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </Button>
           </div>
-        </div>
-
-        <div className="flex md:hidden items-center gap-1">
-          <NotificationDropdown />
-          <Button variant="ghost" size="sm" onClick={() => { void logout() }} className="min-h-[44px] min-w-[44px]">
-            <LogOut className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsMobileMenuOpen(prev => !prev)}
-            aria-expanded={isMobileMenuOpen}
-            aria-label={isMobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기'}
-            className="min-h-[44px] min-w-[44px]"
-          >
-            {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </Button>
         </div>
 
         {isMobileMenuOpen && (
@@ -211,7 +215,7 @@ export function AppHeader(props: AppHeaderProps) {
             </div>
           </nav>
         )}
-      </div>
+      </>
     )
   }
 

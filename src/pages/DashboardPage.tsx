@@ -140,7 +140,7 @@ export function DashboardPage() {
         </div>
 
         {/* AI Generate CTA */}
-        <div className="mt-4 bg-gradient-to-r from-purple-50 to-primary/5 border border-purple-200 rounded-xl p-4 flex items-center justify-between">
+        <div className="mt-4 bg-gradient-to-r from-purple-50 to-primary/5 border border-purple-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-purple-100 shrink-0">
               <Wand2 className="h-5 w-5 text-purple-600" />
@@ -150,7 +150,7 @@ export function DashboardPage() {
               <p className="text-xs md:text-sm text-gray-500">텍스트를 입력하면 AI가 자동으로 플래시카드를 생성합니다</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" asChild className="shrink-0">
+          <Button variant="outline" size="sm" asChild className="w-full sm:w-auto shrink-0">
             <Link to="/ai-generate">
               <Wand2 className="h-4 w-4 mr-1" />
               생성하기

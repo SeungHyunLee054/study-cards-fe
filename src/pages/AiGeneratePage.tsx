@@ -188,7 +188,7 @@ export function AiGeneratePage() {
 
           {/* PRO Upgrade Banner (for FREE users) */}
           {!isLoadingLimit && limitInfo && limitInfo.isLifetime && limitInfo.remaining > 0 && (
-            <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex items-center justify-between">
+            <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Wand2 className="h-5 w-5 text-primary" />
                 <div>
@@ -198,7 +198,7 @@ export function AiGeneratePage() {
                   </p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" asChild className="min-h-[44px]">
+              <Button variant="outline" size="sm" asChild className="min-h-[44px] w-full sm:w-auto">
                 <Link to="/subscription">PRO 보기</Link>
               </Button>
             </div>
@@ -311,11 +311,11 @@ export function AiGeneratePage() {
           {/* Generated Cards */}
           {generatedCards.length > 0 && !isGenerating && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <h2 className="text-sm font-medium">
                   생성된 카드 ({generatedCards.length}개)
                 </h2>
-                <Button variant="outline" size="sm" asChild className="min-h-[44px]">
+                <Button variant="outline" size="sm" asChild className="min-h-[44px] w-full sm:w-auto">
                   <Link to="/study?mode=myCards">
                     <BookOpen className="h-4 w-4 mr-1" />
                     바로 학습하기

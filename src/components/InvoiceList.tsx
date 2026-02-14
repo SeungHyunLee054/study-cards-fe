@@ -84,7 +84,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
       </div>
       <div className="divide-y divide-gray-100">
         {invoices.map((invoice) => (
-          <div key={invoice.id} className="p-4 flex items-center justify-between">
+          <div key={invoice.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               {getStatusIcon(invoice.status)}
               <div>
@@ -96,7 +96,7 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
                 </p>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <p className="font-medium text-gray-900">
                 {invoice.amount.toLocaleString()}원
               </p>

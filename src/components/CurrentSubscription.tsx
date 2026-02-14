@@ -51,7 +51,7 @@ export function CurrentSubscription({
         <h2 className="text-lg font-semibold text-gray-900">현재 구독</h2>
       </div>
       <div className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-xl font-bold text-gray-900">{subscription.planDisplayName}</h3>
             <p className="text-sm text-gray-500">{billingLabel}</p>

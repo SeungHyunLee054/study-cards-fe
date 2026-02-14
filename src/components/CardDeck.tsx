@@ -119,12 +119,12 @@ export function CardDeck({
       </div>
 
       {isFlipped && (
-        <div className="flex gap-3 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button
             variant="destructive"
             size="lg"
             onClick={onIncorrect}
-            className="flex-1 max-w-36 min-h-[48px] text-base"
+            className="w-full sm:flex-1 sm:max-w-36 min-h-[48px] text-base"
           >
             <X className="mr-1.5 h-5 w-5" />
             오답
@@ -133,7 +133,7 @@ export function CardDeck({
             variant="outline"
             size="lg"
             onClick={handleFlip}
-            className="min-h-[48px]"
+            className="w-full sm:w-auto min-h-[48px]"
           >
             <RotateCcw className="h-5 w-5 mr-1" />
             <span className="hidden sm:inline">뒤집기</span>
@@ -141,7 +141,7 @@ export function CardDeck({
           <Button
             size="lg"
             onClick={onCorrect}
-            className="flex-1 max-w-36 min-h-[48px] text-base bg-green-600 hover:bg-green-700"
+            className="w-full sm:flex-1 sm:max-w-36 min-h-[48px] text-base bg-green-600 hover:bg-green-700"
           >
             <Check className="mr-1.5 h-5 w-5" />
             정답
