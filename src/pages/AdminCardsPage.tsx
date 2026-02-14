@@ -192,18 +192,18 @@ export function AdminCardsPage() {
         )}
       />
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Page Title */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">관리자 대시보드</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">관리자 대시보드</h1>
           <p className="mt-1 text-gray-600">카드와 카테고리를 관리합니다</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
+        <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto pb-1">
           <button
             onClick={() => setActiveTab('cards')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors shrink-0 ${
               activeTab === 'cards'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -214,7 +214,7 @@ export function AdminCardsPage() {
           </button>
           <button
             onClick={() => setActiveTab('categories')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors shrink-0 ${
               activeTab === 'categories'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -229,7 +229,7 @@ export function AdminCardsPage() {
         {activeTab === 'cards' && (
           <>
             {/* Cards Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">카드 목록</h2>
                 <p className="text-sm text-gray-500">{cards.length} / {totalElements}개</p>
@@ -394,7 +394,7 @@ export function AdminCardsPage() {
         {activeTab === 'categories' && (
           <>
             {/* Categories Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">카테고리 목록</h2>
                 <p className="text-sm text-gray-500">총 {categories.length}개</p>

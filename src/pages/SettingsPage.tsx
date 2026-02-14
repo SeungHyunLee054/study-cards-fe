@@ -239,9 +239,9 @@ export function SettingsPage() {
     <div className="min-h-screen bg-white text-gray-900">
       <AppHeader variant="brand-back" container="max-w-4xl" backTo="/mypage" backLabel="마이페이지" />
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">설정</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">설정</h1>
           <p className="mt-1 text-gray-600">계정 설정을 관리하세요</p>
         </div>
 
@@ -388,7 +388,7 @@ export function SettingsPage() {
               ) : pushSettings ? (
                 <div className="space-y-6">
                   {/* 전체 푸시 알림 */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-start sm:items-center justify-between gap-4">
                     <div>
                       <Label className="text-base">푸시 알림</Label>
                       <p className="text-sm text-gray-500 mt-1">
@@ -453,7 +453,7 @@ export function SettingsPage() {
                     </div>
                   )}
 
-                  <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="text-sm text-gray-500">
                       <span className="font-medium">기기 상태: </span>
                       {pushSettings.hasFcmToken ? (

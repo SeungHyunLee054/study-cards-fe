@@ -75,13 +75,13 @@ export function HomePage() {
 
       {/* Hero */}
       <main>
-        <section className="max-w-6xl mx-auto px-6 py-12 sm:py-24 text-center">
+        <section className="max-w-6xl mx-auto px-4 md:px-6 py-10 sm:py-24 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm mb-8">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
             <span className="text-gray-600">Now with {cardCount?.toLocaleString() ?? '...'} cards</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold text-gray-900" style={{ lineHeight: 1.4 }}>
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900" style={{ lineHeight: 1.4 }}>
             Master anything with
             <br />
             <span className="text-primary">
@@ -89,7 +89,7 @@ export function HomePage() {
             </span>
           </h1>
 
-          <p className="mt-6 text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
             플래시카드로 효율적으로 학습하세요.
             과학적으로 검증된 기억법으로 영구 기억을 만듭니다.
           </p>
@@ -108,7 +108,7 @@ export function HomePage() {
         </section>
 
         {/* Features */}
-        <section className="max-w-4xl mx-auto px-6 py-16">
+        <section className="max-w-4xl mx-auto px-4 md:px-6 py-14 md:py-16">
           <div className="grid md:grid-cols-2 gap-4">
             {features.map((feature) => (
               <div
@@ -125,7 +125,7 @@ export function HomePage() {
         </section>
 
         {/* Card Preview */}
-        <section className="max-w-6xl mx-auto px-6 py-16">
+        <section className="max-w-6xl mx-auto px-4 md:px-6 py-14 md:py-16">
           <div className="w-full max-w-md mx-auto space-y-4">
             <div className="text-center mb-6">
               <h3 className="text-lg font-semibold text-gray-700">카드 예시</h3>
@@ -218,7 +218,7 @@ export function HomePage() {
         </section>
 
         {/* Stats */}
-        <section className="max-w-4xl mx-auto px-6 py-16">
+        <section className="max-w-4xl mx-auto px-4 md:px-6 py-14 md:py-16">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="text-4xl font-bold text-primary">
@@ -238,7 +238,7 @@ export function HomePage() {
         </section>
 
         {/* CTA */}
-        <section className="max-w-4xl mx-auto px-6 py-16">
+        <section className="max-w-4xl mx-auto px-4 md:px-6 py-14 md:py-16">
           <div className="p-6 sm:p-8 rounded-2xl bg-primary/5 border border-primary/20 text-center">
             <h2 className="text-2xl font-bold text-gray-900">Ready to start learning?</h2>
             <p className="mt-2 text-gray-600">

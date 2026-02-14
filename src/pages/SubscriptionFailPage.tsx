@@ -26,16 +26,16 @@ export function SubscriptionFailPage() {
     <div className="min-h-screen bg-white text-gray-900">
       <AppHeader variant="brand-only" container="max-w-4xl" />
 
-      <main className="max-w-4xl mx-auto px-6 py-16 text-center">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-16 text-center">
         <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">
           <XCircle className="h-8 w-8 text-red-600" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">결제에 실패했습니다</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">결제에 실패했습니다</h1>
         <p className="text-gray-600 mb-2">{getErrorDescription(errorCode)}</p>
         {errorCode && (
           <p className="text-sm text-gray-400 mb-8">오류 코드: {errorCode}</p>
         )}
-        <div className="flex justify-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
           <Button asChild>
             <Link to="/subscription">다시 시도하기</Link>
           </Button>

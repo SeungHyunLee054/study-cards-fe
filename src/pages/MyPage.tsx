@@ -80,7 +80,7 @@ export function MyPage() {
     <div className="min-h-screen bg-white text-gray-900">
       <AppHeader variant="app-nav" dashboardLink="/dashboard" dashboardLabel="대시보드" />
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {error && (
           <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
             {error}
@@ -88,16 +88,16 @@ export function MyPage() {
         )}
 
         {/* Welcome Banner */}
-        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex items-center justify-between">
+        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">다시 오셨군요!</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">다시 오셨군요!</h1>
             <p className="mt-1 text-gray-600">
               {totalDue > 0
                 ? `오늘 복습할 카드가 ${totalDue}개 있습니다`
                 : '새로운 카드로 학습을 시작하세요'}
             </p>
           </div>
-          <Button size="lg" asChild>
+          <Button size="lg" asChild className="w-full sm:w-auto">
             <Link to="/study">
               <Play className="mr-2 h-5 w-5" />
               학습 시작

@@ -170,7 +170,7 @@ function SessionCard({ session, onReviewSession }: SessionCardProps) {
       {/* Session Summary */}
       <button
         onClick={handleToggle}
-        className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+        className="w-full p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50 transition-colors"
       >
         <div className="flex items-center gap-4">
           <div className="p-2 rounded-lg bg-primary/10">
@@ -190,7 +190,7 @@ function SessionCard({ session, onReviewSession }: SessionCardProps) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 self-end sm:self-auto">
           <div className="text-right">
             <div className="text-lg font-semibold text-primary">
               {formatPercent(session.accuracyRate)}
@@ -314,7 +314,7 @@ export function SessionHistoryPage() {
         titleClassName="text-xl font-semibold"
       />
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {error && (
           <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
             {error}
@@ -351,7 +351,7 @@ export function SessionHistoryPage() {
 
         {/* Pagination */}
         {!isLoading && sessions.length > 0 && (
-          <div className="mt-8 flex items-center justify-between">
+          <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="text-sm text-gray-500">
               총 {totalElements}개의 세션
             </div>

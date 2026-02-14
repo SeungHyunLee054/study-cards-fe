@@ -5,6 +5,7 @@ interface CategoryFilterChipsProps {
   categories: CategoryResponse[]
   onChange: (code: string) => void
   allLabel?: string
+  buttonBaseClassName?: string
 }
 
 export function CategoryFilterChips({
@@ -12,12 +13,13 @@ export function CategoryFilterChips({
   categories,
   onChange,
   allLabel = '전체',
+  buttonBaseClassName = 'px-3 md:px-4 py-2 text-sm rounded-lg transition-colors min-h-[44px]',
 }: CategoryFilterChipsProps) {
   return (
     <div className="flex flex-wrap gap-2">
       <button
         onClick={() => onChange('ALL')}
-        className={`px-3 md:px-4 py-2 text-sm rounded-lg transition-colors min-h-[44px] ${
+        className={`${buttonBaseClassName} ${
           selectedCategory === 'ALL'
             ? 'bg-primary text-white'
             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -29,7 +31,7 @@ export function CategoryFilterChips({
         <button
           key={cat.id}
           onClick={() => onChange(cat.code)}
-          className={`px-3 md:px-4 py-2 text-sm rounded-lg transition-colors min-h-[44px] ${
+          className={`${buttonBaseClassName} ${
             selectedCategory === cat.code
               ? 'bg-primary text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'

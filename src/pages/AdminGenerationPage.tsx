@@ -264,21 +264,21 @@ export function AdminGenerationPage() {
         )}
       />
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Page Title */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
             <Sparkles className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold text-gray-900">AI 문제 생성</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">AI 문제 생성</h1>
           </div>
           <p className="mt-1 text-gray-600">AI로 학습 문제를 생성하고 관리합니다</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
+        <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto pb-1">
           <button
             onClick={() => setActiveTab('stats')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors shrink-0 ${
               activeTab === 'stats'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -289,7 +289,7 @@ export function AdminGenerationPage() {
           </button>
           <button
             onClick={() => setActiveTab('cards')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors shrink-0 ${
               activeTab === 'cards'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -303,7 +303,7 @@ export function AdminGenerationPage() {
               setActiveTab('generate')
               setIsGenerateFormOpen(true)
             }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors shrink-0 ${
               activeTab === 'generate'
                 ? 'border-primary text-primary'
                 : 'border-transparent text-gray-500 hover:text-gray-700'

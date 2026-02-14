@@ -73,9 +73,9 @@ export function LoginPage() {
       <AppHeader variant="brand-only" />
 
       {/* Main */}
-      <main className="max-w-md mx-auto px-6 py-16">
+      <main className="max-w-md mx-auto px-4 md:px-6 py-10 md:py-16">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">다시 오신 것을 환영합니다</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">다시 오신 것을 환영합니다</h1>
           <p className="mt-2 text-gray-600">
             로그인하고 학습을 이어가세요
           </p>

@@ -153,14 +153,14 @@ export function EmailVerificationPage() {
       <AppHeader variant="brand-only" />
 
       {/* Main */}
-      <main className="max-w-md mx-auto px-6 py-16">
+      <main className="max-w-md mx-auto px-4 md:px-6 py-10 md:py-16">
         {step === 'input' ? (
           <>
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
                 <Mail className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">이메일 인증</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">이메일 인증</h1>
               <p className="mt-2 text-gray-600">
                 {email}로 발송된 인증 코드를 입력해주세요
               </p>
@@ -236,7 +236,7 @@ export function EmailVerificationPage() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">인증 완료!</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">인증 완료!</h1>
             <p className="text-gray-600 mb-8">
               이메일 인증이 성공적으로 완료되었습니다.
               {fromLogin ? ' 이제 로그인할 수 있습니다.' : ' 이제 로그인하고 학습을 시작하세요.'}

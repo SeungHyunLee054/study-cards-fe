@@ -9,7 +9,7 @@ interface AppFooterProps {
 }
 
 const CONTAINER_CLASS: Record<FooterContainer, string> = {
-  'max-w-6xl': 'max-w-6xl mx-auto px-6',
+  'max-w-6xl': 'max-w-6xl mx-auto px-4 md:px-6',
   'max-w-4xl': 'max-w-4xl mx-auto px-4 md:px-6',
   container: 'container mx-auto px-4',
 }

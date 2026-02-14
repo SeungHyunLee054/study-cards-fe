@@ -97,11 +97,11 @@ export function SubscriptionSuccessPage() {
       <div className="min-h-screen bg-white text-gray-900">
         <AppHeader variant="brand-only" container="max-w-4xl" />
 
-        <main className="max-w-4xl mx-auto px-6 py-16 text-center">
+        <main className="max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-16 text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">
             <span className="text-2xl">!</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">결제 확인 실패</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">결제 확인 실패</h1>
           <p className="text-gray-600 mb-8">{error || '결제 정보를 확인할 수 없습니다.'}</p>
           <Button asChild>
             <Link to="/subscription">구독 페이지로 돌아가기</Link>
@@ -115,15 +115,15 @@ export function SubscriptionSuccessPage() {
     <div className="min-h-screen bg-white text-gray-900">
       <AppHeader variant="brand-only" container="max-w-4xl" />
 
-      <main className="max-w-4xl mx-auto px-6 py-16 text-center">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-16 text-center">
         <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
           <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">결제가 완료되었습니다!</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">결제가 완료되었습니다!</h1>
         <p className="text-gray-600 mb-8">
           구독이 성공적으로 활성화되었습니다. 지금 바로 프리미엄 기능을 사용해보세요.
         </p>
-        <div className="flex justify-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
           <Button asChild>
             <Link to="/subscription">구독 정보 확인</Link>
           </Button>

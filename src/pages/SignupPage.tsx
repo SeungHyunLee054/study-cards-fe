@@ -78,9 +78,9 @@ export function SignupPage() {
       <AppHeader variant="brand-only" />
 
       {/* Main */}
-      <main className="max-w-md mx-auto px-6 py-16">
+      <main className="max-w-md mx-auto px-4 md:px-6 py-10 md:py-16">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">회원가입</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">회원가입</h1>
           <p className="mt-2 text-gray-600">
             지금 바로 학습을 시작하세요
           </p>

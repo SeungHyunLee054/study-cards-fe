@@ -104,14 +104,14 @@ export function MyCardsPage() {
     <div className="min-h-screen bg-white text-gray-900">
       <AppHeader variant="brand-back" backTo="/mypage" backLabel="마이페이지" />
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Page Title */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">내 카드</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">내 카드</h1>
             <p className="mt-1 text-gray-600">나만의 학습 카드를 관리하세요</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
             <Button variant="outline" asChild>
               <Link to="/ai-generate">
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -127,7 +127,7 @@ export function MyCardsPage() {
 
         {/* Error Message */}
         {error && (
-          <InlineError message={error} onClose={() => setError(null)} className="mb-6" />
+          <InlineError message={error} onClose={() => setError(null)} className="mb-6 text-base" />
         )}
 
         {/* Filter */}
@@ -143,6 +143,7 @@ export function MyCardsPage() {
               categories={categories}
               selectedCategory={selectedCategory}
               onChange={setSelectedCategory}
+              buttonBaseClassName="px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px]"
             />
           )}
         </div>

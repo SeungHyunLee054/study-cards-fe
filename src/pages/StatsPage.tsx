@@ -89,7 +89,7 @@ export function StatsPage() {
         titleClassName="text-xl font-semibold"
       />
 
-      <main className="max-w-4xl mx-auto px-6 py-8">
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {error && (
           <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700">
             {error}
@@ -223,7 +223,7 @@ export function StatsPage() {
                 </div>
 
                 {/* Legend */}
-                <div className="flex justify-center gap-6 pt-4 border-t border-gray-100">
+                <div className="flex flex-wrap justify-center gap-3 sm:gap-6 pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <div className="w-3 h-3 rounded bg-green-500" />
                     80%+ 정답
@@ -283,7 +283,7 @@ export function StatsPage() {
                         />
                       </div>
                       {/* Card Status */}
-                      <div className="mt-3 flex gap-4 text-sm">
+                      <div className="mt-3 flex flex-wrap gap-3 text-sm">
                         <span className="text-blue-600">
                           {deck.newCount} 신규
                         </span>

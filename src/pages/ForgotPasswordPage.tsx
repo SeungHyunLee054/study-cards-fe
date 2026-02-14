@@ -104,7 +104,7 @@ export function ForgotPasswordPage() {
       <AppHeader variant="brand-only" />
 
       {/* Main */}
-      <main className="max-w-md mx-auto px-6 py-16">
+      <main className="max-w-md mx-auto px-4 md:px-6 py-10 md:py-16">
         <Link
           to="/login"
           className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-8"
@@ -114,7 +114,7 @@ export function ForgotPasswordPage() {
         </Link>
 
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">비밀번호 찾기</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900">비밀번호 찾기</h1>
           <p className="mt-2 text-gray-600">
             {step === 'email'
               ? '가입한 이메일 주소를 입력하세요'
