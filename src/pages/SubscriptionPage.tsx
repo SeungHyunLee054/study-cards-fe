@@ -51,8 +51,12 @@ export function SubscriptionPage() {
       setError(null)
 
       const plansData = await fetchPlans()
-      // 구매 가능한 플랜 (PREMIUM)만 선택
-      const paidPlan = plansData.find(p => p.isPurchasable) || plansData.find(p => p.plan === 'PRO') || plansData.find(p => p.plan === 'PREMIUM') || plansData[0]
+      // 구매 가능한 플랜 우선 선택, 없으면 유료 플랜(PRO/가격>0) fallback
+      const paidPlan =
+        plansData.find((p) => p.isPurchasable)
+        || plansData.find((p) => p.plan === 'PRO')
+        || plansData.find((p) => p.monthlyPrice > 0 || p.yearlyPrice > 0)
+        || plansData[0]
       setPlan(paidPlan)
 
       if (isLoggedIn) {
@@ -62,6 +66,9 @@ export function SubscriptionPage() {
         ])
         setSubscription(subscriptionData)
         setInvoices(invoicesData)
+      } else {
+        setSubscription(null)
+        setInvoices([])
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '데이터를 불러오는데 실패했습니다')
@@ -124,15 +131,16 @@ export function SubscriptionPage() {
   }
 
   async function handleCancelSubscription() {
-    if (!confirm('정말 구독을 취소하시겠습니까? 현재 결제 기간이 끝날 때까지 서비스를 이용할 수 있습니다.')) {
+    if (!confirm('정말 구독을 취소하시겠습니까? 취소 즉시 프리미엄 기능이 비활성화됩니다.')) {
       return
     }
 
     try {
       setIsCancelling(true)
       setError(null)
-      const updated = await cancelSubscription()
-      setSubscription(updated)
+      await cancelSubscription()
+      setSubscription(null)
+      setSuccessMessage('구독이 취소되었습니다.')
     } catch (err) {
       setError(err instanceof Error ? err.message : '구독 취소에 실패했습니다')
     } finally {

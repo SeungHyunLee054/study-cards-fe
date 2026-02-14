@@ -1,4 +1,4 @@
-export type PlanType = 'FREE' | 'PRO' | 'BASIC' | 'PREMIUM'
+export type PlanType = 'FREE' | 'PRO'
 export type SubscriptionStatus = 'ACTIVE' | 'CANCELED' | 'EXPIRED' | 'PENDING'
 export type BillingCycle = 'MONTHLY' | 'YEARLY'
 export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'CANCELED' | 'FAILED'
@@ -7,10 +7,8 @@ export type PaymentType = 'INITIAL' | 'RENEWAL' | 'UPGRADE'
 export interface PlanResponse {
   plan: PlanType
   displayName: string
-  dailyLimit: number
   monthlyPrice: number
   yearlyPrice: number
-  canAccessAiCards: boolean
   canGenerateAiCards: boolean
   canUseAiRecommendations: boolean
   aiGenerationDailyLimit: number
@@ -26,8 +24,9 @@ export interface SubscriptionResponse {
   startDate: string
   endDate: string
   isActive: boolean
-  dailyLimit: number
-  canAccessAiCards: boolean
+  canGenerateAiCards: boolean
+  canUseAiRecommendations: boolean
+  aiGenerationDailyLimit: number
 }
 
 export interface CheckoutRequest {

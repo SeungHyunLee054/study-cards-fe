@@ -62,10 +62,9 @@ export async function confirmPayment(request: PaymentConfirmRequest): Promise<Su
 }
 
 // 구독 취소
-export async function cancelSubscription(request?: CancelRequest): Promise<SubscriptionResponse> {
+export async function cancelSubscription(request?: CancelRequest): Promise<void> {
   return withApiErrorHandling(async () => {
-    const response = await apiClient.post<SubscriptionResponse>('/api/subscriptions/cancel', request || {})
-    return response.data
+    await apiClient.post('/api/subscriptions/cancel', request || {})
   }, '구독 취소에 실패했습니다.')
 }
 

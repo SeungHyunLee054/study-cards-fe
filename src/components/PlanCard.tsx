@@ -20,18 +20,17 @@ export function PlanCard({
   const price = billingCycle === 'MONTHLY' ? plan.monthlyPrice : plan.yearlyPrice
   const monthlyEquivalent = billingCycle === 'YEARLY' ? Math.round(price / 12) : price
   const isFree = plan.plan === 'FREE'
-  const isPremium = plan.plan === 'PREMIUM'
-  const isUnlimited = plan.dailyLimit === 2147483647
+  const isPro = plan.plan === 'PRO'
 
   return (
     <div
       className={`relative p-6 rounded-2xl border-2 ${
-        isPremium
+        isPro
           ? 'border-primary bg-primary/5'
           : 'border-gray-200 bg-white'
       }`}
     >
-      {isPremium && (
+      {isPro && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-primary text-white">
             추천
@@ -64,20 +63,24 @@ export function PlanCard({
       <ul className="space-y-3 mb-6">
         <li className="flex items-center gap-2 text-sm">
           <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-          <span className="text-gray-700">
-            하루 최대 {isUnlimited ? '무제한' : `${plan.dailyLimit}개`} 카드 학습
-          </span>
+          <span className="text-gray-700">카드 학습 무제한</span>
         </li>
-        {(plan.plan === 'BASIC' || plan.plan === 'PREMIUM') && (
+        {!isFree && (
           <li className="flex items-center gap-2 text-sm">
             <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
             <span className="text-gray-700">진행도 저장</span>
           </li>
         )}
-        {plan.canAccessAiCards && (
+        <li className="flex items-center gap-2 text-sm">
+          <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+          <span className="text-gray-700">
+            AI 카드 생성 {plan.canGenerateAiCards ? `일 ${plan.aiGenerationDailyLimit}회` : `체험 ${plan.aiGenerationDailyLimit}회`}
+          </span>
+        </li>
+        {plan.canUseAiRecommendations && (
           <li className="flex items-center gap-2 text-sm">
             <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-            <span className="text-gray-700">AI 생성 카드 이용</span>
+            <span className="text-gray-700">AI 복습 전략</span>
           </li>
         )}
       </ul>
@@ -92,7 +95,7 @@ export function PlanCard({
         </Button>
       ) : (
         <Button
-          className={`w-full ${isPremium ? '' : 'bg-gray-900 hover:bg-gray-800'}`}
+          className={`w-full ${isPro ? '' : 'bg-gray-900 hover:bg-gray-800'}`}
           onClick={() => onSelect(plan)}
           disabled={isLoading}
         >
