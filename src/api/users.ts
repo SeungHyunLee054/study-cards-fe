@@ -10,7 +10,7 @@ export async function fetchUserProfile(): Promise<UserProfileResponse> {
   return withApiErrorHandling(async () => {
     const response = await apiClient.get<UserProfileResponse>('/api/users/me')
     return response.data
-  }, '사용자 정보를 불러오는데 실패했습니다.')
+  }, '사용자 정보를 불러오는데 실패했습니다.', [401])
 }
 
 export async function updateUserProfile(

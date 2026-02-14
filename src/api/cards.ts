@@ -18,7 +18,6 @@ export async function fetchStudyCards(categoryCode?: string): Promise<CardRespon
     const response = await client.get<PageResponse<CardResponse>>('/api/cards/study', {
       params: {
         ...(categoryCode && { category: categoryCode }),
-        size: 100,
       },
     })
     return response.data.content
@@ -63,7 +62,6 @@ export async function fetchAllStudyCards(categoryCode?: string): Promise<CardRes
     const response = await apiClient.get<PageResponse<CardResponse>>('/api/cards/study/all', {
       params: {
         ...(categoryCode && { category: categoryCode }),
-        size: 100,
       },
     })
     return response.data.content
@@ -76,7 +74,6 @@ export async function fetchTodayStudyCards(categoryCode?: string): Promise<Study
     const response = await apiClient.get<PageResponse<StudyCardResponse>>('/api/study/cards', {
       params: {
         ...(categoryCode && { category: categoryCode }),
-        size: 100,
       },
     })
     return response.data.content
@@ -97,7 +94,6 @@ export async function fetchUserStudyCards(categoryCode?: string): Promise<UserCa
     const response = await apiClient.get<PageResponse<UserCardResponse>>('/api/user/cards/study', {
       params: {
         ...(categoryCode && { category: categoryCode }),
-        size: 100,
       },
     })
     return response.data.content
