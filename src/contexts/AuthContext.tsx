@@ -1,12 +1,13 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { signIn as apiSignIn, signUp as apiSignUp, signOut as apiSignOut } from '@/api/auth'
 import { fetchUserProfile } from '@/api/users'
+import { AuthContext } from '@/contexts/auth-context'
 import type { SignInRequest, SignUpRequest, UserResponse } from '@/types/auth'
 import type { UserProfileResponse } from '@/types/user'
 
-interface AuthContextType {
+export interface AuthContextType {
   isLoggedIn: boolean
   isLoading: boolean
   user: UserProfileResponse | null
@@ -17,8 +18,6 @@ interface AuthContextType {
   setLoggedIn: (value: boolean) => void
   refreshUser: () => Promise<void>
 }
-
-const AuthContext = createContext<AuthContextType | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
@@ -139,12 +138,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
 }
