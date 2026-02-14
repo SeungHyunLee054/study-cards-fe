@@ -74,6 +74,9 @@ export function SignupPage() {
     window.location.href = getOAuthLoginUrl(provider)
   }
 
+  const socialButtonClass = 'w-full oauth-social-button'
+  const kakaoSocialButtonClass = 'w-full oauth-social-button oauth-kakao-button'
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <AppHeader variant="brand-only" />
@@ -238,7 +241,7 @@ export function SignupPage() {
             <Button
               variant="outline"
               type="button"
-              className="w-full"
+              className={socialButtonClass}
               disabled={isLoading}
               onClick={() => handleOAuthLogin('google')}
             >
@@ -265,7 +268,7 @@ export function SignupPage() {
             <Button
               variant="outline"
               type="button"
-              className="w-full"
+              className={kakaoSocialButtonClass}
               disabled={isLoading}
               onClick={() => handleOAuthLogin('kakao')}
             >
@@ -280,7 +283,7 @@ export function SignupPage() {
             <Button
               variant="outline"
               type="button"
-              className="w-full"
+              className={socialButtonClass}
               disabled={isLoading}
               onClick={() => handleOAuthLogin('naver')}
             >

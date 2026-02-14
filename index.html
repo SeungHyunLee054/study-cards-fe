@@ -6,6 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="플래시카드로 효율적으로 학습하세요. 과학적으로 검증된 간격 반복 기억법." />
     <meta name="theme-color" content="#ffffff" />
+    <script>
+      (function () {
+        try {
+          const savedTheme = localStorage.getItem('theme')
+          const shouldUseDark = savedTheme === 'dark'
+            ? true
+            : savedTheme === 'light'
+              ? false
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+          document.documentElement.classList.toggle('dark', shouldUseDark)
+        } catch (_) {
+          // no-op
+        }
+      })()
+    </script>
     <title>Study Cards</title>
   </head>
   <body>

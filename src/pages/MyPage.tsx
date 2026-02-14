@@ -239,7 +239,7 @@ export function MyPage() {
         <section id="settings" className="mt-8 scroll-mt-24">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-gray-900">설정</h2>
-            <p className="mt-1 text-sm text-gray-600">프로필, 보안, 알림, 계정 탈퇴를 관리합니다.</p>
+            <p className="mt-1 text-sm text-gray-600">테마, 프로필, 보안, 알림, 계정 탈퇴를 관리합니다.</p>
           </div>
           <AccountSettingsPanel />
         </section>

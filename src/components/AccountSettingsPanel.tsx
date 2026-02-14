@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Bell, Loader2, Lock, Smartphone, User } from 'lucide-react'
+import { AlertTriangle, Bell, Loader2, Lock, Monitor, Moon, Smartphone, Sun, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useAuth } from '@/contexts/useAuth'
+import { useTheme } from '@/contexts/useTheme'
 import { updateUserProfile, changePassword, withdrawMyAccount } from '@/api/users'
 import { getPushSettings, updatePushSettings, registerFcmToken, removeFcmToken } from '@/api/notifications'
 import { requestFcmToken, isFcmSupported, getNotificationPermission } from '@/lib/firebase'
@@ -41,6 +42,7 @@ interface AccountSettingsPanelProps {
 
 export function AccountSettingsPanel({ className }: AccountSettingsPanelProps) {
   const { user, isLoading: authLoading, refreshUser, logout } = useAuth()
+  const { theme, resolvedTheme, setTheme } = useTheme()
 
   const [nickname, setNickname] = useState('')
   const [profileError, setProfileError] = useState<string | null>(null)
@@ -65,6 +67,12 @@ export function AccountSettingsPanel({ className }: AccountSettingsPanelProps) {
   const [isWithdrawSubmitting, setIsWithdrawSubmitting] = useState(false)
   const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false)
   const [withdrawConfirmText, setWithdrawConfirmText] = useState('')
+
+  const themeStatusLabel = theme === 'system'
+    ? `시스템 설정 (${resolvedTheme === 'dark' ? '다크' : '라이트'})`
+    : theme === 'dark'
+      ? '다크 모드'
+      : '라이트 모드'
 
   useEffect(() => {
     if (user) {
@@ -382,6 +390,54 @@ export function AccountSettingsPanel({ className }: AccountSettingsPanelProps) {
             </form>
           </div>
         )}
+
+        <div className="rounded-xl border border-gray-200 bg-white">
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Monitor className="h-5 w-5" />
+              테마
+            </h2>
+          </div>
+          <div className="p-6 space-y-4">
+            <p className="text-sm text-gray-600">
+              기본값은 기기 설정을 따르며, 원하는 경우 수동으로 모드를 고정할 수 있습니다.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <Button
+                type="button"
+                variant={theme === 'system' ? 'default' : 'outline'}
+                onClick={() => setTheme('system')}
+                className="justify-start"
+              >
+                <Monitor className="mr-2 h-4 w-4" />
+                시스템
+              </Button>
+              <Button
+                type="button"
+                variant={theme === 'light' ? 'default' : 'outline'}
+                onClick={() => setTheme('light')}
+                className="justify-start"
+              >
+                <Sun className="mr-2 h-4 w-4" />
+                라이트
+              </Button>
+              <Button
+                type="button"
+                variant={theme === 'dark' ? 'default' : 'outline'}
+                onClick={() => setTheme('dark')}
+                className="justify-start"
+              >
+                <Moon className="mr-2 h-4 w-4" />
+                다크
+              </Button>
+            </div>
+
+            <p className="text-xs text-gray-500">
+              현재 적용: {themeStatusLabel}
+            </p>
+          </div>
+        </div>
 
         <div className="rounded-xl border border-gray-200 bg-white">
           <div className="p-6 border-b border-gray-200">
