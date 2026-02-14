@@ -234,20 +234,20 @@ export function AppHeader(props: AppHeaderProps) {
     )
   }
 
-function renderBrandBackHeader({
-  backTo,
-  backLabel = '뒤로가기',
-  hideBackLabelOnMobile = false,
-  backAriaLabel,
-}: BrandBackHeaderProps) {
+  function renderBrandBackHeader({
+    backTo,
+    backLabel = '뒤로가기',
+    hideBackLabelOnMobile = true,
+    backAriaLabel,
+  }: BrandBackHeaderProps) {
     return (
-      <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-4 flex items-center justify-between gap-3')}>
+      <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-3 md:py-4 flex items-center justify-between gap-3')}>
         {renderBrand()}
         <Button
           variant="ghost"
           size="sm"
-          className="min-h-[44px]"
-          aria-label={backAriaLabel}
+          className="min-h-[44px] shrink-0"
+          aria-label={backAriaLabel ?? backLabel}
           onClick={() => handleBackNavigation(backTo)}
         >
           <ArrowLeft className="h-4 w-4 sm:mr-2" />
@@ -261,22 +261,30 @@ function renderBrandBackHeader({
     )
   }
 
-function renderBackTitleHeader({
-  backTo,
-  title,
-  backLabel = '뒤로가기',
-  hideBackLabelOnMobile = false,
-  rightSlot,
-  titleClassName,
+  function renderBackTitleHeader({
+    backTo,
+    title,
+    backLabel = '뒤로가기',
+    hideBackLabelOnMobile = true,
+    rightSlot,
+    titleClassName,
     backAriaLabel,
   }: BackTitleHeaderProps) {
     return (
       <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-4xl'], 'py-3 md:py-4 flex items-center gap-3')}>
+        <h1 className={cx('min-w-0 flex-1', titleClassName ?? 'text-base md:text-lg font-semibold truncate')}>
+          {title}
+        </h1>
+        {rightSlot && (
+          <div className="shrink-0">
+            {rightSlot}
+          </div>
+        )}
         <Button
           variant="ghost"
           size="sm"
           className="min-h-[44px] shrink-0"
-          aria-label={backAriaLabel}
+          aria-label={backAriaLabel ?? backLabel}
           onClick={() => handleBackNavigation(backTo)}
         >
           <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
@@ -286,12 +294,6 @@ function renderBackTitleHeader({
             <span>{backLabel}</span>
           )}
         </Button>
-        <h1 className={titleClassName ?? 'text-base md:text-lg font-semibold truncate'}>
-          {title}
-        </h1>
-        <div className="ml-auto shrink-0">
-          {rightSlot ?? <div className="w-16" />}
-        </div>
       </div>
     )
   }
