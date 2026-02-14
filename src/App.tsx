@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -11,6 +12,7 @@ import { OAuthCallbackPage } from '@/pages/OAuthCallbackPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminRoute } from '@/components/AdminRoute'
 import { DASHBOARD_PATH, MYPAGE_PATH } from '@/constants/routes'
+import { recordPageVisit } from '@/lib/pageHistory'
 
 // Lazy-loaded pages
 const AboutPage = lazy(() =>
@@ -85,6 +87,16 @@ function PageLoading() {
   )
 }
 
+function PageHistoryTracker() {
+  const location = useLocation()
+
+  useEffect(() => {
+    recordPageVisit(location.pathname)
+  }, [location.pathname])
+
+  return null
+}
+
 function AppRoutes() {
   return (
     <AuthProvider>
@@ -151,6 +163,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider>
         <BrowserRouter>
+          <PageHistoryTracker />
           <AppRoutes />
         </BrowserRouter>
       </ThemeProvider>

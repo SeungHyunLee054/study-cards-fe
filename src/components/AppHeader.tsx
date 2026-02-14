@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { useAuth } from '@/contexts/useAuth'
 import { DASHBOARD_PATH, MYPAGE_PATH } from '@/constants/routes'
+import { popPreviousPage } from '@/lib/pageHistory'
 
 type HeaderContainer = 'max-w-6xl' | 'max-w-4xl' | 'max-w-3xl' | 'container'
 type StickyTone = 'white' | 'background'
@@ -127,15 +128,8 @@ export function AppHeader(props: AppHeaderProps) {
   }
 
   function handleBackNavigation(fallbackTo: string) {
-    const historyIndex = window.history.state?.idx
-    const canNavigateByHistoryIndex = typeof historyIndex === 'number' && historyIndex > 0
-    const canNavigateByRouterEntry = location.key !== 'default'
-
-    if (canNavigateByHistoryIndex || canNavigateByRouterEntry) {
-      navigate(-1)
-      return
-    }
-    navigate(fallbackTo)
+    const previousPath = popPreviousPage(location.pathname)
+    navigate(previousPath ?? fallbackTo, { replace: true })
   }
 
   function renderAppNavHeader({
