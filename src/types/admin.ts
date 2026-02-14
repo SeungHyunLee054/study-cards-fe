@@ -26,3 +26,19 @@ export interface AdminCardResponse {
   category: CategoryResponse
   createdAt: string
 }
+
+export type AdminUserStatus = 'ACTIVE' | 'WITHDRAWN'
+export type AdminUserRole = 'ROLE_USER' | 'ROLE_ADMIN'
+export type AdminUserProvider = 'LOCAL' | 'GOOGLE' | 'KAKAO' | 'NAVER'
+
+export interface AdminUserResponse {
+  id: number
+  email: string
+  nickname: string
+  roles: AdminUserRole[]
+  provider: AdminUserProvider
+  status: AdminUserStatus
+  emailVerified: boolean
+  createdAt: string
+  modifiedAt: string | null
+}

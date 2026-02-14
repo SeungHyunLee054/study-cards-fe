@@ -68,6 +68,9 @@ const SearchPage = lazy(() =>
 const AdminCardsPage = lazy(() =>
   import('@/pages/AdminCardsPage').then(m => ({ default: m.AdminCardsPage }))
 )
+const AdminUsersPage = lazy(() =>
+  import('@/pages/AdminUsersPage').then(m => ({ default: m.AdminUsersPage }))
+)
 const AdminGenerationPage = lazy(() =>
   import('@/pages/AdminGenerationPage').then(m => ({ default: m.AdminGenerationPage }))
 )
@@ -118,6 +121,14 @@ function AppRoutes() {
             element={
               <AdminRoute>
                 <AdminCardsPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <AdminUsersPage />
               </AdminRoute>
             }
           />
