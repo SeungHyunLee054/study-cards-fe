@@ -10,6 +10,7 @@ import { InlineError } from '@/components/InlineError'
 import { fetchBookmarks } from '@/api/bookmarks'
 import { useCategoryFilter } from '@/hooks/useCategoryFilter'
 import { useCategories } from '@/hooks/useCategories'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { BookmarkResponse } from '@/types/bookmark'
 import type { PageResponse } from '@/types/card'
 
@@ -60,8 +61,8 @@ export function BookmarksPage() {
     <div className="min-h-screen bg-white text-gray-900">
       <AppHeader
         variant="brand-back"
-        backTo="/mypage"
-        backLabel="마이페이지"
+        backTo={DASHBOARD_PATH}
+        backLabel="대시보드"
         hideBackLabelOnMobile
       />
 

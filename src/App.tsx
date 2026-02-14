@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -9,6 +9,7 @@ import { SignupPage } from '@/pages/SignupPage'
 import { OAuthCallbackPage } from '@/pages/OAuthCallbackPage'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { AdminRoute } from '@/components/AdminRoute'
+import { DASHBOARD_PATH, MYPAGE_PATH, MYPAGE_SETTINGS_PATH } from '@/constants/routes'
 
 // Lazy-loaded pages
 const AboutPage = lazy(() =>
@@ -46,9 +47,6 @@ const MyCardsPage = lazy(() =>
 )
 const StatsPage = lazy(() =>
   import('@/pages/StatsPage').then(m => ({ default: m.StatsPage }))
-)
-const SettingsPage = lazy(() =>
-  import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPage }))
 )
 const DashboardPage = lazy(() =>
   import('@/pages/DashboardPage').then(m => ({ default: m.DashboardPage }))
@@ -107,11 +105,11 @@ function AppRoutes() {
           <Route path="/subscription/fail" element={<SubscriptionFailPage />} />
           <Route path="/search" element={<SearchPage />} />
           {/* Protected routes */}
-          <Route path="/mypage" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
+          <Route path={MYPAGE_PATH} element={<ProtectedRoute><MyPage /></ProtectedRoute>} />
           <Route path="/my-cards" element={<ProtectedRoute><MyCardsPage /></ProtectedRoute>} />
           <Route path="/stats" element={<ProtectedRoute><StatsPage /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Navigate to={MYPAGE_SETTINGS_PATH} replace /></ProtectedRoute>} />
+          <Route path={DASHBOARD_PATH} element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/sessions" element={<ProtectedRoute><SessionHistoryPage /></ProtectedRoute>} />
           <Route path="/ai-generate" element={<ProtectedRoute><AiGeneratePage /></ProtectedRoute>} />
           <Route path="/bookmarks" element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} />

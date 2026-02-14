@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Bell, Check, Loader2, Flame, Trophy, CreditCard, AlertCircle, BookOpen } from 'lucide-react'
 import { fetchNotifications, fetchUnreadCount, markNotificationAsRead, markAllNotificationsAsRead } from '@/api/notifications'
+import { MYPAGE_SETTINGS_PATH } from '@/constants/routes'
 import type { NotificationResponse, NotificationType } from '@/types/notification'
 
 function getNotificationIcon(type: NotificationType) {
@@ -202,7 +203,7 @@ export function NotificationDropdown() {
 
           <div className="p-3 border-t border-gray-200 bg-gray-50">
             <Link
-              to="/settings"
+              to={MYPAGE_SETTINGS_PATH}
               className="block text-center text-sm text-gray-600 hover:text-primary"
               onClick={() => setIsOpen(false)}
             >

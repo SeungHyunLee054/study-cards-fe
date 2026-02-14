@@ -18,6 +18,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
 import { getSessions, getSessionStats } from '@/api/sessions'
 import { fetchCard } from '@/api/cards'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { PageResponse, CardResponse } from '@/types/card'
 import type { SessionResponse, SessionStatsResponse, StudyRecordResponse } from '@/types/session'
 
@@ -308,7 +309,7 @@ export function SessionHistoryPage() {
       <AppHeader
         variant="back-title"
         container="max-w-4xl"
-        backTo="/mypage"
+        backTo={DASHBOARD_PATH}
         backLabel="뒤로"
         title="학습 기록"
         titleClassName="text-xl font-semibold"

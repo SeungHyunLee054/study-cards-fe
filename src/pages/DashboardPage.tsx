@@ -15,6 +15,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
 import { fetchDashboard } from '@/api/dashboard'
 import { fetchCategoryTree } from '@/api/categories'
+import { MYPAGE_PATH } from '@/constants/routes'
 import type { CategoryTreeResponse } from '@/types/category'
 import { CategoryProgressTree } from '@/components/CategoryProgressTree'
 import type {
@@ -103,7 +104,7 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <AppHeader variant="app-nav" dashboardLink="/mypage" dashboardLabel="마이페이지" includeAiGenerate />
+      <AppHeader variant="app-nav" dashboardLink={MYPAGE_PATH} dashboardLabel="마이페이지" includeAiGenerate />
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {error && (

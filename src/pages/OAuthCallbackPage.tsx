@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { useAuth } from '@/contexts/useAuth'
+import { DASHBOARD_PATH } from '@/constants/routes'
 
 export function OAuthCallbackPage() {
   const navigate = useNavigate()
@@ -23,7 +24,7 @@ export function OAuthCallbackPage() {
       localStorage.setItem('accessToken', token)
       window.history.replaceState({}, '', '/oauth2/callback')
       setLoggedIn(true)
-      navigate('/dashboard', { replace: true })
+      navigate(DASHBOARD_PATH, { replace: true })
     } else {
       setError('인증 정보를 받아오지 못했습니다.')
     }

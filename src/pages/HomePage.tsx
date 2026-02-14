@@ -6,6 +6,7 @@ import { AppFooter } from '@/components/AppFooter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { useAuth } from '@/contexts/useAuth'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import { cn } from '@/lib/utils'
 import { fetchCardCount } from '@/api/cards'
 
@@ -25,7 +26,7 @@ export function HomePage() {
 
   useEffect(() => {
     if (!isLoading && isLoggedIn) {
-      navigate('/dashboard', { replace: true })
+      navigate(DASHBOARD_PATH, { replace: true })
     }
   }, [isLoggedIn, isLoading, navigate])
 

@@ -12,6 +12,7 @@ import { useCategoryFilter } from '@/hooks/useCategoryFilter'
 import { useCategories } from '@/hooks/useCategories'
 import { useAuth } from '@/contexts/useAuth'
 import { SEARCH_DEBOUNCE_MS } from '@/lib/constants'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { CardResponse, PageResponse } from '@/types/card'
 
 export function SearchPage() {
@@ -65,7 +66,7 @@ export function SearchPage() {
     <div className="min-h-screen bg-white text-gray-900">
       <AppHeader
         variant="brand-back"
-        backTo={isLoggedIn ? '/mypage' : '/'}
+        backTo={isLoggedIn ? DASHBOARD_PATH : '/'}
         backLabel="돌아가기"
         hideBackLabelOnMobile
         sticky

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/useAuth'
 import { getOAuthLoginUrl } from '@/api/auth'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import { AuthError } from '@/types/errors'
 import type { OAuthProvider } from '@/types/auth'
 
@@ -26,7 +27,7 @@ export function LoginPage() {
   // 이미 로그인된 경우 리다이렉트
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
-      navigate('/dashboard', { replace: true })
+      navigate(DASHBOARD_PATH, { replace: true })
     }
   }, [authLoading, isLoggedIn, navigate])
 
@@ -37,7 +38,7 @@ export function LoginPage() {
 
     try {
       await login({ email, password })
-      navigate('/dashboard')
+      navigate(DASHBOARD_PATH)
     } catch (err) {
       // 이메일 미인증 에러 처리
       if (err instanceof AuthError && err.code === 'EMAIL_NOT_VERIFIED') {

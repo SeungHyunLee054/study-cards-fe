@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/useAuth'
 import { useCategories } from '@/hooks/useCategories'
 import { fetchRecommendations, fetchCategoryAccuracy } from '@/api/recommendations'
 import { fetchMySubscription } from '@/api/subscriptions'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { RecommendationResponse, CategoryAccuracyResponse } from '@/types/recommendation'
 import { STUDY_LOAD_DEBOUNCE_MS } from '@/lib/constants'
 
@@ -157,7 +158,7 @@ export function StudyPage() {
       <AppHeader
         variant="back-title"
         container="container"
-        backTo={isLoggedIn ? '/dashboard' : '/'}
+        backTo={isLoggedIn ? DASHBOARD_PATH : '/'}
         backLabel="뒤로"
         hideBackLabelOnMobile
         title={`${getModeLabel()}${getModeLabel() && ' '}${category ? `${category} 학습` : '학습 세션'}`}
@@ -369,7 +370,7 @@ export function StudyPage() {
                 <div className="flex gap-3 justify-center">
                   <Button onClick={handleNewSession} className="min-h-[44px]">새 세션</Button>
                   <Button variant="outline" asChild className="min-h-[44px]">
-                    <Link to={isLoggedIn ? '/dashboard' : '/'}>홈으로</Link>
+                    <Link to={isLoggedIn ? DASHBOARD_PATH : '/'}>홈으로</Link>
                   </Button>
                 </div>
               </div>

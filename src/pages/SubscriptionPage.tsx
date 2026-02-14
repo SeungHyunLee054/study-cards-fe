@@ -9,6 +9,7 @@ import { CurrentSubscription } from '@/components/CurrentSubscription'
 import { InvoiceList } from '@/components/InvoiceList'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useAuth } from '@/contexts/useAuth'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import {
   fetchPlans,
   fetchMySubscription,
@@ -169,8 +170,8 @@ export function SubscriptionPage() {
       <AppHeader
         variant="brand-back"
         container="max-w-4xl"
-        backTo="/mypage"
-        backLabel="마이페이지"
+        backTo={DASHBOARD_PATH}
+        backLabel="대시보드"
         hideBackLabelOnMobile
       />
 

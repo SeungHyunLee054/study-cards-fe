@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
 import { fetchStats } from '@/api/stats'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { StatsResponse, DeckStats, RecentActivity } from '@/types/stats'
 
 const CATEGORY_COLORS: Record<string, { bg: string; bar: string }> = {
@@ -72,6 +73,12 @@ export function StatsPage() {
 
   const overview = stats?.overview
   const decks = stats?.deckStats ?? []
+  const visibleDecks = decks.filter((deck) => (
+    deck.newCount > 0
+    || deck.learningCount > 0
+    || deck.reviewCount > 0
+    || (deck.masteryRate ?? 0) > 0
+  ))
   const recentActivity = stats?.recentActivity ?? []
 
   // 최근 7일 활동 데이터 (없는 날은 0으로)
@@ -83,7 +90,7 @@ export function StatsPage() {
       <AppHeader
         variant="back-title"
         container="max-w-4xl"
-        backTo="/mypage"
+        backTo={DASHBOARD_PATH}
         backLabel="뒤로"
         title="학습 통계"
         titleClassName="text-xl font-semibold"
@@ -249,13 +256,13 @@ export function StatsPage() {
             카테고리별 마스터리
           </h2>
           <div className="rounded-xl border border-gray-200 bg-white">
-            {decks.length === 0 ? (
+            {visibleDecks.length === 0 ? (
               <p className="text-gray-500 text-center py-8">
                 아직 학습한 카테고리가 없습니다
               </p>
             ) : (
               <div className="divide-y divide-gray-100">
-                {decks.map((deck: DeckStats) => {
+                {visibleDecks.map((deck: DeckStats) => {
                   const colors = getCategoryColor(deck.category)
                   const masteryPercent = deck.masteryRate ?? 0
                   return (

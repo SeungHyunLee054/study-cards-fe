@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { getUserCards, createUserCard, updateUserCard, deleteUserCard } from '@/api/cards'
 import { useCategoryFilter } from '@/hooks/useCategoryFilter'
 import { useCategories } from '@/hooks/useCategories'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { UserCardResponse, UserCardCreateRequest } from '@/types/card'
 
 export function MyCardsPage() {
@@ -93,7 +94,7 @@ export function MyCardsPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <AppHeader variant="brand-back" backTo="/mypage" backLabel="마이페이지" />
+      <AppHeader variant="brand-back" backTo={DASHBOARD_PATH} backLabel="대시보드" />
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Page Title */}

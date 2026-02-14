@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/contexts/useAuth'
 import { getOAuthLoginUrl } from '@/api/auth'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { OAuthProvider } from '@/types/auth'
 
 export function SignupPage() {
@@ -25,7 +26,7 @@ export function SignupPage() {
   // 이미 로그인된 경우 리다이렉트
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
-      navigate('/dashboard', { replace: true })
+      navigate(DASHBOARD_PATH, { replace: true })
     }
   }, [authLoading, isLoggedIn, navigate])
 

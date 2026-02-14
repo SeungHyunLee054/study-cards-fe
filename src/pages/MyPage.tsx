@@ -19,8 +19,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
+import { AccountSettingsPanel } from '@/components/AccountSettingsPanel'
 import { fetchStats } from '@/api/stats'
 import { useAuth } from '@/contexts/useAuth'
+import { DASHBOARD_PATH, MYPAGE_SETTINGS_PATH } from '@/constants/routes'
 import type { StatsResponse } from '@/types/stats'
 
 interface QuickAction {
@@ -72,7 +74,7 @@ export function MyPage() {
 
   const quickActions = useMemo<QuickAction[]>(() => [
     {
-      to: '/settings',
+      to: MYPAGE_SETTINGS_PATH,
       title: '계정 설정',
       description: '프로필, 비밀번호, 알림',
       icon: Settings,
@@ -126,7 +128,7 @@ export function MyPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <AppHeader variant="app-nav" dashboardLink="/dashboard" dashboardLabel="대시보드" />
+      <AppHeader variant="app-nav" dashboardLink={DASHBOARD_PATH} dashboardLabel="대시보드" />
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         <section className="rounded-2xl border border-primary/20 bg-primary/5 p-5 md:p-6">
@@ -145,7 +147,7 @@ export function MyPage() {
 
             <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
               <Button asChild className="w-full sm:w-auto">
-                <Link to="/settings">
+                <Link to={MYPAGE_SETTINGS_PATH}>
                   <User className="mr-2 h-4 w-4" />
                   계정 설정
                 </Link>
@@ -246,6 +248,14 @@ export function MyPage() {
               </div>
             )}
           </div>
+        </section>
+
+        <section id="settings" className="mt-8 scroll-mt-24">
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">설정</h2>
+            <p className="mt-1 text-sm text-gray-600">프로필, 보안, 알림, 계정 탈퇴를 관리합니다.</p>
+          </div>
+          <AccountSettingsPanel />
         </section>
       </main>
 

@@ -2,6 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { XCircle } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
+import { DASHBOARD_PATH } from '@/constants/routes'
 
 export function SubscriptionFailPage() {
   const [searchParams] = useSearchParams()
@@ -40,7 +41,7 @@ export function SubscriptionFailPage() {
             <Link to="/subscription">다시 시도하기</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/mypage">마이페이지로 돌아가기</Link>
+            <Link to={DASHBOARD_PATH}>대시보드로 돌아가기</Link>
           </Button>
         </div>
       </main>

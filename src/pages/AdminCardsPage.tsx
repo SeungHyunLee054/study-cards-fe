@@ -21,6 +21,7 @@ import type { AdminCardResponse, AdminCardCreateRequest } from '@/types/admin'
 import type { CategoryResponse, CategoryCreateRequest, CategoryUpdateRequest } from '@/types/category'
 import { buildCategoryTreeFromFlat } from '@/lib/categoryHierarchy'
 import type { CategoryTreeNode } from '@/lib/categoryHierarchy'
+import { MYPAGE_PATH } from '@/constants/routes'
 
 type Tab = 'cards' | 'categories'
 
@@ -242,7 +243,7 @@ export function AdminCardsPage() {
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/mypage" aria-label="마이페이지">
+              <Link to={MYPAGE_PATH} aria-label="마이페이지">
                 <User className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">마이페이지</span>
               </Link>

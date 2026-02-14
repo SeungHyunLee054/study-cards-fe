@@ -23,6 +23,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { useAuth } from '@/contexts/useAuth'
+import { DASHBOARD_PATH, MYPAGE_PATH, MYPAGE_SETTINGS_PATH } from '@/constants/routes'
 
 type HeaderContainer = 'max-w-6xl' | 'max-w-4xl' | 'max-w-3xl' | 'container'
 type StickyTone = 'white' | 'background'
@@ -38,7 +39,7 @@ type BaseHeaderProps = {
 
 type AppNavHeaderProps = BaseHeaderProps & {
   variant: 'app-nav'
-  dashboardLink: '/mypage' | '/dashboard'
+  dashboardLink: typeof MYPAGE_PATH | typeof DASHBOARD_PATH
   dashboardLabel: string
   includeAiGenerate?: boolean
 }
@@ -107,9 +108,10 @@ export function AppHeader(props: AppHeaderProps) {
   }, [location.pathname])
 
   function getLinkClassName(item: NavItem): string {
+    const targetPath = item.to.split('#')[0]
     if (item.accent === 'purple') return 'text-purple-600'
     if (item.accent === 'primary') return 'text-primary'
-    if (location.pathname === item.to) return 'text-primary'
+    if (location.pathname === targetPath) return 'text-primary'
     return ''
   }
 
@@ -129,7 +131,7 @@ export function AppHeader(props: AppHeaderProps) {
     dashboardLabel,
     includeAiGenerate = false,
   }: AppNavHeaderProps) {
-    const dashboardEntryIcon = dashboardLink === '/mypage' ? User : LayoutDashboard
+    const dashboardEntryIcon = dashboardLink === MYPAGE_PATH ? User : LayoutDashboard
 
     const navItems: NavItem[] = [
       { to: dashboardLink, label: dashboardLabel, icon: dashboardEntryIcon },
@@ -142,14 +144,14 @@ export function AppHeader(props: AppHeaderProps) {
       { to: '/my-cards', label: '내 카드', icon: NotebookText },
       { to: '/stats', label: '통계', icon: BarChart3 },
       { to: '/subscription', label: '구독', icon: CreditCard },
-      { to: '/settings', label: '설정', icon: Settings },
+      { to: MYPAGE_SETTINGS_PATH, label: '설정', icon: Settings },
       { to: '/admin/users', label: '관리 사용자', icon: Users, adminOnly: true, accent: 'purple' },
       { to: '/admin/cards', label: '관리 카드', icon: Shield, adminOnly: true, accent: 'purple' },
       { to: '/admin/generation', label: '관리 생성', icon: Sparkles, adminOnly: true, accent: 'purple' },
     ]
 
     const visibleItems = navItems.filter(item => !item.adminOnly || isAdmin)
-    const desktopItems = visibleItems.filter(item => item.to !== '/settings')
+    const desktopItems = visibleItems.filter(item => item.to !== MYPAGE_SETTINGS_PATH)
 
     return (
       <>
@@ -173,7 +175,7 @@ export function AppHeader(props: AppHeaderProps) {
             <div className="flex items-center gap-2 shrink-0">
               <NotificationDropdown />
               <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-                <Link to="/settings" className={location.pathname === '/settings' ? 'text-primary' : ''}>
+                <Link to={MYPAGE_SETTINGS_PATH} className={location.pathname === MYPAGE_PATH ? 'text-primary' : ''}>
                   <Settings className="h-4 w-4" />
                 </Link>
               </Button>

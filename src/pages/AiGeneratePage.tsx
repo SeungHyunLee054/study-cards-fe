@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/useAuth'
 import { useCategories } from '@/hooks/useCategories'
 import { generateUserCards, fetchAiGenerationLimit } from '@/api/ai'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { AiCardResponse, AiLimitResponse } from '@/types/ai'
 import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
 
@@ -142,7 +143,7 @@ export function AiGeneratePage() {
       <AppHeader
         variant="back-title"
         container="max-w-3xl"
-        backTo="/dashboard"
+        backTo={DASHBOARD_PATH}
         backLabel="뒤로"
         hideBackLabelOnMobile
         title={(
