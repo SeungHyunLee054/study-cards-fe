@@ -259,42 +259,42 @@
   }
 
   .dark .from-green-50 {
-    --tw-gradient-from: rgba(22, 101, 52, 0.35) var(--tw-gradient-from-position);
-    --tw-gradient-to: rgba(22, 101, 52, 0) var(--tw-gradient-to-position);
+    --tw-gradient-from: rgba(22, 101, 52, 0.35) 0%;
+    --tw-gradient-to: rgba(22, 101, 52, 0) 100%;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
   }
 
   .dark .to-green-100 {
-    --tw-gradient-to: rgba(22, 101, 52, 0.2) var(--tw-gradient-to-position);
+    --tw-gradient-to: rgba(22, 101, 52, 0.2) 100%;
   }
 
   .dark .from-orange-50 {
-    --tw-gradient-from: rgba(154, 52, 18, 0.35) var(--tw-gradient-from-position);
-    --tw-gradient-to: rgba(154, 52, 18, 0) var(--tw-gradient-to-position);
+    --tw-gradient-from: rgba(154, 52, 18, 0.35) 0%;
+    --tw-gradient-to: rgba(154, 52, 18, 0) 100%;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
   }
 
   .dark .to-orange-100 {
-    --tw-gradient-to: rgba(154, 52, 18, 0.2) var(--tw-gradient-to-position);
+    --tw-gradient-to: rgba(154, 52, 18, 0.2) 100%;
   }
 
   .dark .from-blue-50 {
-    --tw-gradient-from: rgba(30, 64, 175, 0.35) var(--tw-gradient-from-position);
-    --tw-gradient-to: rgba(30, 64, 175, 0) var(--tw-gradient-to-position);
+    --tw-gradient-from: rgba(30, 64, 175, 0.35) 0%;
+    --tw-gradient-to: rgba(30, 64, 175, 0) 100%;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
   }
 
   .dark .to-blue-100 {
-    --tw-gradient-to: rgba(30, 64, 175, 0.2) var(--tw-gradient-to-position);
+    --tw-gradient-to: rgba(30, 64, 175, 0.2) 100%;
   }
 
   .dark .from-purple-50 {
-    --tw-gradient-from: rgba(107, 33, 168, 0.35) var(--tw-gradient-from-position);
-    --tw-gradient-to: rgba(107, 33, 168, 0) var(--tw-gradient-to-position);
+    --tw-gradient-from: rgba(107, 33, 168, 0.35) 0%;
+    --tw-gradient-to: rgba(107, 33, 168, 0) 100%;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
   }
 
   .dark .to-purple-100 {
-    --tw-gradient-to: rgba(107, 33, 168, 0.2) var(--tw-gradient-to-position);
+    --tw-gradient-to: rgba(107, 33, 168, 0.2) 100%;
   }
 }
