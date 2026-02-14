@@ -128,7 +128,10 @@ export function AppHeader(props: AppHeaderProps) {
 
   function handleBackNavigation(fallbackTo: string) {
     const historyIndex = window.history.state?.idx
-    if (typeof historyIndex === 'number' && historyIndex > 0) {
+    const canNavigateByHistoryIndex = typeof historyIndex === 'number' && historyIndex > 0
+    const canNavigateByRouterEntry = location.key !== 'default'
+
+    if (canNavigateByHistoryIndex || canNavigateByRouterEntry) {
       navigate(-1)
       return
     }
@@ -299,16 +302,14 @@ export function AppHeader(props: AppHeaderProps) {
   }
 
   const stickyClass = props.sticky
-    ? props.stickyTone === 'background'
-      ? 'sticky top-0 bg-background/95 backdrop-blur z-10'
-      : 'sticky top-0 bg-white/95 backdrop-blur z-10'
-    : 'bg-white'
+    ? 'sticky top-0 bg-background/95 backdrop-blur z-10'
+    : 'bg-background'
 
   return (
     <header className={cx('border-b border-gray-200', stickyClass, props.className)}>
       {props.variant === 'app-nav' && renderAppNavHeader(props)}
       {props.variant === 'brand-only' && (
-        <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-4')}>
+        <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-4 flex items-center')}>
           {renderBrand()}
         </div>
       )}
