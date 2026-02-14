@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, BookOpen, Loader2, Filter, Shield, FolderTree, Sparkles } from 'lucide-react'
+import { Plus, Pencil, Trash2, BookOpen, Loader2, Filter, Shield, FolderTree, Sparkles, Users, User } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { AdminCardForm } from '@/components/AdminCardForm'
@@ -180,13 +180,22 @@ export function AdminCardsPage() {
               관리자
             </span>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
+              <Link to="/admin/users">
+                <Users className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">사용자 관리</span>
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
               <Link to="/admin/generation">
-                <Sparkles className="h-4 w-4 mr-2" />
+                <Sparkles className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">AI 문제 생성</span>
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/mypage">마이페이지</Link>
+              <Link to="/mypage">
+                <User className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">마이페이지</span>
+              </Link>
             </Button>
           </>
         )}

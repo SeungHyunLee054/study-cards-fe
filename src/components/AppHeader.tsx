@@ -6,6 +6,7 @@ import {
   Settings,
   LogOut,
   User,
+  Users,
   NotebookText,
   BarChart3,
   Shield,
@@ -140,6 +141,7 @@ export function AppHeader(props: AppHeaderProps) {
       { to: '/stats', label: '통계', icon: BarChart3 },
       { to: '/subscription', label: '구독', icon: CreditCard },
       { to: '/settings', label: '설정', icon: Settings },
+      { to: '/admin/users', label: '관리 사용자', icon: Users, adminOnly: true, accent: 'purple' },
       { to: '/admin/cards', label: '관리 카드', icon: Shield, adminOnly: true, accent: 'purple' },
       { to: '/admin/generation', label: '관리 생성', icon: Sparkles, adminOnly: true, accent: 'purple' },
     ]
@@ -172,7 +174,7 @@ export function AppHeader(props: AppHeaderProps) {
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>
-            <Button variant="ghost" size="sm" onClick={logout} className="min-h-[44px]">
+            <Button variant="ghost" size="sm" onClick={() => { void logout() }} className="min-h-[44px]">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -180,7 +182,7 @@ export function AppHeader(props: AppHeaderProps) {
 
         <div className="flex md:hidden items-center gap-1">
           <NotificationDropdown />
-          <Button variant="ghost" size="sm" onClick={logout} className="min-h-[44px] min-w-[44px]">
+          <Button variant="ghost" size="sm" onClick={() => { void logout() }} className="min-h-[44px] min-w-[44px]">
             <LogOut className="h-4 w-4" />
           </Button>
           <Button

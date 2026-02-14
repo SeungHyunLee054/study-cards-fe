@@ -5,6 +5,9 @@ import {
   Loader2,
   Filter,
   Shield,
+  Users,
+  User,
+  BookOpen,
   BarChart3,
   List,
   ArrowRight,
@@ -255,10 +258,22 @@ export function AdminGenerationPage() {
               관리자
             </span>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/admin/cards">카드 관리</Link>
+              <Link to="/admin/users">
+                <Users className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">사용자 관리</span>
+              </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to="/mypage">마이페이지</Link>
+              <Link to="/admin/cards">
+                <BookOpen className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">카드 관리</span>
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
+              <Link to="/mypage">
+                <User className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">마이페이지</span>
+              </Link>
             </Button>
           </>
         )}
