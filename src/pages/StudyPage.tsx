@@ -116,18 +116,24 @@ export function StudyPage() {
   }, [loadCards, category, selectedMode, isLoggedIn, authLoading])
 
   const handleCategoryChange = (categoryCode: string | undefined) => {
+    const nextCategory = categoryCode ?? 'ALL'
+    const currentCategory = category ?? 'ALL'
+    if (nextCategory === currentCategory) return
+
     const params: Record<string, string> = {}
     if (categoryCode) params.deck = categoryCode
     if (selectedMode !== 'all') params.mode = selectedMode
-    setSearchParams(params)
+    setSearchParams(params, { replace: true })
   }
 
   const handleModeChange = (mode: StudyMode) => {
+    if (mode === selectedMode) return
+
     setSelectedMode(mode)
     const params: Record<string, string> = {}
     if (category) params.deck = category
     if (mode !== 'all') params.mode = mode
-    setSearchParams(params)
+    setSearchParams(params, { replace: true })
   }
 
   const handleRetry = () => {
