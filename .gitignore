@@ -39,3 +39,6 @@ public/firebase-messaging-sw.js
 
 # Claude
 .claude
+
+# Local temp artifacts (screenshots, checks)
+.tmp/
