@@ -68,10 +68,11 @@ npm install
 ### 실행
 
 ```bash
-# 개발 서버
+# 개발 서버 (port 3000)
 npm run dev
 
 # 프로덕션 빌드
+# (firebase-messaging-sw.js 생성 + TypeScript 체크 + Vite 빌드)
 npm run build
 
 # 빌드 미리보기
@@ -100,8 +101,10 @@ src/
 │   ├── sessions.ts             # 학습 세션 API
 │   ├── stats.ts                # 통계 API
 │   ├── users.ts                # 사용자 프로필 API
+│   ├── admin-users.ts          # 관리자 사용자 API
 │   ├── generation.ts           # 관리자 AI 생성 API
-│   └── admin.ts                # 관리자 카드/카테고리 API
+│   ├── admin.ts                # 관리자 카드/카테고리 API
+│   └── helpers.ts              # 공통 에러 핸들링 유틸
 │
 ├── components/                 # 재사용 컴포넌트
 │   ├── ui/                     # Shadcn/UI 기본 컴포넌트
@@ -142,6 +145,16 @@ src/
 └── App.tsx                     # 라우팅 설정 (코드 스플리팅)
 ```
 
+## 인증 및 토큰 갱신 흐름
+
+- Access Token은 `localStorage.accessToken`에 저장됩니다.
+- Refresh Token은 httpOnly 쿠키로 관리됩니다.
+- 인증 요청은 `apiClient`를 사용하며, `Authorization: Bearer <accessToken>`이 자동으로 첨부됩니다.
+- API 요청이 `401`이면 `/api/auth/refresh`로 재발급을 시도합니다.
+- 재발급 요청은 `publicClient`로 호출되어 만료된 access token 헤더가 붙지 않습니다.
+- 재발급 성공 시 새 access token 저장 후 원래 요청을 자동 재시도합니다.
+- 재발급 실패 시 `auth:logout` 이벤트를 발생시켜 로그인 페이지로 이동합니다.
+
 ## 페이지 라우트
 
 ### 공개 라우트
@@ -174,13 +187,14 @@ src/
 | `/ai-generate` | AiGeneratePage | AI 카드 생성 |
 | `/stats` | StatsPage | 학습 통계 |
 | `/sessions` | SessionHistoryPage | 세션 이력 |
-| `/settings` | SettingsPage | 설정 |
+| `/mypage#settings` | MyPage | 설정 섹션으로 바로 이동 |
 
 ### 관리자 전용 라우트
 
 | 경로 | 페이지 | 설명 |
 |------|--------|------|
 | `/admin/cards` | AdminCardsPage | 카드/카테고리 관리 |
+| `/admin/users` | AdminUsersPage | 사용자 관리 |
 | `/admin/generation` | AdminGenerationPage | AI 생성 관리 |
 
 ## 배포
@@ -188,13 +202,13 @@ src/
 ### Vercel
 
 1. Vercel에 프로젝트 연결
-2. Settings > Environment Variables에서 환경 변수 설정
-   - `API_BACKEND_URL`: 백엔드 서버 URL (API 프록시용)
-   - 기타 `VITE_*` 환경 변수
+2. Settings > Environment Variables에서 `VITE_*` 환경 변수 설정
 3. 자동 배포
 
-> `vercel.json`의 rewrites 설정으로 `/api/*` 요청이 백엔드로 프록시됩니다.
-> 이를 위해 Vercel 환경 변수에 `API_BACKEND_URL`을 설정해야 합니다.
+> `vercel.json` rewrites 기준:
+> - `/api/:path*` -> `https://api.studycard.kr/api/:path*`
+> - `/oauth2/authorization/:path*` -> `https://api.studycard.kr/oauth2/authorization/:path*`
+> - 그 외 경로 -> `/index.html` (SPA fallback)
 
 > Vite는 빌드 시점에 환경 변수를 코드에 삽입합니다.
 > `.env` 파일이 아닌 호스팅 플랫폼의 환경 변수 설정을 사용하세요.
