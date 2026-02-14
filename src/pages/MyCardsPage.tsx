@@ -94,7 +94,7 @@ export function MyCardsPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <AppHeader variant="brand-back" backTo={DASHBOARD_PATH} backLabel="대시보드" />
+      <AppHeader variant="brand-back" backTo={DASHBOARD_PATH} backLabel="뒤로가기" />
 
       <main className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8">
         {/* Page Title */}

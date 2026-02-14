@@ -62,7 +62,7 @@ export function BookmarksPage() {
       <AppHeader
         variant="brand-back"
         backTo={DASHBOARD_PATH}
-        backLabel="대시보드"
+        backLabel="뒤로가기"
         hideBackLabelOnMobile
       />
 

@@ -234,12 +234,12 @@ export function AppHeader(props: AppHeaderProps) {
     )
   }
 
-  function renderBrandBackHeader({
-    backTo,
-    backLabel = '돌아가기',
-    hideBackLabelOnMobile = false,
-    backAriaLabel,
-  }: BrandBackHeaderProps) {
+function renderBrandBackHeader({
+  backTo,
+  backLabel = '뒤로가기',
+  hideBackLabelOnMobile = false,
+  backAriaLabel,
+}: BrandBackHeaderProps) {
     return (
       <div className={cx(CONTAINER_CLASS[props.container ?? 'max-w-6xl'], 'py-4 flex items-center justify-between gap-3')}>
         {renderBrand()}
@@ -261,13 +261,13 @@ export function AppHeader(props: AppHeaderProps) {
     )
   }
 
-  function renderBackTitleHeader({
-    backTo,
-    title,
-    backLabel = '뒤로',
-    hideBackLabelOnMobile = false,
-    rightSlot,
-    titleClassName,
+function renderBackTitleHeader({
+  backTo,
+  title,
+  backLabel = '뒤로가기',
+  hideBackLabelOnMobile = false,
+  rightSlot,
+  titleClassName,
     backAriaLabel,
   }: BackTitleHeaderProps) {
     return (

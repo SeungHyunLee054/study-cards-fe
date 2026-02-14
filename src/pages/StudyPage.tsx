@@ -159,7 +159,7 @@ export function StudyPage() {
         variant="back-title"
         container="container"
         backTo={isLoggedIn ? DASHBOARD_PATH : '/'}
-        backLabel="뒤로"
+        backLabel="뒤로가기"
         hideBackLabelOnMobile
         title={`${getModeLabel()}${getModeLabel() && ' '}${category ? `${category} 학습` : '학습 세션'}`}
         sticky

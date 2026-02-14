@@ -5,7 +5,7 @@ import { AppHeader } from '@/components/AppHeader'
 export function AboutPage() {
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader variant="back-title" container="container" backTo="/" backLabel="홈으로" title="About" />
+      <AppHeader variant="back-title" container="container" backTo="/" backLabel="뒤로가기" title="About" />
 
       {/* Content */}
       <main className="container mx-auto px-4 py-12 max-w-2xl">

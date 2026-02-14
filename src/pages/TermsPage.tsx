@@ -4,7 +4,7 @@ import { AppFooter } from '@/components/AppFooter'
 export function TermsPage() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <AppHeader variant="brand-back" backTo="/signup" backLabel="돌아가기" />
+      <AppHeader variant="brand-back" backTo="/signup" backLabel="뒤로가기" />
 
       {/* Main */}
       <main className="max-w-3xl mx-auto px-4 md:px-6 py-12">

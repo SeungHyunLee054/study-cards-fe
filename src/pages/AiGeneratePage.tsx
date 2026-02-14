@@ -116,7 +116,7 @@ export function AiGeneratePage() {
           variant="back-title"
           container="max-w-3xl"
           backTo="/"
-          backLabel="뒤로"
+          backLabel="뒤로가기"
           hideBackLabelOnMobile
           title={(
             <span className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export function AiGeneratePage() {
         variant="back-title"
         container="max-w-3xl"
         backTo={DASHBOARD_PATH}
-        backLabel="뒤로"
+        backLabel="뒤로가기"
         hideBackLabelOnMobile
         title={(
           <span className="flex items-center gap-2">

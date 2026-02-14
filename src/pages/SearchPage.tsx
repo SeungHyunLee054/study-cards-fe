@@ -67,7 +67,7 @@ export function SearchPage() {
       <AppHeader
         variant="brand-back"
         backTo={isLoggedIn ? DASHBOARD_PATH : '/'}
-        backLabel="돌아가기"
+        backLabel="뒤로가기"
         hideBackLabelOnMobile
         sticky
       />

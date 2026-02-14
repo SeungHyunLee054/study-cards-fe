@@ -310,7 +310,7 @@ export function SessionHistoryPage() {
         variant="back-title"
         container="max-w-4xl"
         backTo={DASHBOARD_PATH}
-        backLabel="뒤로"
+        backLabel="뒤로가기"
         title="학습 기록"
         titleClassName="text-xl font-semibold"
       />

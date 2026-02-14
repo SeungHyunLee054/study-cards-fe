@@ -171,7 +171,7 @@ export function SubscriptionPage() {
         variant="brand-back"
         container="max-w-4xl"
         backTo={DASHBOARD_PATH}
-        backLabel="대시보드"
+        backLabel="뒤로가기"
         hideBackLabelOnMobile
       />
 
