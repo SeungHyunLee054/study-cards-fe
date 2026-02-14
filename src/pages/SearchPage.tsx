@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Loader2, Search, Filter } from 'lucide-react'
+import { Loader2, Search, Filter, ChevronDown, ChevronUp } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Input } from '@/components/ui/input'
 import { BookmarkButton } from '@/components/BookmarkButton'
@@ -26,6 +26,7 @@ export function SearchPage() {
   const [error, setError] = useState<string | null>(null)
   const { selectedCategory, setSelectedCategory, categoryCode } = useCategoryFilter()
   const [page, setPage] = useState(0)
+  const [isCategoryFilterOpen, setIsCategoryFilterOpen] = useState(false)
 
   useEffect(() => {
     fetchCategories()
@@ -69,6 +70,9 @@ export function SearchPage() {
   const results = resultsPage?.content ?? []
   const totalPages = resultsPage?.totalPages ?? 0
   const hasSearched = debouncedKeyword.trim().length > 0
+  const selectedCategoryLabel = selectedCategory === 'ALL'
+    ? '전체'
+    : (categories.find((category) => category.code === selectedCategory)?.name ?? selectedCategory)
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -104,19 +108,42 @@ export function SearchPage() {
         </div>
 
         {/* Category Filter */}
-        <div className="mb-6 flex items-start gap-3">
-          <Filter className="h-4 w-4 text-gray-500 shrink-0" />
-          {isCategoriesLoading ? (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              로딩 중...
+        <div className="mb-6 rounded-xl border border-gray-200 bg-white">
+          <button
+            type="button"
+            onClick={() => setIsCategoryFilterOpen((prev) => !prev)}
+            className="w-full px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-gray-50 rounded-xl"
+          >
+            <span className="inline-flex items-center gap-2 text-sm text-gray-600">
+              <Filter className="h-4 w-4 text-gray-500" />
+              카테고리 필터
+            </span>
+            <span className="inline-flex items-center gap-2 text-sm text-gray-700">
+              <span className="max-w-[160px] truncate">{selectedCategoryLabel}</span>
+              {isCategoryFilterOpen ? (
+                <ChevronUp className="h-4 w-4 text-gray-500" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              )}
+            </span>
+          </button>
+
+          {isCategoryFilterOpen && (
+            <div className="border-t border-gray-100 px-4 py-3">
+              {isCategoriesLoading ? (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  로딩 중...
+                </div>
+              ) : (
+                <CategoryFilterChips
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onChange={handleCategoryChange}
+                  buttonBaseClassName="px-3 py-2 text-sm rounded-md transition-colors min-h-[38px]"
+                />
+              )}
             </div>
-          ) : (
-            <CategoryFilterChips
-              categories={categories}
-              selectedCategory={selectedCategory}
-              onChange={handleCategoryChange}
-            />
           )}
         </div>
 

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/useAuth'
 import { fetchCategories } from '@/api/categories'
 import { generateUserCards, fetchAiGenerationLimit } from '@/api/ai'
@@ -18,13 +19,16 @@ import type { CategoryResponse } from '@/types/category'
 import type { AiCardResponse, AiLimitResponse } from '@/types/ai'
 import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
 
+const MIN_CARD_COUNT = 1
+const MAX_CARD_COUNT = 20
+
 export function AiGeneratePage() {
   const { isLoggedIn } = useAuth()
 
   const [categories, setCategories] = useState<CategoryResponse[]>([])
   const [sourceText, setSourceText] = useState('')
   const [categoryCode, setCategoryCode] = useState('')
-  const [count, setCount] = useState(5)
+  const [countInput, setCountInput] = useState('5')
   const [difficulty, setDifficulty] = useState('MEDIUM')
 
   const [isGenerating, setIsGenerating] = useState(false)
@@ -64,7 +68,20 @@ export function AiGeneratePage() {
   }, [isLoggedIn])
 
   async function handleGenerate() {
+    const parsedCount = Number(countInput)
+    const isCountNumber = Number.isInteger(parsedCount)
+    const exceedsRemaining = !!limitInfo && parsedCount > limitInfo.remaining
+    const isCountInRange = isCountNumber && parsedCount >= MIN_CARD_COUNT && parsedCount <= MAX_CARD_COUNT
+
     if (!sourceText.trim() || !categoryCode) return
+    if (!isCountInRange) {
+      setError(`카드 수는 ${MIN_CARD_COUNT}~${MAX_CARD_COUNT} 사이의 정수로 입력해주세요.`)
+      return
+    }
+    if (exceedsRemaining) {
+      setError(`남은 생성 가능 횟수(${limitInfo?.remaining}개) 이하로 입력해주세요.`)
+      return
+    }
 
     try {
       setIsGenerating(true)
@@ -74,7 +91,7 @@ export function AiGeneratePage() {
       const result = await generateUserCards({
         sourceText: sourceText.trim(),
         categoryCode,
-        count,
+        count: parsedCount,
         difficulty,
       })
 
@@ -91,6 +108,12 @@ export function AiGeneratePage() {
 
   const canGenerate = limitInfo ? limitInfo.remaining > 0 : false
   const textLength = sourceText.length
+  const parsedCount = Number(countInput)
+  const isCountNumber = Number.isInteger(parsedCount)
+  const isCountInRange = isCountNumber && parsedCount >= MIN_CARD_COUNT && parsedCount <= MAX_CARD_COUNT
+  const exceedsRemaining = !!limitInfo && parsedCount > limitInfo.remaining
+  const isCountValid = isCountInRange && !exceedsRemaining
+  const generateButtonCount = isCountNumber && parsedCount > 0 ? parsedCount : MIN_CARD_COUNT
 
   if (!isLoggedIn) {
     return (
@@ -225,16 +248,34 @@ export function AiGeneratePage() {
             </div>
             <div>
               <label className="block text-xs font-medium mb-1.5 text-muted-foreground">카드 수</label>
-              <select
-                value={count}
-                onChange={(e) => setCount(Number(e.target.value))}
-                className="w-full h-11 px-3 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={MIN_CARD_COUNT}
+                max={MAX_CARD_COUNT}
+                step={1}
+                value={countInput}
+                onChange={(e) => setCountInput(e.target.value)}
+                onBlur={() => {
+                  const next = Number(countInput)
+                  if (!Number.isFinite(next)) {
+                    setCountInput(String(MIN_CARD_COUNT))
+                    return
+                  }
+                  const clamped = Math.min(MAX_CARD_COUNT, Math.max(MIN_CARD_COUNT, Math.trunc(next)))
+                  setCountInput(String(clamped))
+                }}
+                className="h-11"
                 disabled={!canGenerate}
-              >
-                {[3, 5, 10, 15, 20].map((n) => (
-                  <option key={n} value={n}>{n}개</option>
-                ))}
-              </select>
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {MIN_CARD_COUNT}~{MAX_CARD_COUNT}개를 직접 입력하세요.
+              </p>
+              {canGenerate && limitInfo && (
+                <p className={`mt-0.5 text-xs ${exceedsRemaining ? 'text-red-600' : 'text-muted-foreground'}`}>
+                  남은 생성 가능 횟수: {limitInfo.remaining}개
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-medium mb-1.5 text-muted-foreground">난이도</label>
@@ -265,7 +306,7 @@ export function AiGeneratePage() {
                 <Loader2 className="h-4 w-4 animate-spin" />
                 AI가 카드를 생성하고 있습니다...
               </div>
-              {Array.from({ length: Math.min(count, 5) }).map((_, i) => (
+              {Array.from({ length: Math.min(generateButtonCount, 5) }).map((_, i) => (
                 <div key={i} className="p-4 rounded-xl border bg-secondary/30 animate-pulse">
                   <div className="h-4 bg-secondary rounded w-3/4 mb-3" />
                   <div className="h-3 bg-secondary rounded w-1/2" />
@@ -347,7 +388,7 @@ export function AiGeneratePage() {
           <Button
             className="w-full h-12 text-base"
             onClick={handleGenerate}
-            disabled={isGenerating || !sourceText.trim() || !categoryCode || !canGenerate}
+            disabled={isGenerating || !sourceText.trim() || !categoryCode || !canGenerate || !isCountValid}
           >
             {isGenerating ? (
               <>
@@ -357,7 +398,7 @@ export function AiGeneratePage() {
             ) : (
               <>
                 <Sparkles className="mr-2 h-5 w-5" />
-                AI로 카드 {count}개 생성하기
+                AI로 카드 {generateButtonCount}개 생성하기
               </>
             )}
           </Button>

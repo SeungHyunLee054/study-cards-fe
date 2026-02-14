@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { CategoryResponse } from '@/types/category'
 import type { CategoryTreeNode } from '@/lib/categoryHierarchy'
@@ -12,6 +12,19 @@ interface CategoryFilterChipsProps {
   buttonBaseClassName?: string
 }
 
+function findPathCodes(nodes: CategoryTreeNode[], targetCode: string): string[] {
+  for (const node of nodes) {
+    if (node.code === targetCode) {
+      return [node.code]
+    }
+    const childPath = findPathCodes(node.children, targetCode)
+    if (childPath.length > 0) {
+      return [node.code, ...childPath]
+    }
+  }
+  return []
+}
+
 export function CategoryFilterChips({
   selectedCategory,
   categories,
@@ -22,21 +35,10 @@ export function CategoryFilterChips({
   const categoryTree = useMemo(() => buildCategoryTreeFromFlat(categories), [categories])
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({})
 
-  useEffect(() => {
-    setExpandedMap(() => {
-      const next: Record<string, boolean> = {}
-      categoryTree.forEach((node) => {
-        next[node.code] = true
-      })
-      return next
-    })
-  }, [categoryTree])
-
-  function isSelectedOrDescendant(node: CategoryTreeNode): boolean {
-    if (selectedCategory === 'ALL') return false
-    if (node.code === selectedCategory) return true
-    return node.children.some((child) => isSelectedOrDescendant(child))
-  }
+  const selectedPathSet = useMemo(() => {
+    if (selectedCategory === 'ALL') return new Set<string>()
+    return new Set(findPathCodes(categoryTree, selectedCategory))
+  }, [categoryTree, selectedCategory])
 
   function toggleExpanded(code: string) {
     setExpandedMap((prev) => ({ ...prev, [code]: !prev[code] }))
@@ -44,32 +46,40 @@ export function CategoryFilterChips({
 
   function renderNode(node: CategoryTreeNode) {
     const hasChildren = node.children.length > 0
-    const isExpanded = expandedMap[node.code] ?? false
-    const shouldShowChildren = hasChildren && (isExpanded || isSelectedOrDescendant(node))
+    const isExpanded = hasChildren && ((expandedMap[node.code] ?? false) || selectedPathSet.has(node.code))
+    const isSelected = selectedCategory === node.code
 
     return (
-      <div key={node.code}>
+      <div
+        key={node.code}
+        className={node.depth > 0 ? 'ml-2 border-l border-gray-200 pl-2' : ''}
+      >
         <div
-          className="flex items-center gap-1"
-          style={{ paddingLeft: node.depth * 16 }}
+          className="flex items-center gap-1.5"
         >
           {hasChildren ? (
             <button
               type="button"
               onClick={() => toggleExpanded(node.code)}
               aria-label={isExpanded ? `${node.name} 접기` : `${node.name} 펼치기`}
-              className="p-2 rounded hover:bg-gray-100 text-gray-500 min-h-[36px] min-w-[36px] flex items-center justify-center"
+              className="h-8 w-8 rounded-md hover:bg-gray-100 text-gray-500 flex items-center justify-center shrink-0"
             >
-              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
             </button>
           ) : (
-            <div className="w-9" />
+            <div className="h-8 w-8 flex items-center justify-center shrink-0">
+              <span className="h-1.5 w-1.5 rounded-full bg-gray-300" />
+            </div>
           )}
           <button
             type="button"
             onClick={() => onChange(node.code)}
-            className={`${buttonBaseClassName} ${
-              selectedCategory === node.code
+            className={`${buttonBaseClassName} inline-flex items-center justify-start text-left min-w-[88px] ${
+              isSelected
                 ? 'bg-primary text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
@@ -78,7 +88,7 @@ export function CategoryFilterChips({
           </button>
         </div>
 
-        {shouldShowChildren && (
+        {hasChildren && isExpanded && (
           <div className="mt-1 space-y-1">
             {node.children.map((child) => renderNode(child))}
           </div>
@@ -88,19 +98,22 @@ export function CategoryFilterChips({
   }
 
   return (
-    <div className="w-full space-y-2">
-      <button
-        type="button"
-        onClick={() => onChange('ALL')}
-        className={`${buttonBaseClassName} ${
-          selectedCategory === 'ALL'
-            ? 'bg-primary text-white'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-        }`}
-      >
-        {allLabel}
-      </button>
-      <div className="space-y-1">
+    <div className="w-full rounded-xl border border-gray-200 bg-gray-50/70 p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => onChange('ALL')}
+          className={`${buttonBaseClassName} ${
+            selectedCategory === 'ALL'
+              ? 'bg-primary text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          {allLabel}
+        </button>
+        <span className="text-xs text-gray-500">대/중/소 카테고리</span>
+      </div>
+      <div className="max-h-72 overflow-y-auto pr-1 space-y-1">
         {categoryTree.map((node) => renderNode(node))}
       </div>
     </div>

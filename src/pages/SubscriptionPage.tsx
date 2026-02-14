@@ -156,6 +156,11 @@ export function SubscriptionPage() {
   }
 
   const isSubscribed = subscription?.isActive
+  const isYearlyActiveSubscription =
+    !!subscription
+    && subscription.isActive
+    && subscription.billingCycle === 'YEARLY'
+    && subscription.status !== 'EXPIRED'
   const price = plan ? (billingCycle === 'MONTHLY' ? plan.monthlyPrice : plan.yearlyPrice) : 0
   const monthlyPrice = billingCycle === 'YEARLY' ? Math.round(price / 12) : price
 
@@ -202,6 +207,14 @@ export function SubscriptionPage() {
               onCancel={() => setIsCancelDialogOpen(true)}
               isCancelling={isCancelling}
             />
+          </div>
+        )}
+
+        {isYearlyActiveSubscription && (
+          <div className="mb-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <p className="text-sm text-blue-800">
+              현재 연간 선결제 이용 중입니다. 추가 결제는 만료일 이후 가능합니다.
+            </p>
           </div>
         )}
 
