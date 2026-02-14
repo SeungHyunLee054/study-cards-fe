@@ -105,14 +105,14 @@ export function SubscriptionPage() {
       if (billingCycle === 'MONTHLY') {
         // 월간: 토스 빌링 인증은 orderId를 리다이렉트 파라미터로 전달하지 않으므로 미리 포함
         const successUrl = `${baseUrl}/subscription/success?orderId=${checkout.orderId}`
-        // 월간 정기 결제: 카드 등록 후 빌링키 발급
+        // 월간 정기결제: 카드 등록 후 빌링키 발급
         await requestBillingAuth({
           customerKey: checkout.customerKey,
           successUrl,
           failUrl,
         })
       } else {
-        // 연간 단건 결제: 토스가 orderId를 리다이렉트 파라미터로 자동 전달하므로 미리 포함하지 않음
+        // 연간 선결제(단건): 토스가 orderId를 리다이렉트 파라미터로 자동 전달하므로 미리 포함하지 않음
         const successUrl = `${baseUrl}/subscription/success`
         await requestPayment({
           customerKey: checkout.customerKey,
@@ -131,7 +131,7 @@ export function SubscriptionPage() {
   }
 
   async function handleCancelSubscription() {
-    if (!confirm('월간 자동결제를 해제하시겠습니까? 남은 구독 기간 동안은 계속 이용할 수 있습니다.')) {
+    if (!confirm('월간 정기결제 자동결제를 해제하시겠습니까? 남은 구독 기간 동안은 계속 이용할 수 있습니다.')) {
       return
     }
 
@@ -279,7 +279,7 @@ export function SubscriptionPage() {
                       </div>
                       {billingCycle === 'YEARLY' && (
                         <div className="text-xs text-gray-500">
-                          연 {price.toLocaleString()}원
+                          연 {price.toLocaleString()}원 선결제
                         </div>
                       )}
                     </td>
@@ -316,6 +316,17 @@ export function SubscriptionPage() {
                   </Link>
                 </Button>
               )}
+            </div>
+
+            <div className="mt-4 mx-auto max-w-xl rounded-lg border border-gray-200 bg-gray-50 p-3 text-left">
+              <p className="text-sm text-gray-700">
+                {billingCycle === 'YEARLY'
+                  ? '연간 선결제 상품은 결제 후 환불이 불가하며, 결제일로부터 1년 동안 이용할 수 있습니다.'
+                  : '월간 정기결제는 자동결제로 청구되며, 자동결제를 해제해도 남은 기간 동안 이용할 수 있습니다.'}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                결제 전 <Link to="/terms" className="underline">이용약관</Link>을 확인해주세요.
+              </p>
             </div>
           </div>
         )}

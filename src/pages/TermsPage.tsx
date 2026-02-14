@@ -120,6 +120,16 @@ export function TermsPage() {
             </ol>
           </section>
 
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">제11조 (유료 서비스 및 환불 정책)</h2>
+            <ol className="list-decimal pl-6 space-y-2 text-gray-700">
+              <li>서비스는 월간 정기결제 및 연간 선결제 형태의 유료 구독 서비스를 제공할 수 있습니다.</li>
+              <li>월간 정기결제는 자동결제 해제 시 다음 결제일부터 추가 청구가 중단되며, 이미 결제된 이용 기간 동안은 서비스를 계속 이용할 수 있습니다.</li>
+              <li>연간 선결제 상품은 결제 완료 시점에 1년 이용권이 부여되며, 결제 후 환불은 제공되지 않습니다.</li>
+              <li>유료 서비스의 운영 정책은 관련 법령을 준수하는 범위에서 변경될 수 있으며, 변경 시 사전 고지합니다.</li>
+            </ol>
+          </section>
+
           <section className="bg-gray-50 rounded-lg p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">부칙</h2>
             <p className="text-gray-700">본 약관은 2025년 1월 1일부터 시행합니다.</p>

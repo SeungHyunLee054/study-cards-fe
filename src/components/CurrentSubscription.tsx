@@ -38,7 +38,7 @@ export function CurrentSubscription({
   isCancelling,
 }: CurrentSubscriptionProps) {
   const status = getStatusLabel(subscription.status)
-  const billingLabel = subscription.billingCycle === 'MONTHLY' ? '월간' : '연간'
+  const billingLabel = subscription.billingCycle === 'MONTHLY' ? '월간 정기결제' : '연간 선결제'
   const isMonthly = subscription.billingCycle === 'MONTHLY'
   const canDisableAutoRenewal =
     subscription.status === 'ACTIVE'
@@ -54,7 +54,7 @@ export function CurrentSubscription({
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold text-gray-900">{subscription.planDisplayName}</h3>
-            <p className="text-sm text-gray-500">{billingLabel} 결제</p>
+            <p className="text-sm text-gray-500">{billingLabel}</p>
           </div>
           <span className={`px-3 py-1 text-sm font-medium rounded-full ${status.className}`}>
             {status.label}
@@ -75,7 +75,7 @@ export function CurrentSubscription({
               : '자동결제: 해제됨 (만료일까지 이용 가능)'}
           </p>
         ) : (
-          <p className="text-sm text-gray-600">연간 결제: 자동결제 없음</p>
+          <p className="text-sm text-gray-600">연간 선결제: 자동결제 없음 · 환불 불가</p>
         )}
 
         {canDisableAutoRenewal && (

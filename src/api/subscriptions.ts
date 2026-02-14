@@ -53,7 +53,7 @@ export async function confirmBilling(request: BillingConfirmRequest): Promise<Su
   }, '결제 확인에 실패했습니다.')
 }
 
-// 단건 결제 확인 (연간 구독)
+// 연간 선결제 확인 (단건 결제)
 export async function confirmPayment(request: PaymentConfirmRequest): Promise<SubscriptionResponse> {
   return withApiErrorHandling(async () => {
     const response = await apiClient.post<SubscriptionResponse>('/api/payments/confirm', request)

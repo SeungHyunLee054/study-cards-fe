@@ -13,7 +13,7 @@ export function BillingCycleToggle({ value, onChange }: BillingCycleToggleProps)
           value === 'MONTHLY' ? 'text-gray-900' : 'text-gray-500'
         }`}
       >
-        월간 결제
+        월간 정기결제
       </span>
       <button
         type="button"
@@ -26,13 +26,13 @@ export function BillingCycleToggle({ value, onChange }: BillingCycleToggleProps)
           }`}
         />
       </button>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
         <span
           className={`text-sm font-medium ${
             value === 'YEARLY' ? 'text-gray-900' : 'text-gray-500'
           }`}
         >
-          연간 결제
+          연간 선결제
         </span>
         <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700">
           2개월 무료

@@ -31,7 +31,7 @@ export function SubscriptionSuccessPage() {
       }
       handleConfirmBilling(authKey, customerKey, orderId)
     } else if (paymentKey) {
-      // 연간 단건 결제 콜백
+      // 연간 선결제(단건) 콜백
       const amount = searchParams.get('amount')
       if (!orderId || !amount) {
         setError('결제 정보가 올바르지 않습니다.')
