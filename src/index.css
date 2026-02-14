@@ -71,6 +71,10 @@
     background-color: rgba(127, 29, 29, 0.2);
   }
 
+  .dark .bg-red-50\/40 {
+    background-color: rgba(127, 29, 29, 0.24);
+  }
+
   .dark .bg-red-100 {
     background-color: rgba(127, 29, 29, 0.3);
   }
@@ -95,8 +99,20 @@
     background-color: rgba(30, 64, 175, 0.2);
   }
 
+  .dark .bg-blue-50\/50 {
+    background-color: rgba(30, 64, 175, 0.28);
+  }
+
   .dark .bg-blue-100 {
     background-color: rgba(30, 64, 175, 0.3);
+  }
+
+  .dark .bg-amber-50 {
+    background-color: rgba(146, 64, 14, 0.2);
+  }
+
+  .dark .bg-amber-100 {
+    background-color: rgba(146, 64, 14, 0.32);
   }
 
   .dark .bg-purple-50 {
@@ -115,6 +131,10 @@
     background-color: rgba(154, 52, 18, 0.3);
   }
 
+  .dark .bg-pink-100 {
+    background-color: rgba(157, 23, 77, 0.3);
+  }
+
   .dark .text-gray-900 {
     color: hsl(var(--foreground));
   }
@@ -127,6 +147,14 @@
   .dark .text-gray-500,
   .dark .text-gray-400 {
     color: hsl(var(--muted-foreground));
+  }
+
+  .dark .text-gray-300 {
+    color: hsl(var(--muted-foreground) / 0.8);
+  }
+
+  .dark .text-gray-200 {
+    color: hsl(var(--muted-foreground) / 0.7);
   }
 
   .dark .text-red-700,
@@ -150,8 +178,16 @@
     color: #93c5fd;
   }
 
+  .dark .text-amber-900,
+  .dark .text-amber-800,
+  .dark .text-amber-700,
+  .dark .text-amber-600 {
+    color: #fcd34d;
+  }
+
   .dark .text-purple-700,
-  .dark .text-purple-600 {
+  .dark .text-purple-600,
+  .dark .text-purple-900 {
     color: #c4b5fd;
   }
 
@@ -159,6 +195,10 @@
   .dark .text-orange-600,
   .dark .text-orange-500 {
     color: #fdba74;
+  }
+
+  .dark .text-red-900 {
+    color: #fca5a5;
   }
 
   .dark .border-gray-200,
@@ -184,6 +224,10 @@
 
   .dark .border-blue-200 {
     border-color: #1d4ed8;
+  }
+
+  .dark .border-amber-200 {
+    border-color: #92400e;
   }
 
   .dark .border-purple-200 {
@@ -292,6 +336,20 @@
     --tw-gradient-from: rgba(107, 33, 168, 0.35) 0%;
     --tw-gradient-to: rgba(107, 33, 168, 0) 100%;
     --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  }
+
+  .dark .to-blue-50 {
+    --tw-gradient-to: rgba(30, 64, 175, 0.2) 100%;
+  }
+
+  .dark .from-amber-50 {
+    --tw-gradient-from: rgba(146, 64, 14, 0.35) 0%;
+    --tw-gradient-to: rgba(146, 64, 14, 0) 100%;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  }
+
+  .dark .to-orange-50 {
+    --tw-gradient-to: rgba(154, 52, 18, 0.22) 100%;
   }
 
   .dark .to-purple-100 {

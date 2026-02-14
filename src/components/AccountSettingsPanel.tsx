@@ -556,7 +556,7 @@ export function AccountSettingsPanel({ className }: AccountSettingsPanelProps) {
           </div>
         </div>
 
-        <div className="rounded-xl border border-red-200 bg-red-50/40">
+        <div className="rounded-xl border border-red-200 bg-red-50">
           <div className="p-6 border-b border-red-200">
             <h2 className="text-lg font-semibold text-red-700 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />

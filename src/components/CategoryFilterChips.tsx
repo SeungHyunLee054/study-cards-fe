@@ -92,7 +92,7 @@ export function CategoryFilterChips({
     return (
       <div
         key={node.code}
-        className={node.depth > 0 ? 'ml-2 border-l border-gray-200 pl-2' : ''}
+        className={node.depth > 0 ? 'ml-2 border-l border-border pl-2' : ''}
       >
         <div
           className="flex items-center gap-1.5"
@@ -102,7 +102,7 @@ export function CategoryFilterChips({
               type="button"
               onClick={() => toggleExpanded(node.code)}
               aria-label={isExpanded ? `${node.name} 접기` : `${node.name} 펼치기`}
-              className="h-8 w-8 rounded-md hover:bg-gray-100 text-gray-500 flex items-center justify-center shrink-0"
+              className="h-8 w-8 rounded-md hover:bg-secondary text-muted-foreground flex items-center justify-center shrink-0"
             >
               {isExpanded ? (
                 <ChevronDown className="h-4 w-4" />
@@ -112,7 +112,7 @@ export function CategoryFilterChips({
             </button>
           ) : (
             <div className="h-8 w-8 flex items-center justify-center shrink-0">
-              <span className="h-1.5 w-1.5 rounded-full bg-gray-300" />
+              <span className="h-1.5 w-1.5 rounded-full bg-border" />
             </div>
           )}
           <button
@@ -121,7 +121,7 @@ export function CategoryFilterChips({
             className={`${buttonBaseClassName} inline-flex items-center justify-start text-left min-w-[88px] ${
               isSelected
                 ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
             }`}
           >
             {node.name}
@@ -138,7 +138,7 @@ export function CategoryFilterChips({
   }
 
   return (
-    <div className="w-full rounded-xl border border-gray-200 bg-gray-50/70 p-3 space-y-2">
+    <div className="w-full rounded-xl border border-border bg-secondary/40 p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <button
           type="button"
@@ -149,12 +149,12 @@ export function CategoryFilterChips({
           className={`${buttonBaseClassName} ${
             selectedCategory === 'ALL'
               ? 'bg-primary text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
           }`}
         >
           {allLabel}
         </button>
-        <span className="text-xs text-gray-500">대/중/소 카테고리</span>
+        <span className="text-xs text-muted-foreground">대/중/소 카테고리</span>
       </div>
       <div className="max-h-72 overflow-y-auto pr-1 space-y-1">
         {categoryTree.map((node) => renderNode(node))}
