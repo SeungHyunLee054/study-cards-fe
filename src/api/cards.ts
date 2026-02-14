@@ -11,6 +11,9 @@ import type {
   PageResponse,
 } from '@/types/card'
 
+const LOGGED_IN_STUDY_PAGE_SIZE = 1000
+const GUEST_STUDY_PAGE_SIZE = 15
+
 // 학습할 카드 조회 (비로그인도 가능, 로그인 시 토큰 포함)
 export async function fetchStudyCards(categoryCode?: string): Promise<CardResponse[]> {
   return withApiErrorHandling(async () => {
@@ -18,6 +21,7 @@ export async function fetchStudyCards(categoryCode?: string): Promise<CardRespon
     const response = await client.get<PageResponse<CardResponse>>('/api/cards/study', {
       params: {
         ...(categoryCode && { category: categoryCode }),
+        size: GUEST_STUDY_PAGE_SIZE,
       },
     })
     return response.data.content
@@ -62,6 +66,7 @@ export async function fetchAllStudyCards(categoryCode?: string): Promise<CardRes
     const response = await apiClient.get<PageResponse<CardResponse>>('/api/cards/study/all', {
       params: {
         ...(categoryCode && { category: categoryCode }),
+        size: LOGGED_IN_STUDY_PAGE_SIZE,
       },
     })
     return response.data.content
@@ -74,6 +79,7 @@ export async function fetchTodayStudyCards(categoryCode?: string): Promise<Study
     const response = await apiClient.get<PageResponse<StudyCardResponse>>('/api/study/cards', {
       params: {
         ...(categoryCode && { category: categoryCode }),
+        size: LOGGED_IN_STUDY_PAGE_SIZE,
       },
     })
     return response.data.content
@@ -94,6 +100,7 @@ export async function fetchUserStudyCards(categoryCode?: string): Promise<UserCa
     const response = await apiClient.get<PageResponse<UserCardResponse>>('/api/user/cards/study', {
       params: {
         ...(categoryCode && { category: categoryCode }),
+        size: LOGGED_IN_STUDY_PAGE_SIZE,
       },
     })
     return response.data.content
