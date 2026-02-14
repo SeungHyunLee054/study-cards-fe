@@ -77,7 +77,8 @@ apiClient.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const response = await apiClient.post('/api/auth/refresh')
+        // refresh는 만료된 access token 없이(refresh cookie 기반) 호출해야 한다.
+        const response = await publicClient.post('/api/auth/refresh')
         const newToken = response.data.accessToken
 
         localStorage.setItem('accessToken', newToken)
