@@ -39,6 +39,11 @@ export function CurrentSubscription({
 }: CurrentSubscriptionProps) {
   const status = getStatusLabel(subscription.status)
   const billingLabel = subscription.billingCycle === 'MONTHLY' ? '월간' : '연간'
+  const isMonthly = subscription.billingCycle === 'MONTHLY'
+  const canDisableAutoRenewal =
+    subscription.status === 'ACTIVE'
+    && isMonthly
+    && subscription.autoRenewalEnabled
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white">
@@ -63,7 +68,17 @@ export function CurrentSubscription({
           </span>
         </div>
 
-        {subscription.status === 'ACTIVE' && (
+        {isMonthly ? (
+          <p className="text-sm text-gray-600">
+            {subscription.autoRenewalEnabled
+              ? '자동결제: 활성'
+              : '자동결제: 해제됨 (만료일까지 이용 가능)'}
+          </p>
+        ) : (
+          <p className="text-sm text-gray-600">연간 결제: 자동결제 없음</p>
+        )}
+
+        {canDisableAutoRenewal && (
           <Button
             variant="outline"
             className="w-full text-red-600 border-red-200 hover:bg-red-50"
@@ -76,7 +91,7 @@ export function CurrentSubscription({
                 처리 중...
               </>
             ) : (
-              '구독 취소'
+              '자동결제 해제'
             )}
           </Button>
         )}

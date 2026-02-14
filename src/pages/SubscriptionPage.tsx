@@ -131,18 +131,18 @@ export function SubscriptionPage() {
   }
 
   async function handleCancelSubscription() {
-    if (!confirm('정말 구독을 취소하시겠습니까? 취소 즉시 프리미엄 기능이 비활성화됩니다.')) {
+    if (!confirm('월간 자동결제를 해제하시겠습니까? 남은 구독 기간 동안은 계속 이용할 수 있습니다.')) {
       return
     }
 
     try {
       setIsCancelling(true)
       setError(null)
-      await cancelSubscription()
-      setSubscription(null)
-      setSuccessMessage('구독이 취소되었습니다.')
+      const updated = await cancelSubscription()
+      setSubscription(updated)
+      setSuccessMessage('자동결제가 해제되었습니다. 만료일까지 프리미엄 기능을 이용할 수 있습니다.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : '구독 취소에 실패했습니다')
+      setError(err instanceof Error ? err.message : '자동결제 해제에 실패했습니다')
     } finally {
       setIsCancelling(false)
     }

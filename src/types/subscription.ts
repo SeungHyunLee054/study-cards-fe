@@ -24,6 +24,7 @@ export interface SubscriptionResponse {
   startDate: string
   endDate: string
   isActive: boolean
+  autoRenewalEnabled: boolean
   canGenerateAiCards: boolean
   canUseAiRecommendations: boolean
   aiGenerationDailyLimit: number

@@ -61,11 +61,12 @@ export async function confirmPayment(request: PaymentConfirmRequest): Promise<Su
   }, '결제 확인에 실패했습니다.')
 }
 
-// 구독 취소
-export async function cancelSubscription(request?: CancelRequest): Promise<void> {
+// 월간 구독 자동 갱신 해제
+export async function cancelSubscription(request?: CancelRequest): Promise<SubscriptionResponse> {
   return withApiErrorHandling(async () => {
-    await apiClient.post('/api/subscriptions/cancel', request || {})
-  }, '구독 취소에 실패했습니다.')
+    const response = await apiClient.post<SubscriptionResponse>('/api/subscriptions/cancel', request || {})
+    return response.data
+  }, '자동결제 해제에 실패했습니다.')
 }
 
 // 결제 내역 조회
