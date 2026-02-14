@@ -25,7 +25,7 @@ export function SignupPage() {
   // 이미 로그인된 경우 리다이렉트
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
-      navigate('/mypage', { replace: true })
+      navigate('/dashboard', { replace: true })
     }
   }, [authLoading, isLoggedIn, navigate])
 

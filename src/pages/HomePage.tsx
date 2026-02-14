@@ -25,7 +25,7 @@ export function HomePage() {
 
   useEffect(() => {
     if (!isLoading && isLoggedIn) {
-      navigate('/mypage', { replace: true })
+      navigate('/dashboard', { replace: true })
     }
   }, [isLoggedIn, isLoading, navigate])
 

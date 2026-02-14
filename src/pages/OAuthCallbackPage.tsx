@@ -23,7 +23,7 @@ export function OAuthCallbackPage() {
       localStorage.setItem('accessToken', token)
       window.history.replaceState({}, '', '/oauth2/callback')
       setLoggedIn(true)
-      navigate('/mypage', { replace: true })
+      navigate('/dashboard', { replace: true })
     } else {
       setError('인증 정보를 받아오지 못했습니다.')
     }

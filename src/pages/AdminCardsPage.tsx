@@ -168,7 +168,7 @@ export function AdminCardsPage() {
     return (
       <div key={node.id} className="space-y-2">
         <div className="p-4 rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="px-3 py-1 text-sm font-medium rounded-lg bg-primary/10 text-primary">
@@ -185,12 +185,12 @@ export function AdminCardsPage() {
                 ID: #{node.id} · 레벨 {node.depth + 1}
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setEditingCategory(categories.find((cat) => cat.id === node.id) ?? null)}
-                className="min-h-[44px] min-w-[44px]"
+                className="min-h-[44px] min-w-[44px] flex-1 sm:flex-none"
               >
                 <Pencil className="h-4 w-4" />
               </Button>
@@ -203,7 +203,7 @@ export function AdminCardsPage() {
                     setDeleteTargetCategory(target)
                   }
                 }}
-                className="min-h-[44px] min-w-[44px]"
+                className="min-h-[44px] min-w-[44px] flex-1 sm:flex-none"
               >
                 <Trash2 className="h-4 w-4 text-red-500" />
               </Button>
@@ -348,7 +348,7 @@ export function AdminCardsPage() {
                     key={card.id}
                     className="p-4 rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow"
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           <span className="px-2 py-0.5 text-xs font-medium rounded bg-primary/10 text-primary">
@@ -372,15 +372,15 @@ export function AdminCardsPage() {
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => setEditingCard(card)} className="min-h-[44px] min-w-[44px]">
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <Button variant="ghost" size="sm" onClick={() => setEditingCard(card)} className="min-h-[44px] min-w-[44px] flex-1 sm:flex-none">
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setDeleteTargetCard(card)}
-                          className="min-h-[44px] min-w-[44px]"
+                          className="min-h-[44px] min-w-[44px] flex-1 sm:flex-none"
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>

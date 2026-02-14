@@ -7,7 +7,7 @@ export function PrivacyPage() {
       <AppHeader variant="brand-back" backTo="/signup" backLabel="돌아가기" />
 
       {/* Main */}
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-3xl mx-auto px-4 md:px-6 py-12">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">개인정보 처리방침</h1>
 
         <div className="prose prose-gray max-w-none space-y-8">

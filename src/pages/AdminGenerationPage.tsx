@@ -367,9 +367,9 @@ export function AdminGenerationPage() {
                   {cards.length} / {totalElements}개
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                 {selectedCardIds.size > 0 && (
-                  <Button onClick={handleBatchApprove} disabled={isBatchApproving}>
+                  <Button onClick={handleBatchApprove} disabled={isBatchApproving} className="w-full sm:w-auto">
                     {isBatchApproving ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
@@ -382,6 +382,7 @@ export function AdminGenerationPage() {
                   variant="outline"
                   onClick={handleMigrate}
                   disabled={isMigrating}
+                  className="w-full sm:w-auto"
                 >
                   {isMigrating ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -390,7 +391,7 @@ export function AdminGenerationPage() {
                   )}
                   마이그레이션
                 </Button>
-                <Button onClick={() => setIsGenerateFormOpen(true)}>
+                <Button onClick={() => setIsGenerateFormOpen(true)} className="w-full sm:w-auto">
                   <Sparkles className="h-4 w-4 mr-2" />
                   새 문제 생성
                 </Button>

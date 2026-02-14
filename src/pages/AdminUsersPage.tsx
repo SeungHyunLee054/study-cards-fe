@@ -330,17 +330,17 @@ export function AdminUsersPage() {
         )}
 
         {usersPage && totalPages > 0 && (
-          <div className="mt-6 flex items-center justify-between gap-3">
+          <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <p className="text-sm text-gray-500">
               페이지 {currentPage + 1} / {totalPages}
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                 disabled={isFirstPage}
-                className="min-h-[44px]"
+                className="min-h-[44px] flex-1 sm:flex-none"
               >
                 이전
               </Button>
@@ -349,7 +349,7 @@ export function AdminUsersPage() {
                 size="sm"
                 onClick={() => setPage((prev) => prev + 1)}
                 disabled={isLastPage}
-                className="min-h-[44px]"
+                className="min-h-[44px] flex-1 sm:flex-none"
               >
                 다음
               </Button>

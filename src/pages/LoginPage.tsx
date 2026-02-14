@@ -26,7 +26,7 @@ export function LoginPage() {
   // 이미 로그인된 경우 리다이렉트
   useEffect(() => {
     if (!authLoading && isLoggedIn) {
-      navigate('/mypage', { replace: true })
+      navigate('/dashboard', { replace: true })
     }
   }, [authLoading, isLoggedIn, navigate])
 
@@ -37,7 +37,7 @@ export function LoginPage() {
 
     try {
       await login({ email, password })
-      navigate('/mypage')
+      navigate('/dashboard')
     } catch (err) {
       // 이메일 미인증 에러 처리
       if (err instanceof AuthError && err.code === 'EMAIL_NOT_VERIFIED') {
