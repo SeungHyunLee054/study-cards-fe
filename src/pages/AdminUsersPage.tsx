@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Filter, Loader2, Shield, UserX, Users, Sparkles, BookOpen, User } from 'lucide-react'
+import { Eye, Filter, Loader2, Shield, UserX, Users, Sparkles, BookOpen, ArrowLeft } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { banAdminUser, fetchAdminUser, fetchAdminUsers } from '@/api/admin-users'
-import { MYPAGE_PATH } from '@/constants/routes'
+import { DASHBOARD_PATH } from '@/constants/routes'
 import type { AdminUserResponse, AdminUserStatus } from '@/types/admin'
 import type { PageResponse } from '@/types/card'
 
@@ -192,9 +192,9 @@ export function AdminUsersPage() {
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild className="min-h-[44px]">
-              <Link to={MYPAGE_PATH} aria-label="마이페이지">
-                <User className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">마이페이지</span>
+              <Link to={DASHBOARD_PATH} aria-label="뒤로가기">
+                <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">뒤로가기</span>
               </Link>
             </Button>
           </>
