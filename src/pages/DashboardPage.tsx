@@ -116,13 +116,12 @@ export function DashboardPage() {
               <h1 className="text-lg md:text-xl font-bold text-gray-900">{recommendation.message}</h1>
               {recommendation.cardsToStudy > 0 && (
                 <p className="mt-1 text-sm md:text-base text-gray-600">
-                  {recommendation.recommendedCategory && `${recommendation.recommendedCategory} · `}
                   {recommendation.cardsToStudy}개 카드
                 </p>
               )}
             </div>
           </div>
-          <div className="w-full sm:w-auto shrink-0 grid grid-cols-2 gap-2">
+          <div className="w-full sm:w-auto shrink-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Button
               size="lg"
               variant={isReviewRecommended ? 'default' : 'outline'}
@@ -192,7 +191,7 @@ export function DashboardPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900">{today.newCardsAvailable}</div>
-                <div className="text-sm text-gray-500">새 카드</div>
+                <div className="text-sm text-gray-500">미학습 카드</div>
               </div>
             </div>
           </div>
@@ -279,7 +278,7 @@ export function DashboardPage() {
                   </div>
 
                   {/* Legend */}
-                  <div className="flex justify-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-600">
+                  <div className="flex flex-wrap justify-center gap-3 sm:gap-4 pt-3 border-t border-gray-100 text-xs text-gray-600">
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 rounded bg-green-500" />
                       80%+
@@ -303,17 +302,15 @@ export function DashboardPage() {
         {user && (
           <div className="mt-6 md:mt-8 p-4 md:p-6 rounded-xl bg-gradient-to-r from-primary/5 to-purple-50 border border-primary/10">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-4 md:gap-6">
+              <div className="grid grid-cols-3 gap-3 md:gap-6 w-full sm:w-auto">
                 <div className="text-center">
                   <div className="text-2xl md:text-3xl font-bold text-primary">{user.level}</div>
                   <div className="text-xs md:text-sm text-gray-500">레벨</div>
                 </div>
-                <div className="h-8 md:h-10 w-px bg-gray-200" />
                 <div className="text-center">
                   <div className="text-2xl md:text-3xl font-bold text-orange-500">{user.streak}</div>
                   <div className="text-xs md:text-sm text-gray-500">연속 학습</div>
                 </div>
-                <div className="h-8 md:h-10 w-px bg-gray-200" />
                 <div className="text-center">
                   <div className="text-2xl md:text-3xl font-bold text-green-600">{user.totalStudied}</div>
                   <div className="text-xs md:text-sm text-gray-500">총 학습 카드</div>

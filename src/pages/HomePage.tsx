@@ -93,7 +93,7 @@ export function HomePage() {
             학습 기록을 바탕으로 오늘 복습할 항목을 추천합니다.
           </p>
 
-          <div className="mt-10 flex gap-4 justify-center">
+          <div className="mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
             <Button size="lg" asChild>
               <Link to="/study">
                 바로 시작하기
@@ -174,11 +174,11 @@ export function HomePage() {
             </div>
 
             {isFlipped && (
-              <div className="flex gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Button
                   variant="destructive"
                   size="lg"
-                  className="flex-1 max-w-32"
+                  className="w-full sm:flex-1 sm:max-w-32"
                   onClick={handleAnswerClick}
                 >
                   <X className="mr-2 h-5 w-5" />
@@ -187,6 +187,7 @@ export function HomePage() {
                 <Button
                   variant="outline"
                   size="lg"
+                  className="w-full sm:w-auto"
                   onClick={() => setIsFlipped(false)}
                 >
                   <RotateCcw className="h-5 w-5 mr-1" />
@@ -194,7 +195,7 @@ export function HomePage() {
                 </Button>
                 <Button
                   size="lg"
-                  className="flex-1 max-w-32 bg-green-600 hover:bg-green-700"
+                  className="w-full sm:flex-1 sm:max-w-32 bg-green-600 hover:bg-green-700"
                   onClick={handleAnswerClick}
                 >
                   <Check className="mr-2 h-5 w-5" />

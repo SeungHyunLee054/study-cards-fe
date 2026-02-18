@@ -30,7 +30,7 @@ export function GeneratedCardItem({
 
   return (
     <div className="p-4 rounded-xl border border-gray-200 bg-white hover:shadow-md transition-shadow">
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col sm:flex-row items-start gap-4">
         {/* 체크박스 */}
         {canSelectForBatchApprove && (
           <div className="pt-1">
@@ -87,14 +87,14 @@ export function GeneratedCardItem({
 
         {/* 액션 버튼 */}
         {(canApprove || canReject) && (
-          <div className="flex flex-col gap-2">
+          <div className="w-full sm:w-auto flex gap-2 sm:flex-col">
             {canApprove && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onApprove(card.id)}
                 disabled={isActionInProgress}
-                className="text-green-600 hover:text-green-700 hover:bg-green-50 min-h-[44px]"
+                className="text-green-600 hover:text-green-700 hover:bg-green-50 min-h-[44px] flex-1 sm:flex-none"
               >
                 {isApproving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -112,7 +112,7 @@ export function GeneratedCardItem({
                 size="sm"
                 onClick={() => onReject(card.id)}
                 disabled={isActionInProgress}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px]"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 min-h-[44px] flex-1 sm:flex-none"
               >
                 {isRejecting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

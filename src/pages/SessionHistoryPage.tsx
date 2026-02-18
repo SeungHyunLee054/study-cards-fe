@@ -179,7 +179,7 @@ function SessionCard({ session, onReviewSession }: SessionCardProps) {
           </div>
           <div className="text-left">
             <div className="font-medium text-gray-900">{formatDateTime(session.startedAt)}</div>
-            <div className="text-sm text-gray-500 flex items-center gap-3 mt-1">
+            <div className="text-sm text-gray-500 flex flex-wrap items-center gap-3 mt-1">
               <span className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 {formatDuration(session.durationSeconds)}
@@ -214,7 +214,7 @@ function SessionCard({ session, onReviewSession }: SessionCardProps) {
       {isExpanded && stats && (
         <div className="border-t border-gray-200 bg-gray-50">
           <div className="p-4">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
               <h4 className="text-sm font-medium text-gray-700">학습 기록</h4>
               {stats.records.length > 0 && (
                 <Button

@@ -824,7 +824,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                   {progress.total}개 중 {progress.correct}개 정답 (
                   {Math.round((progress.correct / progress.total) * 100)}%)
                 </p>
-                <div className="flex gap-3 justify-center">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button onClick={handleNewSession} className="min-h-[44px]">새 세션</Button>
                   <Button variant="outline" asChild className="min-h-[44px]">
                     <Link to={isLoggedIn ? DASHBOARD_PATH : '/'}>홈으로</Link>
