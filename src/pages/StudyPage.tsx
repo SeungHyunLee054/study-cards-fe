@@ -13,6 +13,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { useAuth } from '@/contexts/useAuth'
 import { useCategories } from '@/hooks/useCategories'
 import { fetchAiRecommendations, fetchCategoryAccuracy } from '@/api/recommendations'
+import { fetchMySubscription } from '@/api/subscriptions'
 import { DASHBOARD_PATH } from '@/constants/routes'
 import type { AiRecommendationResponse, CategoryAccuracyResponse } from '@/types/recommendation'
 import { STUDY_LOAD_DEBOUNCE_MS } from '@/lib/constants'
@@ -40,15 +41,55 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   const lastLoadTimeRef = useRef(0)
   const [searchParams, setSearchParams] = useSearchParams()
   const category = searchParams.get('deck') || undefined
-  const modeParam = forcedMode ?? ((searchParams.get('mode') as StudyMode) || 'all')
+  const rawMode = forcedMode ?? ((searchParams.get('mode') as StudyMode) || 'all')
+  const modeParam = rawMode === 'recommended' ? 'review' : rawMode
 
   const { categories, isLoading: isCategoriesLoading } = useCategories()
   const [selectedMode, setSelectedMode] = useState<StudyMode>(modeParam)
-  const { isLoggedIn, isLoading: authLoading } = useAuth()
+  const { isLoggedIn, isLoading: authLoading, isAdmin } = useAuth()
+
+  const [canUseAiReview, setCanUseAiReview] = useState(false)
+  const [isAiReviewEligibilityLoading, setIsAiReviewEligibilityLoading] = useState(false)
 
   useEffect(() => {
     setSelectedMode(modeParam)
   }, [modeParam])
+
+  useEffect(() => {
+    if (authLoading || !isLoggedIn) {
+      setCanUseAiReview(false)
+      setIsAiReviewEligibilityLoading(false)
+      return
+    }
+
+    if (isAdmin) {
+      setCanUseAiReview(true)
+      setIsAiReviewEligibilityLoading(false)
+      return
+    }
+
+    let isCancelled = false
+    setIsAiReviewEligibilityLoading(true)
+
+    fetchMySubscription()
+      .then((subscription) => {
+        if (isCancelled) return
+        setCanUseAiReview(!!subscription?.canUseAiRecommendations)
+      })
+      .catch(() => {
+        if (isCancelled) return
+        setCanUseAiReview(false)
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsAiReviewEligibilityLoading(false)
+        }
+      })
+
+    return () => {
+      isCancelled = true
+    }
+  }, [authLoading, isLoggedIn, isAdmin])
 
   // 추천 관련 상태
   const [recommendations, setRecommendations] = useState<AiRecommendationResponse | null>(null)
@@ -56,6 +97,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   const [isRecommendationsLoading, setIsRecommendationsLoading] = useState(false)
   const [recommendationsError, setRecommendationsError] = useState<string | null>(null)
   const [isAiRecommendationLocked, setIsAiRecommendationLocked] = useState(false)
+  const isAiReviewMode = selectedMode === 'review' && canUseAiReview
 
   const {
     currentCard,
@@ -64,7 +106,6 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     error,
     isFlipped,
     isRateLimited,
-    studyMode,
     loadCards,
     flipCard,
     answerCard,
@@ -99,15 +140,15 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     }
   }, [])
 
-  // 추천 모드 진입 시 데이터 로드
+  // 오늘의 복습(AI 가능 계정) 진입 시 추천 데이터 로드
   useEffect(() => {
-    if (selectedMode !== 'recommended' || !isLoggedIn || authLoading) return
+    if (!isAiReviewMode || !isLoggedIn || authLoading || isAiReviewEligibilityLoading) return
     loadRecommendations()
-  }, [selectedMode, isLoggedIn, authLoading, loadRecommendations])
+  }, [isAiReviewMode, isLoggedIn, authLoading, isAiReviewEligibilityLoading, loadRecommendations])
 
   useEffect(() => {
-    if (authLoading) return
-    if (selectedMode === 'recommended') return // 추천 모드는 별도 로드
+    if (authLoading || isAiReviewEligibilityLoading) return
+    if (isAiReviewMode) return
     const now = Date.now()
     if (now - lastLoadTimeRef.current < STUDY_LOAD_DEBOUNCE_MS) return
     lastLoadTimeRef.current = now
@@ -136,7 +177,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     } else {
       loadCards(category, selectedMode, undefined, isLoggedIn)
     }
-  }, [loadCards, category, selectedMode, isLoggedIn, authLoading])
+  }, [loadCards, category, selectedMode, isLoggedIn, authLoading, isAiReviewEligibilityLoading, isAiReviewMode])
 
   const handleCategoryChange = (categoryCode: string | undefined) => {
     const nextCategory = categoryCode ?? 'ALL'
@@ -161,7 +202,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   }
 
   const handleRetry = () => {
-    if (selectedMode === 'recommended') {
+    if (isAiReviewMode) {
       loadRecommendations()
       return
     }
@@ -173,15 +214,13 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   }
 
   const getModeLabel = () => {
-    switch (studyMode) {
+    switch (selectedMode) {
       case 'review':
         return '오늘의 복습'
       case 'myCards':
         return '내 카드'
       case 'session-review':
         return '세션 복습'
-      case 'recommended':
-        return 'AI 추천'
       default:
         return ''
     }
@@ -198,11 +237,6 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
         title={`${getModeLabel()}${getModeLabel() && ' '}${category ? `${category} 학습` : '학습 세션'}`}
         sticky
         stickyTone="background"
-        rightSlot={progress.total > 0 ? (
-          <div className="text-sm font-medium text-primary">
-            {progress.completed}/{progress.total}
-          </div>
-        ) : undefined}
       />
 
       {/* Main Content */}
@@ -248,23 +282,12 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                 <User className="h-4 w-4" />
                 내 카드만
               </button>
-              <button
-                onClick={() => handleModeChange('recommended')}
-                className={`flex items-center gap-2 px-4 py-2.5 text-sm rounded-lg transition-colors min-h-[44px] ${
-                  selectedMode === 'recommended'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-                }`}
-              >
-                <Sparkles className="h-4 w-4" />
-                AI 추천
-              </button>
             </div>
           </div>
         )}
 
-        {/* Category Filter (추천 모드에서는 숨김) */}
-        {selectedMode !== 'recommended' && (
+        {/* Category Filter (AI 기반 오늘의 복습에서는 숨김) */}
+        {!isAiReviewMode && (
           <CategoryFilterSection
             className="max-w-2xl mx-auto mb-4 md:mb-6"
             categories={categories}
@@ -279,8 +302,13 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
           />
         )}
 
-        {/* AI 추천 모드 뷰 */}
-        {selectedMode === 'recommended' ? (
+        {/* AI 기반 오늘의 복습 뷰 */}
+        {selectedMode === 'review' && isAiReviewEligibilityLoading ? (
+          <div className="flex flex-col items-center justify-center h-64 gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">복습 모드를 확인하는 중...</p>
+          </div>
+        ) : isAiReviewMode ? (
           <div className="max-w-2xl mx-auto">
             {isRecommendationsLoading ? (
               <div className="flex flex-col items-center justify-center h-64 gap-3">
