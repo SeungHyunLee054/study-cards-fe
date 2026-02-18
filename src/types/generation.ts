@@ -19,6 +19,7 @@ export interface GeneratedCardResponse {
 export interface GenerationRequest {
   categoryCode: string
   count: number
+  sourceCardIds?: number[]
 }
 
 export interface GenerationResultResponse {
