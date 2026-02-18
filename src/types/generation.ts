@@ -19,7 +19,6 @@ export interface GeneratedCardResponse {
 export interface GenerationRequest {
   categoryCode: string
   count: number
-  model?: string
 }
 
 export interface GenerationResultResponse {

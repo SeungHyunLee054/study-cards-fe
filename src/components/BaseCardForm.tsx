@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { CategoryResponse } from '@/types/category'
-import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
+import { flattenLeafCategoriesForSelect } from '@/lib/categoryHierarchy'
 
 interface CardFormInitialData {
   question: string
@@ -71,7 +71,7 @@ export function BaseCardForm<
   const [answerSub, setAnswerSub] = useState('')
   const [category, setCategory] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const categoryOptions = useMemo(() => flattenCategoriesForSelect(categories), [categories])
+  const categoryOptions = useMemo(() => flattenLeafCategoriesForSelect(categories), [categories])
 
   const isEdit = !!initialData
 

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { CategoryResponse } from '@/types/category'
 import type { GenerationRequest } from '@/types/generation'
-import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
+import { flattenLeafCategoriesForSelect } from '@/lib/categoryHierarchy'
 
 interface GenerationFormProps {
   isOpen: boolean
@@ -24,16 +24,14 @@ export function GenerationForm({
 }: GenerationFormProps) {
   const [categoryCode, setCategoryCode] = useState('')
   const [count, setCount] = useState(5)
-  const [model, setModel] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const categoryOptions = useMemo(() => flattenCategoriesForSelect(categories), [categories])
+  const categoryOptions = useMemo(() => flattenLeafCategoriesForSelect(categories), [categories])
 
   // 폼 초기화
   useEffect(() => {
     if (isOpen) {
       setCategoryCode(categoryOptions[0]?.code || '')
       setCount(5)
-      setModel('')
       setErrors({})
     }
   }, [isOpen, categoryOptions])
@@ -60,7 +58,6 @@ export function GenerationForm({
     const data: GenerationRequest = {
       categoryCode,
       count,
-      ...(model.trim() && { model: model.trim() }),
     }
 
     await onSubmit(data)
@@ -107,21 +104,6 @@ export function GenerationForm({
             {errors.categoryCode && (
               <p className="mt-1 text-sm text-red-600">{errors.categoryCode}</p>
             )}
-          </div>
-
-          {/* AI 모델 */}
-          <div>
-            <Label htmlFor="model">AI 모델</Label>
-            <Input
-              id="model"
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              placeholder="gpt-4o-mini"
-              className="mt-1"
-              disabled={isLoading}
-            />
-            <p className="mt-1 text-xs text-gray-500">비워두면 서버 기본값 사용</p>
           </div>
 
           {/* 생성 개수 */}

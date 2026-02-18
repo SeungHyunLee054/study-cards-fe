@@ -77,21 +77,24 @@ export function buildCategoryTreeFromFlat(categories: CategoryResponse[]): Categ
     .map((root) => toTreeNode(root, 0))
 }
 
-export function flattenCategoryTreeForSelect(tree: CategoryTreeNode[]): CategoryTreeOption[] {
+function flattenTreeOptions(tree: CategoryTreeNode[], leafOnly: boolean): CategoryTreeOption[] {
   const options: CategoryTreeOption[] = []
 
   function walk(node: CategoryTreeNode, ancestors: string[]) {
     const nextAncestors = [...ancestors, node.name]
     const prefix = node.depth > 0 ? `${'  '.repeat(node.depth)}└ ` : ''
 
-    options.push({
-      id: node.id,
-      code: node.code,
-      name: node.name,
-      depth: node.depth,
-      label: `${prefix}${node.name}`,
-      pathLabel: nextAncestors.join(' > '),
-    })
+    const isLeaf = node.children.length === 0
+    if (!leafOnly || isLeaf) {
+      options.push({
+        id: node.id,
+        code: node.code,
+        name: node.name,
+        depth: node.depth,
+        label: `${prefix}${node.name}`,
+        pathLabel: nextAncestors.join(' > '),
+      })
+    }
 
     node.children.forEach((child) => walk(child, nextAncestors))
   }
@@ -100,6 +103,18 @@ export function flattenCategoryTreeForSelect(tree: CategoryTreeNode[]): Category
   return options
 }
 
+export function flattenCategoryTreeForSelect(tree: CategoryTreeNode[]): CategoryTreeOption[] {
+  return flattenTreeOptions(tree, false)
+}
+
+export function flattenLeafCategoryTreeForSelect(tree: CategoryTreeNode[]): CategoryTreeOption[] {
+  return flattenTreeOptions(tree, true)
+}
+
 export function flattenCategoriesForSelect(categories: CategoryResponse[]): CategoryTreeOption[] {
   return flattenCategoryTreeForSelect(buildCategoryTreeFromFlat(categories))
+}
+
+export function flattenLeafCategoriesForSelect(categories: CategoryResponse[]): CategoryTreeOption[] {
+  return flattenLeafCategoryTreeForSelect(buildCategoryTreeFromFlat(categories))
 }
