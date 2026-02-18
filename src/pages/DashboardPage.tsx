@@ -15,7 +15,7 @@ import { AppHeader } from '@/components/AppHeader'
 import { AppFooter } from '@/components/AppFooter'
 import { fetchDashboard } from '@/api/dashboard'
 import { fetchCategoryTree } from '@/api/categories'
-import { MYPAGE_PATH } from '@/constants/routes'
+import { MYPAGE_PATH, REVIEW_PATH } from '@/constants/routes'
 import type { CategoryTreeResponse } from '@/types/category'
 import { CategoryProgressTree } from '@/components/CategoryProgressTree'
 import type {
@@ -78,7 +78,7 @@ export function DashboardPage() {
 
   function handleRecommendationClick() {
     if (dashboard?.recommendation.type !== 'COMPLETE') {
-      navigate('/study')
+      navigate(REVIEW_PATH)
     }
   }
 

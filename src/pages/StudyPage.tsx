@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Loader2, User, CalendarCheck, BookOpen, Sparkles } from 'lucide-react'
 import { CardDeck } from '@/components/CardDeck'
 import { RateLimitModal } from '@/components/RateLimitModal'
@@ -19,15 +19,25 @@ import { STUDY_LOAD_DEBOUNCE_MS } from '@/lib/constants'
 
 type StudyMode = 'all' | 'review' | 'myCards' | 'session-review' | 'recommended'
 
-export function StudyPage() {
+interface StudyPageProps {
+  forcedMode?: StudyMode
+  hideModeSelector?: boolean
+}
+
+export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPageProps = {}) {
+  const navigate = useNavigate()
   const lastLoadTimeRef = useRef(0)
   const [searchParams, setSearchParams] = useSearchParams()
   const category = searchParams.get('deck') || undefined
-  const modeParam = (searchParams.get('mode') as StudyMode) || 'all'
+  const modeParam = forcedMode ?? ((searchParams.get('mode') as StudyMode) || 'all')
 
   const { categories, isLoading: isCategoriesLoading } = useCategories()
   const [selectedMode, setSelectedMode] = useState<StudyMode>(modeParam)
   const { isLoggedIn, isLoading: authLoading } = useAuth()
+
+  useEffect(() => {
+    setSelectedMode(modeParam)
+  }, [modeParam])
 
   // 추천 관련 상태
   const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null)
@@ -122,11 +132,12 @@ export function StudyPage() {
 
     const params: Record<string, string> = {}
     if (categoryCode) params.deck = categoryCode
-    if (selectedMode !== 'all') params.mode = selectedMode
+    if (!forcedMode && selectedMode !== 'all') params.mode = selectedMode
     setSearchParams(params, { replace: true })
   }
 
   const handleModeChange = (mode: StudyMode) => {
+    if (forcedMode) return
     if (mode === selectedMode) return
 
     setSelectedMode(mode)
@@ -180,7 +191,7 @@ export function StudyPage() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-4 md:py-8">
         {/* Study Mode Selection */}
-        {isLoggedIn && (
+        {isLoggedIn && !hideModeSelector && (
           <div className="max-w-2xl mx-auto mb-4 md:mb-6">
             <div className="flex items-center gap-3 mb-2">
               <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -307,7 +318,16 @@ export function StudyPage() {
                   <p className="text-muted-foreground mb-4 text-sm md:text-base">
                     모든 카드를 복습했거나, 아직 학습 기록이 없습니다.
                   </p>
-                  <Button onClick={() => handleModeChange('all')} className="min-h-[44px]">
+                  <Button
+                    onClick={() => {
+                      if (forcedMode === 'review') {
+                        navigate('/study')
+                        return
+                      }
+                      handleModeChange('all')
+                    }}
+                    className="min-h-[44px]"
+                  >
                     전체 학습하기
                   </Button>
                 </>
