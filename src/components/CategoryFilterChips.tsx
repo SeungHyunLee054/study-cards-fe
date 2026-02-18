@@ -154,7 +154,6 @@ export function CategoryFilterChips({
         >
           {allLabel}
         </button>
-        <span className="text-xs text-muted-foreground">대/중/소 카테고리</span>
       </div>
       <div className="max-h-72 overflow-y-auto pr-1 space-y-1">
         {categoryTree.map((node) => renderNode(node))}
