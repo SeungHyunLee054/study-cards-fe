@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { AxiosError } from 'axios'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Loader2, User, CalendarCheck, BookOpen, Sparkles } from 'lucide-react'
+import { Loader2, User, CalendarCheck, BookOpen, Sparkles, AlertTriangle, Crown } from 'lucide-react'
 import { CardDeck } from '@/components/CardDeck'
 import { RateLimitModal } from '@/components/RateLimitModal'
 import { RecommendedCardList } from '@/components/RecommendedCardList'
@@ -11,10 +12,9 @@ import { Button } from '@/components/ui/button'
 import { AppHeader } from '@/components/AppHeader'
 import { useAuth } from '@/contexts/useAuth'
 import { useCategories } from '@/hooks/useCategories'
-import { fetchRecommendations, fetchCategoryAccuracy } from '@/api/recommendations'
-import { fetchMySubscription } from '@/api/subscriptions'
+import { fetchAiRecommendations, fetchCategoryAccuracy } from '@/api/recommendations'
 import { DASHBOARD_PATH } from '@/constants/routes'
-import type { RecommendationResponse, CategoryAccuracyResponse } from '@/types/recommendation'
+import type { AiRecommendationResponse, CategoryAccuracyResponse } from '@/types/recommendation'
 import { STUDY_LOAD_DEBOUNCE_MS } from '@/lib/constants'
 
 type StudyMode = 'all' | 'review' | 'myCards' | 'session-review' | 'recommended'
@@ -22,6 +22,17 @@ type StudyMode = 'all' | 'review' | 'myCards' | 'session-review' | 'recommended'
 interface StudyPageProps {
   forcedMode?: StudyMode
   hideModeSelector?: boolean
+}
+
+function formatQuotaResetAt(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString('ko-KR', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPageProps = {}) {
@@ -40,11 +51,11 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   }, [modeParam])
 
   // 추천 관련 상태
-  const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null)
+  const [recommendations, setRecommendations] = useState<AiRecommendationResponse | null>(null)
   const [categoryAccuracy, setCategoryAccuracy] = useState<CategoryAccuracyResponse[]>([])
   const [isRecommendationsLoading, setIsRecommendationsLoading] = useState(false)
   const [recommendationsError, setRecommendationsError] = useState<string | null>(null)
-  const [canSeeAiExplanation, setCanSeeAiExplanation] = useState(false)
+  const [isAiRecommendationLocked, setIsAiRecommendationLocked] = useState(false)
 
   const {
     currentCard,
@@ -66,21 +77,23 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     try {
       setIsRecommendationsLoading(true)
       setRecommendationsError(null)
+      setIsAiRecommendationLocked(false)
+
       const [recData, accData] = await Promise.all([
-        fetchRecommendations(20),
-        fetchCategoryAccuracy(),
+        fetchAiRecommendations(20),
+        fetchCategoryAccuracy().catch(() => [] as CategoryAccuracyResponse[]),
       ])
+
       setRecommendations(recData)
       setCategoryAccuracy(accData)
-
-      try {
-        const sub = await fetchMySubscription()
-        setCanSeeAiExplanation(sub?.plan === 'PRO')
-      } catch {
-        setCanSeeAiExplanation(false)
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 403) {
+        setIsAiRecommendationLocked(true)
+        setRecommendations(null)
+        setCategoryAccuracy([])
+        return
       }
-    } catch {
-      setRecommendationsError('추천 카드를 불러오는데 실패했습니다.')
+      setRecommendationsError('AI 추천 카드를 불러오는데 실패했습니다.')
     } finally {
       setIsRecommendationsLoading(false)
     }
@@ -148,6 +161,10 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   }
 
   const handleRetry = () => {
+    if (selectedMode === 'recommended') {
+      loadRecommendations()
+      return
+    }
     loadCards(category, selectedMode, undefined, isLoggedIn)
   }
 
@@ -270,6 +287,17 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="text-muted-foreground">추천 카드를 분석하는 중...</p>
               </div>
+            ) : isAiRecommendationLocked ? (
+              <div className="text-center p-6 md:p-8 rounded-lg bg-amber-50 border border-amber-200">
+                <Crown className="h-12 w-12 mx-auto mb-4 text-amber-600" />
+                <h2 className="text-lg md:text-xl font-semibold mb-2">AI 추천은 PRO 플랜에서 제공됩니다</h2>
+                <p className="text-muted-foreground mb-4 text-sm md:text-base">
+                  학습 기록 기반 취약 개념 분석과 오늘의 맞춤 복습 전략을 확인하려면 업그레이드하세요.
+                </p>
+                <Button asChild className="min-h-[44px]">
+                  <Link to="/subscription">PRO 업그레이드</Link>
+                </Button>
+              </div>
             ) : recommendationsError ? (
               <div className="flex flex-col items-center justify-center h-64">
                 <p className="text-destructive mb-4">{recommendationsError}</p>
@@ -277,26 +305,72 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                   다시 시도
                 </Button>
               </div>
-            ) : recommendations && recommendations.recommendations.length === 0 ? (
-              <div className="text-center p-6 md:p-8 rounded-lg bg-secondary/50">
-                <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h2 className="text-lg md:text-xl font-semibold mb-2">추천 카드가 없습니다</h2>
-                <p className="text-muted-foreground text-sm md:text-base">
-                  학습 데이터가 더 쌓이면 AI가 맞춤 카드를 추천해 드립니다.
-                </p>
-              </div>
-            ) : (
+            ) : recommendations ? (
               <div className="space-y-6">
-                <RecommendedCardList
-                  recommendations={recommendations?.recommendations ?? []}
-                  aiExplanation={recommendations?.aiExplanation ?? null}
-                  canSeeAiExplanation={canSeeAiExplanation}
-                />
+                <div className="rounded-xl border bg-card p-4 md:p-5 space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-medium">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      {recommendations.aiUsed ? 'AI 추천 사용' : '알고리즘 추천 제공'}
+                    </span>
+                    {recommendations.algorithmFallback && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2.5 py-1 text-xs font-medium">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        AI 폴백
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm md:text-base text-foreground">
+                    {recommendations.reviewStrategy}
+                  </p>
+                  {recommendations.algorithmFallback && (
+                    <p className="text-xs text-amber-700">
+                      AI 한도 또는 일시적 오류로 알고리즘 추천 결과를 제공하고 있습니다.
+                    </p>
+                  )}
+                  {recommendations.quota && (
+                    <p className="text-xs text-muted-foreground">
+                      AI 추천 사용량 {recommendations.quota.used}/{recommendations.quota.limit}
+                      {' · '}남은 {recommendations.quota.remaining}
+                      {' · '}초기화 {formatQuotaResetAt(recommendations.quota.resetAt)}
+                    </p>
+                  )}
+                </div>
+
+                {recommendations.weakConcepts.length > 0 && (
+                  <div className="rounded-xl border bg-card p-4 md:p-5">
+                    <h3 className="text-sm md:text-base font-semibold mb-3">취약 개념</h3>
+                    <div className="space-y-2">
+                      {recommendations.weakConcepts.map((item, index) => (
+                        <div key={`${item.concept}-${index}`} className="rounded-lg bg-secondary/50 p-3">
+                          <p className="text-sm font-medium">{item.concept}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{item.reason}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {recommendations.recommendations.length === 0 ? (
+                  <div className="text-center p-6 md:p-8 rounded-lg bg-secondary/50">
+                    <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h2 className="text-lg md:text-xl font-semibold mb-2">추천 카드가 없습니다</h2>
+                    <p className="text-muted-foreground text-sm md:text-base">
+                      학습 데이터가 더 쌓이면 AI가 맞춤 카드를 추천해 드립니다.
+                    </p>
+                  </div>
+                ) : (
+                  <RecommendedCardList
+                    recommendations={recommendations.recommendations}
+                    aiExplanation={null}
+                    canSeeAiExplanation
+                  />
+                )}
                 {categoryAccuracy.length > 0 && (
                   <CategoryAccuracyChart data={categoryAccuracy} />
                 )}
               </div>
-            )}
+            ) : null}
           </div>
         ) : isLoading ? (
           <div className="flex flex-col items-center justify-center h-64 gap-3">

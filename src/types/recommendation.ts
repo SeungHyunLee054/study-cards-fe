@@ -17,6 +17,28 @@ export interface RecommendationResponse {
   aiExplanation: string | null
 }
 
+export interface AiRecommendationWeakConcept {
+  concept: string
+  reason: string
+}
+
+export interface AiRecommendationQuota {
+  limit: number
+  used: number
+  remaining: number
+  resetAt: string
+}
+
+export interface AiRecommendationResponse {
+  recommendations: RecommendedCard[]
+  totalCount: number
+  weakConcepts: AiRecommendationWeakConcept[]
+  reviewStrategy: string
+  aiUsed: boolean
+  algorithmFallback: boolean
+  quota: AiRecommendationQuota | null
+}
+
 // 카테고리별 정답률 응답
 export interface CategoryAccuracyResponse {
   categoryId: number
