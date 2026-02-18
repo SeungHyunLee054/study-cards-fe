@@ -27,7 +27,8 @@ function ProgressNode({ node, progressMap, depth }: ProgressNodeProps) {
   const hasChildren = node.children.length > 0
   const agg = getAggregatedProgress(node, progressMap)
 
-  if (agg.totalCards === 0 && !hasChildren) return null
+  // 진행 카드가 전혀 없는 카테고리 브랜치는 렌더링하지 않음
+  if (agg.totalCards === 0) return null
 
   const barHeight = depth === 0 ? 'h-2' : depth === 1 ? 'h-1.5' : 'h-1'
 
@@ -96,14 +97,15 @@ function ProgressNode({ node, progressMap, depth }: ProgressNodeProps) {
 
 export function CategoryProgressTree({ tree, progressItems }: CategoryProgressTreeProps) {
   const progressMap = buildProgressMap(progressItems)
+  const visibleRoots = tree.filter((node) => getAggregatedProgress(node, progressMap).totalCards > 0)
 
-  if (tree.length === 0) {
+  if (visibleRoots.length === 0) {
     return <p className="text-gray-500 text-center py-4">아직 학습 기록이 없습니다</p>
   }
 
   return (
     <div className="space-y-4">
-      {tree.map((node) => (
+      {visibleRoots.map((node) => (
         <ProgressNode
           key={node.id}
           node={node}
