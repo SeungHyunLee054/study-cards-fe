@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Bell, Check, Loader2, Flame, Trophy, CreditCard, AlertCircle, BookOpen } from 'lucide-react'
 import { fetchNotifications, fetchUnreadCount, markNotificationAsRead, markAllNotificationsAsRead } from '@/api/notifications'
 import { MYPAGE_SETTINGS_PATH } from '@/constants/routes'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { NotificationResponse, NotificationType } from '@/types/notification'
 
 function getNotificationIcon(type: NotificationType) {
@@ -121,19 +122,23 @@ export function NotificationDropdown() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={handleOpen}
-        className="relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-        aria-label="알림"
-        title="알림"
-      >
-        <Bell className="h-5 w-5 text-gray-600" />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-medium">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        )}
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={handleOpen}
+            className="relative p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+            aria-label="알림"
+          >
+            <Bell className="h-5 w-5 text-gray-600" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-medium">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">알림</TooltipContent>
+      </Tooltip>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-[calc(100vw-1rem)] max-w-sm sm:w-96 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">

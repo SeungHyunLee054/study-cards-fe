@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { HomePage } from '@/pages/HomePage'
@@ -166,10 +167,12 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
-        <BrowserRouter>
-          <PageHistoryTracker />
-          <AppRoutes />
-        </BrowserRouter>
+        <TooltipProvider>
+          <BrowserRouter>
+            <PageHistoryTracker />
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
   )

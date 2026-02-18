@@ -20,6 +20,7 @@ import {
   Wand2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { useAuth } from '@/contexts/useAuth'
 import { DASHBOARD_PATH, MYPAGE_PATH } from '@/constants/routes'
@@ -169,30 +170,38 @@ export function AppHeader(props: AppHeaderProps) {
                 {user?.nickname && <span>{user.nickname}</span>}
               </div>
               {visibleItems.map((item) => (
-                <Button key={item.to} variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                  <Link
-                    to={item.to}
-                    className={getLinkClassName(item)}
-                    title={item.label}
-                    aria-label={item.label}
-                  >
-                    <item.icon className="h-4 w-4" />
-                  </Link>
-                </Button>
+                <Tooltip key={item.to}>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
+                      <Link
+                        to={item.to}
+                        className={getLinkClassName(item)}
+                        aria-label={item.label}
+                      >
+                        <item.icon className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{item.label}</TooltipContent>
+                </Tooltip>
               ))}
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <NotificationDropdown />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => { void logout() }}
-                className="min-h-[44px]"
-                title="로그아웃"
-                aria-label="로그아웃"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { void logout() }}
+                    className="min-h-[44px]"
+                    aria-label="로그아웃"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">로그아웃</TooltipContent>
+              </Tooltip>
             </div>
           </div>
 
