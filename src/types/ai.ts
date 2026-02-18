@@ -1,8 +1,17 @@
+export type AiDifficulty = 'EASY' | 'MEDIUM' | 'HARD'
+
 export interface GenerateUserCardRequest {
   sourceText: string
   categoryCode: string
   count: number
-  difficulty?: string
+  difficulty?: AiDifficulty
+}
+
+export interface GenerateUserCardsByUploadRequest {
+  file: File
+  categoryCode: string
+  count?: number
+  difficulty?: AiDifficulty
 }
 
 export interface AiCardResponse {

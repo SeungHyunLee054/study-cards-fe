@@ -8,28 +8,47 @@ import {
   ChevronUp,
   Wand2,
   AlertCircle,
+  Type,
+  FileUp,
 } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/useAuth'
 import { useCategories } from '@/hooks/useCategories'
-import { generateUserCards, fetchAiGenerationLimit } from '@/api/ai'
+import { generateUserCards, generateUserCardsByUpload, fetchAiGenerationLimit } from '@/api/ai'
 import { DASHBOARD_PATH } from '@/constants/routes'
-import type { AiCardResponse, AiLimitResponse } from '@/types/ai'
-import { flattenCategoriesForSelect } from '@/lib/categoryHierarchy'
+import type { AiCardResponse, AiLimitResponse, AiDifficulty } from '@/types/ai'
+import { flattenLeafCategoriesForSelect } from '@/lib/categoryHierarchy'
+
+type GenerateInputMode = 'text' | 'file'
 
 const MIN_CARD_COUNT = 1
 const MAX_CARD_COUNT = 20
+const ACCEPTED_FILE_TYPES = '.pdf,.txt,.md,.markdown,text/plain,text/markdown,application/pdf'
+const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.txt', '.md', '.markdown']
+
+function hasSupportedExtension(fileName: string): boolean {
+  const lower = fileName.toLowerCase()
+  return ALLOWED_FILE_EXTENSIONS.some((ext) => lower.endsWith(ext))
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
 
 export function AiGeneratePage() {
   const { isLoggedIn } = useAuth()
 
   const { categories } = useCategories()
+  const [inputMode, setInputMode] = useState<GenerateInputMode>('text')
   const [sourceText, setSourceText] = useState('')
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [categoryCode, setCategoryCode] = useState('')
   const [countInput, setCountInput] = useState('5')
-  const [difficulty, setDifficulty] = useState('MEDIUM')
+  const [difficulty, setDifficulty] = useState<AiDifficulty>('MEDIUM')
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedCards, setGeneratedCards] = useState<AiCardResponse[]>([])
@@ -37,7 +56,7 @@ export function AiGeneratePage() {
   const [error, setError] = useState<string | null>(null)
   const [limitInfo, setLimitInfo] = useState<AiLimitResponse | null>(null)
   const [isLoadingLimit, setIsLoadingLimit] = useState(true)
-  const categoryOptions = useMemo(() => flattenCategoriesForSelect(categories), [categories])
+  const categoryOptions = useMemo(() => flattenLeafCategoriesForSelect(categories), [categories])
 
   useEffect(() => {
     if (categoryOptions.length === 0) {
@@ -61,13 +80,34 @@ export function AiGeneratePage() {
       .finally(() => setIsLoadingLimit(false))
   }, [isLoggedIn])
 
+  useEffect(() => {
+    setError(null)
+  }, [inputMode])
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const nextFile = event.target.files?.[0] ?? null
+    if (!nextFile) {
+      setUploadFile(null)
+      return
+    }
+
+    if (!hasSupportedExtension(nextFile.name)) {
+      setUploadFile(null)
+      setError('지원하지 않는 파일 형식입니다. PDF, TXT, MD 파일을 업로드해주세요.')
+      return
+    }
+
+    setUploadFile(nextFile)
+    setError(null)
+  }
+
   async function handleGenerate() {
     const parsedCount = Number(countInput)
     const isCountNumber = Number.isInteger(parsedCount)
     const exceedsRemaining = !!limitInfo && parsedCount > limitInfo.remaining
     const isCountInRange = isCountNumber && parsedCount >= MIN_CARD_COUNT && parsedCount <= MAX_CARD_COUNT
 
-    if (!sourceText.trim() || !categoryCode) return
+    if (!categoryCode) return
     if (!isCountInRange) {
       setError(`카드 수는 ${MIN_CARD_COUNT}~${MAX_CARD_COUNT} 사이의 정수로 입력해주세요.`)
       return
@@ -77,17 +117,33 @@ export function AiGeneratePage() {
       return
     }
 
+    if (inputMode === 'text' && !sourceText.trim()) {
+      setError('학습할 텍스트를 입력해주세요.')
+      return
+    }
+    if (inputMode === 'file' && !uploadFile) {
+      setError('학습 자료 파일을 업로드해주세요.')
+      return
+    }
+
     try {
       setIsGenerating(true)
       setError(null)
       setGeneratedCards([])
 
-      const result = await generateUserCards({
-        sourceText: sourceText.trim(),
-        categoryCode,
-        count: parsedCount,
-        difficulty,
-      })
+      const result = inputMode === 'text'
+        ? await generateUserCards({
+          sourceText: sourceText.trim(),
+          categoryCode,
+          count: parsedCount,
+          difficulty,
+        })
+        : await generateUserCardsByUpload({
+          file: uploadFile as File,
+          categoryCode,
+          count: parsedCount,
+          difficulty,
+        })
 
       setGeneratedCards(result.generatedCards)
       if (limitInfo) {
@@ -108,6 +164,7 @@ export function AiGeneratePage() {
   const exceedsRemaining = !!limitInfo && parsedCount > limitInfo.remaining
   const isCountValid = isCountInRange && !exceedsRemaining
   const generateButtonCount = isCountNumber && parsedCount > 0 ? parsedCount : MIN_CARD_COUNT
+  const isInputReady = inputMode === 'text' ? sourceText.trim().length > 0 : !!uploadFile
 
   if (!isLoggedIn) {
     return (
@@ -165,10 +222,8 @@ export function AiGeneratePage() {
         className="shrink-0"
       />
 
-      {/* Main Content */}
       <main className="flex-1 overflow-y-auto pb-32">
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-          {/* Limit Warning */}
           {!isLoadingLimit && limitInfo && limitInfo.remaining <= 0 && (
             <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
@@ -187,7 +242,6 @@ export function AiGeneratePage() {
             </div>
           )}
 
-          {/* PRO Upgrade Banner (for FREE users) */}
           {!isLoadingLimit && limitInfo && limitInfo.isLifetime && limitInfo.remaining > 0 && (
             <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -205,25 +259,70 @@ export function AiGeneratePage() {
             </div>
           )}
 
-          {/* Source Text Input */}
-          <div>
-            <label className="block text-sm font-medium mb-2">학습할 텍스트</label>
-            <textarea
-              value={sourceText}
-              onChange={(e) => setSourceText(e.target.value)}
-              placeholder="학습하고 싶은 내용을 입력하세요. AI가 자동으로 플래시카드를 생성합니다.&#10;&#10;예시: REST API는 Representational State Transfer의 약자로, 클라이언트와 서버 간의 통신을 위한 아키텍처 스타일입니다..."
-              className="w-full min-h-[200px] p-4 text-base leading-relaxed border rounded-xl resize-y focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary bg-background"
-              maxLength={5000}
-              disabled={!canGenerate}
-            />
-            <div className="flex justify-end mt-1">
-              <span className={`text-xs ${textLength > 4500 ? 'text-orange-500' : 'text-muted-foreground'}`}>
-                {textLength.toLocaleString()} / 5,000
-              </span>
+          <div className="space-y-3">
+            <label className="block text-sm font-medium">입력 방식</label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={inputMode === 'text' ? 'default' : 'outline'}
+                className="h-11"
+                onClick={() => setInputMode('text')}
+                disabled={!canGenerate || isGenerating}
+              >
+                <Type className="h-4 w-4 mr-2" />
+                텍스트
+              </Button>
+              <Button
+                type="button"
+                variant={inputMode === 'file' ? 'default' : 'outline'}
+                className="h-11"
+                onClick={() => setInputMode('file')}
+                disabled={!canGenerate || isGenerating}
+              >
+                <FileUp className="h-4 w-4 mr-2" />
+                파일 업로드
+              </Button>
             </div>
           </div>
 
-          {/* Options Row */}
+          {inputMode === 'text' ? (
+            <div>
+              <label className="block text-sm font-medium mb-2">학습할 텍스트</label>
+              <textarea
+                value={sourceText}
+                onChange={(e) => setSourceText(e.target.value)}
+                placeholder="학습하고 싶은 내용을 입력하세요. AI가 자동으로 플래시카드를 생성합니다.&#10;&#10;예시: REST API는 Representational State Transfer의 약자로, 클라이언트와 서버 간의 통신을 위한 아키텍처 스타일입니다..."
+                className="w-full min-h-[200px] p-4 text-base leading-relaxed border rounded-xl resize-y focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary bg-background"
+                maxLength={5000}
+                disabled={!canGenerate}
+              />
+              <div className="flex justify-end mt-1">
+                <span className={`text-xs ${textLength > 4500 ? 'text-orange-500' : 'text-muted-foreground'}`}>
+                  {textLength.toLocaleString()} / 5,000
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium mb-2">학습 자료 파일</label>
+              <Input
+                type="file"
+                accept={ACCEPTED_FILE_TYPES}
+                onChange={handleFileChange}
+                className="h-11"
+                disabled={!canGenerate || isGenerating}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                지원 형식: PDF, TXT, MD, MARKDOWN
+              </p>
+              {uploadFile && (
+                <p className="mt-2 text-sm text-foreground">
+                  선택한 파일: <strong>{uploadFile.name}</strong> ({formatFileSize(uploadFile.size)})
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium mb-1.5 text-muted-foreground">카테고리</label>
@@ -275,7 +374,7 @@ export function AiGeneratePage() {
               <label className="block text-xs font-medium mb-1.5 text-muted-foreground">난이도</label>
               <select
                 value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
+                onChange={(e) => setDifficulty(e.target.value as AiDifficulty)}
                 className="w-full h-11 px-3 border rounded-lg text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                 disabled={!canGenerate}
               >
@@ -286,14 +385,12 @@ export function AiGeneratePage() {
             </div>
           </div>
 
-          {/* Error */}
           {error && (
             <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
               {error}
             </div>
           )}
 
-          {/* Loading Skeleton */}
           {isGenerating && (
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -309,7 +406,6 @@ export function AiGeneratePage() {
             </div>
           )}
 
-          {/* Generated Cards */}
           {generatedCards.length > 0 && !isGenerating && (
             <div className="space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -376,13 +472,12 @@ export function AiGeneratePage() {
         </div>
       </main>
 
-      {/* Bottom Fixed Generate Button */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <div className="max-w-3xl mx-auto">
           <Button
             className="w-full h-12 text-base"
             onClick={handleGenerate}
-            disabled={isGenerating || !sourceText.trim() || !categoryCode || !canGenerate || !isCountValid}
+            disabled={isGenerating || !categoryCode || !canGenerate || !isCountValid || !isInputReady}
           >
             {isGenerating ? (
               <>
