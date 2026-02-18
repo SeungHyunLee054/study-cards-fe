@@ -39,6 +39,20 @@ export interface AiRecommendationResponse {
   quota: AiRecommendationQuota | null
 }
 
+export type AiRecommendationHistoryType = 'USER_CARD' | 'RECOMMENDATION' | 'WEAKNESS_ANALYSIS'
+
+export interface AiRecommendationHistoryResponse {
+  id: number
+  type: AiRecommendationHistoryType
+  model: string | null
+  cardsGenerated: number | null
+  success: boolean
+  errorMessage: string | null
+  prompt: string | null
+  response: string | null
+  createdAt: string
+}
+
 // 카테고리별 정답률 응답
 export interface CategoryAccuracyResponse {
   categoryId: number

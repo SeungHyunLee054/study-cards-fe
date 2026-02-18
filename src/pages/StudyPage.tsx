@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { AxiosError } from 'axios'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Loader2, User, CalendarCheck, BookOpen, Sparkles, AlertTriangle, Crown } from 'lucide-react'
+import { Loader2, User, CalendarCheck, BookOpen, Sparkles, AlertTriangle, Crown, History, CheckCircle2, XCircle } from 'lucide-react'
 import { CardDeck } from '@/components/CardDeck'
 import { RateLimitModal } from '@/components/RateLimitModal'
 import { RecommendedCardList } from '@/components/RecommendedCardList'
@@ -12,10 +12,15 @@ import { Button } from '@/components/ui/button'
 import { AppHeader } from '@/components/AppHeader'
 import { useAuth } from '@/contexts/useAuth'
 import { useCategories } from '@/hooks/useCategories'
-import { fetchAiRecommendations, fetchCategoryAccuracy } from '@/api/recommendations'
+import { fetchAiRecommendations, fetchAiRecommendationHistory, fetchCategoryAccuracy } from '@/api/recommendations'
 import { fetchMySubscription } from '@/api/subscriptions'
 import { DASHBOARD_PATH } from '@/constants/routes'
-import type { AiRecommendationResponse, CategoryAccuracyResponse } from '@/types/recommendation'
+import type {
+  AiRecommendationResponse,
+  AiRecommendationHistoryResponse,
+  AiRecommendationWeakConcept,
+  CategoryAccuracyResponse,
+} from '@/types/recommendation'
 import { STUDY_LOAD_DEBOUNCE_MS } from '@/lib/constants'
 
 type StudyMode = 'all' | 'review' | 'myCards' | 'session-review' | 'recommended'
@@ -27,6 +32,8 @@ interface StudyPageProps {
 
 const AI_REVIEW_ELIGIBILITY_CACHE_TTL_MS = 30_000
 const AI_REVIEW_DATA_CACHE_TTL_MS = 30_000
+const AI_REVIEW_HISTORY_CACHE_TTL_MS = 30_000
+const AI_REVIEW_HISTORY_PAGE_SIZE = 5
 
 type AiReviewData = {
   recommendations: AiRecommendationResponse
@@ -37,6 +44,8 @@ const aiReviewEligibilityCache = new Map<string, { value: boolean; expiresAt: nu
 const aiReviewEligibilityInFlight = new Map<string, Promise<boolean>>()
 const aiReviewDataCache = new Map<string, { value: AiReviewData; expiresAt: number }>()
 const aiReviewDataInFlight = new Map<string, Promise<AiReviewData>>()
+const aiReviewHistoryCache = new Map<string, { value: AiRecommendationHistoryResponse[]; expiresAt: number }>()
+const aiReviewHistoryInFlight = new Map<string, Promise<AiRecommendationHistoryResponse[]>>()
 
 function getAuthCacheKey(): string {
   return localStorage.getItem('accessToken') ?? 'guest'
@@ -106,6 +115,36 @@ async function getAiReviewData(cacheKey: string, force = false): Promise<AiRevie
   return request
 }
 
+async function getAiReviewHistory(cacheKey: string, force = false): Promise<AiRecommendationHistoryResponse[]> {
+  if (!force) {
+    const now = Date.now()
+    const cached = aiReviewHistoryCache.get(cacheKey)
+    if (cached && cached.expiresAt > now) {
+      return cached.value
+    }
+
+    const inFlight = aiReviewHistoryInFlight.get(cacheKey)
+    if (inFlight) {
+      return inFlight
+    }
+  }
+
+  const request = fetchAiRecommendationHistory(0, AI_REVIEW_HISTORY_PAGE_SIZE)
+    .then((response) => {
+      aiReviewHistoryCache.set(cacheKey, {
+        value: response.content,
+        expiresAt: Date.now() + AI_REVIEW_HISTORY_CACHE_TTL_MS,
+      })
+      return response.content
+    })
+    .finally(() => {
+      aiReviewHistoryInFlight.delete(cacheKey)
+    })
+
+  aiReviewHistoryInFlight.set(cacheKey, request)
+  return request
+}
+
 function formatQuotaResetAt(value: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
@@ -115,6 +154,72 @@ function formatQuotaResetAt(value: string): string {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function formatHistoryCreatedAt(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString('ko-KR', {
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function tryParseHistoryPayload(payload: string): { reviewStrategy: string | null; weakConcepts: AiRecommendationWeakConcept[] } | null {
+  const normalized = payload.trim()
+  if (!normalized) {
+    return null
+  }
+
+  const candidates = [normalized]
+  const fencedMatch = normalized.match(/```(?:json)?\s*([\s\S]*?)\s*```/i)
+  if (fencedMatch?.[1]) {
+    candidates.push(fencedMatch[1].trim())
+  }
+  const start = normalized.indexOf('{')
+  const end = normalized.lastIndexOf('}')
+  if (start !== -1 && end > start) {
+    candidates.push(normalized.slice(start, end + 1))
+  }
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate) as Record<string, unknown>
+      const reviewStrategyRaw = parsed.reviewStrategy
+      const reviewStrategy =
+        typeof reviewStrategyRaw === 'string' && reviewStrategyRaw.trim().length > 0
+          ? reviewStrategyRaw.trim()
+          : null
+
+      const weakConceptsRaw = Array.isArray(parsed.weakConcepts) ? parsed.weakConcepts : []
+      const weakConcepts = weakConceptsRaw
+        .map((item) => {
+          if (!item || typeof item !== 'object') {
+            return null
+          }
+          const record = item as Record<string, unknown>
+          const concept = typeof record.concept === 'string' ? record.concept.trim() : ''
+          if (!concept) {
+            return null
+          }
+          const reason = typeof record.reason === 'string' ? record.reason.trim() : ''
+          return { concept, reason }
+        })
+        .filter((item): item is AiRecommendationWeakConcept => item !== null)
+
+      if (!reviewStrategy && weakConcepts.length === 0) {
+        continue
+      }
+
+      return { reviewStrategy, weakConcepts }
+    } catch {
+      continue
+    }
+  }
+
+  return null
 }
 
 export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPageProps = {}) {
@@ -180,6 +285,9 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   const [recommendationsError, setRecommendationsError] = useState<string | null>(null)
   const [isAiRecommendationLocked, setIsAiRecommendationLocked] = useState(false)
   const [hasRequestedAiReview, setHasRequestedAiReview] = useState(false)
+  const [historyItems, setHistoryItems] = useState<AiRecommendationHistoryResponse[]>([])
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false)
+  const [historyError, setHistoryError] = useState<string | null>(null)
   const isAiReviewMode = selectedMode === 'review' && canUseAiReview
 
   const {
@@ -196,7 +304,22 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     progress,
   } = useStudyCards()
 
-  // 추천 데이터 로드 함수 (useEffect + retry 버튼에서 공유)
+  const loadAiReviewHistory = useCallback(async (force = false) => {
+    try {
+      setIsHistoryLoading(true)
+      setHistoryError(null)
+
+      const cacheKey = getAuthCacheKey()
+      const history = await getAiReviewHistory(cacheKey, force)
+      setHistoryItems(history)
+    } catch {
+      setHistoryError('AI 복습 히스토리를 불러오는데 실패했습니다.')
+    } finally {
+      setIsHistoryLoading(false)
+    }
+  }, [])
+
+  // 추천 데이터 로드 함수 (요청 버튼 + retry 버튼에서 공유)
   const loadRecommendations = useCallback(async (force = false) => {
     try {
       setIsRecommendationsLoading(true)
@@ -208,6 +331,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
 
       setRecommendations(recData)
       setCategoryAccuracy(accData)
+      void loadAiReviewHistory(true)
     } catch (error) {
       if (error instanceof AxiosError && error.response?.status === 403) {
         setIsAiRecommendationLocked(true)
@@ -219,7 +343,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     } finally {
       setIsRecommendationsLoading(false)
     }
-  }, [])
+  }, [loadAiReviewHistory])
 
   useEffect(() => {
     if (!isAiReviewMode) {
@@ -233,6 +357,11 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     setRecommendationsError(null)
     setIsAiRecommendationLocked(false)
   }, [isAiReviewMode])
+
+  useEffect(() => {
+    if (!isAiReviewMode) return
+    void loadAiReviewHistory(false)
+  }, [isAiReviewMode, loadAiReviewHistory])
 
   useEffect(() => {
     if (authLoading || isAiReviewEligibilityLoading) return
@@ -402,7 +531,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
             <p className="text-muted-foreground">복습 모드를 확인하는 중...</p>
           </div>
         ) : isAiReviewMode ? (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-2xl mx-auto space-y-6">
             {!hasRequestedAiReview ? (
               <div className="text-center p-6 md:p-8 rounded-lg bg-secondary/50">
                 <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
@@ -503,6 +632,99 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                 )}
               </div>
             ) : null}
+
+            <div className="rounded-xl border bg-card p-4 md:p-5 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm md:text-base font-semibold flex items-center gap-2">
+                  <History className="h-4 w-4 text-primary" />
+                  AI 복습 히스토리
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="min-h-[36px] px-2.5 text-xs"
+                  onClick={() => void loadAiReviewHistory(true)}
+                >
+                  새로고침
+                </Button>
+              </div>
+
+              {isHistoryLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  히스토리를 불러오는 중...
+                </div>
+              ) : historyError ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-destructive">{historyError}</p>
+                  <Button size="sm" className="min-h-[36px]" onClick={() => void loadAiReviewHistory(true)}>
+                    다시 시도
+                  </Button>
+                </div>
+              ) : historyItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground">아직 저장된 AI 복습 내역이 없습니다.</p>
+              ) : (
+                <div className="space-y-2">
+                  {historyItems.map((item) => {
+                    const parsedPayload = item.response ? tryParseHistoryPayload(item.response) : null
+                    const strategy = parsedPayload?.reviewStrategy ?? null
+                    const weakConcepts = parsedPayload?.weakConcepts ?? []
+                    const fallbackResponse =
+                      item.response?.trim().slice(0, 140) ?? ''
+
+                    return (
+                      <div key={item.id} className="rounded-lg border bg-secondary/30 p-3 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${
+                              item.success
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-red-100 text-red-700'
+                            }`}
+                          >
+                            {item.success ? (
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                            ) : (
+                              <XCircle className="h-3.5 w-3.5" />
+                            )}
+                            {item.success ? '성공' : '실패'}
+                          </span>
+                          <span className="text-muted-foreground">{formatHistoryCreatedAt(item.createdAt)}</span>
+                          {item.model && (
+                            <span className="text-muted-foreground">모델: {item.model}</span>
+                          )}
+                        </div>
+
+                        {strategy ? (
+                          <p className="text-sm text-foreground">{strategy}</p>
+                        ) : item.success ? (
+                          <p className="text-sm text-muted-foreground">
+                            {fallbackResponse || '응답 전문만 저장되어 전략을 추출하지 못했습니다.'}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-red-700">
+                            {item.errorMessage || 'AI 복습 분석 요청에 실패했습니다.'}
+                          </p>
+                        )}
+
+                        {weakConcepts.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {weakConcepts.slice(0, 3).map((weakConcept, index) => (
+                              <span
+                                key={`${item.id}-${weakConcept.concept}-${index}`}
+                                className="inline-flex rounded-full bg-primary/10 text-primary px-2 py-0.5 text-xs"
+                              >
+                                {weakConcept.concept}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         ) : isLoading ? (
           <div className="flex flex-col items-center justify-center h-64 gap-3">

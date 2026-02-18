@@ -1,9 +1,11 @@
 import { apiClient } from './client'
 import { withApiErrorHandling } from './helpers'
+import type { PageResponse } from '@/types/card'
 import type {
   RecommendationResponse,
   CategoryAccuracyResponse,
   AiRecommendationResponse,
+  AiRecommendationHistoryResponse,
 } from '@/types/recommendation'
 
 // 추천 카드 조회
@@ -24,6 +26,22 @@ export async function fetchAiRecommendations(limit: number = 20): Promise<AiReco
     })
     return response.data
   }, 'AI 추천 카드를 불러오는데 실패했습니다.', [403])
+}
+
+// AI 복습 추천 히스토리 조회
+export async function fetchAiRecommendationHistory(
+  page: number = 0,
+  size: number = 10
+): Promise<PageResponse<AiRecommendationHistoryResponse>> {
+  return withApiErrorHandling(async () => {
+    const response = await apiClient.get<PageResponse<AiRecommendationHistoryResponse>>(
+      '/api/study/recommendations/ai/history',
+      {
+        params: { page, size },
+      }
+    )
+    return response.data
+  }, 'AI 복습 히스토리를 불러오는데 실패했습니다.')
 }
 
 // 카테고리별 정답률 조회
