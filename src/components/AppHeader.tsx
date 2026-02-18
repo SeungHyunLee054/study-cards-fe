@@ -145,11 +145,11 @@ export function AppHeader(props: AppHeaderProps) {
       { to: '/search', label: '검색', icon: Search },
       { to: '/bookmarks', label: '북마크', icon: Heart },
       ...(includeAiGenerate
-        ? [{ to: '/ai-generate', label: 'AI 생성', icon: Wand2, accent: 'primary' as const }]
+        ? [{ to: '/ai-generate', label: 'AI 카드 만들기', icon: Wand2, accent: 'primary' as const }]
         : []),
-      { to: '/sessions', label: '세션', icon: History },
+      { to: '/sessions', label: '학습 기록', icon: History },
       { to: '/my-cards', label: '내 카드', icon: NotebookText },
-      { to: '/stats', label: '통계', icon: BarChart3 },
+      { to: '/stats', label: '학습 분석', icon: BarChart3 },
       { to: '/subscription', label: '구독', icon: CreditCard },
       { to: '/admin/users', label: '관리 사용자', icon: Users, adminOnly: true, accent: 'purple' },
       { to: '/admin/cards', label: '관리 카드', icon: Shield, adminOnly: true, accent: 'purple' },
