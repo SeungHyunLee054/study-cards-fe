@@ -639,14 +639,17 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                   <History className="h-4 w-4 text-primary" />
                   AI 복습 히스토리
                 </h3>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="min-h-[36px] px-2.5 text-xs"
-                  onClick={() => void loadAiReviewHistory(true)}
-                >
-                  새로고침
-                </Button>
+                {!historyError && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="min-h-[36px] px-2.5 text-xs"
+                    onClick={() => void loadAiReviewHistory(true)}
+                    disabled={isHistoryLoading}
+                  >
+                    새로고침
+                  </Button>
+                )}
               </div>
 
               {isHistoryLoading ? (
