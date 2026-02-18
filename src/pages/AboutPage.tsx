@@ -16,9 +16,9 @@ export function AboutPage() {
             <h2 className="text-2xl font-bold">Study Cards</h2>
           </div>
           <p className="text-muted-foreground leading-relaxed">
-            Study Cards는 플래시카드 기반 학습 앱입니다.
-            과학적으로 검증된 간격 반복(Spaced Repetition) 알고리즘을 사용하여
-            효율적인 장기 기억을 돕습니다.
+            Study Cards는 AI가 학습 내용을 자동으로 정리하고 사용자 맞춤 복습을 설계해주는
+            학습 SaaS 플랫폼입니다. 텍스트, 노트, 자료를 입력하면 핵심 개념을 추출해
+            Q/A 형태의 학습 카드로 변환하고, 학습 기록을 분석해 오늘 복습할 카드와 취약 개념을 추천합니다.
           </p>
         </section>
 
@@ -26,20 +26,24 @@ export function AboutPage() {
         <section className="mb-12">
           <div className="flex items-center gap-3 mb-4">
             <Brain className="h-6 w-6 text-primary" />
-            <h3 className="text-xl font-semibold">학습 방법</h3>
+            <h3 className="text-xl font-semibold">핵심 기능</h3>
           </div>
           <ul className="space-y-3 text-muted-foreground">
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              <span>Anki 알고리즘 기반의 간격 반복 학습</span>
+              <span>학습 자료 입력 시 AI 카드 자동 생성</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              <span>정답/오답에 따른 복습 주기 자동 조절</span>
+              <span>학습 기록 기반 오늘의 복습 카드 추천</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary">•</span>
-              <span>비로그인 시 하루 15개 무료 학습</span>
+              <span>취약 개념 분석과 복습 전략 제안</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">•</span>
+              <span>개인 맞춤형 장기 학습 루틴 설계</span>
             </li>
           </ul>
         </section>

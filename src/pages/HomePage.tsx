@@ -44,10 +44,10 @@ export function HomePage() {
   }
 
   const features = [
-    'Anki 알고리즘 기반 간격 반복',
-    `${cardCount?.toLocaleString() ?? '...'} 플래시카드`,
-    '하루 15개 무료 학습',
-    '실시간 진행도 추적',
+    '텍스트, 노트, 자료를 AI 카드로 자동 변환',
+    '오늘 복습해야 할 카드 자동 추천',
+    '취약 개념 기반 학습 분석',
+    `${cardCount?.toLocaleString() ?? '...'}개 누적 학습 카드`,
   ]
 
   // 로그인 상태면 리다이렉트 중이므로 아무것도 표시하지 않음
@@ -83,27 +83,25 @@ export function HomePage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900" style={{ lineHeight: 1.4 }}>
-            Master anything with
+            AI로 정리하고,
             <br />
-            <span className="text-primary">
-              Spaced Repetition
-            </span>
+            <span className="text-primary">오늘 복습까지 자동으로</span>
           </h1>
 
           <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-            플래시카드로 효율적으로 학습하세요.
-            과학적으로 검증된 기억법으로 영구 기억을 만듭니다.
+            텍스트, 노트, 자료를 입력하면 핵심 개념을 Q/A 카드로 만들고,
+            학습 기록을 바탕으로 오늘 복습할 항목을 추천합니다.
           </p>
 
           <div className="mt-10 flex gap-4 justify-center">
             <Button size="lg" asChild>
               <Link to="/study">
-                Start Learning
+                바로 시작하기
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/about">About</Link>
+              <Link to="/about">서비스 소개</Link>
             </Button>
           </div>
         </section>
