@@ -170,7 +170,12 @@ export function AppHeader(props: AppHeaderProps) {
               </div>
               {visibleItems.map((item) => (
                 <Button key={item.to} variant="ghost" size="sm" asChild className="min-h-[44px] shrink-0">
-                  <Link to={item.to} className={getLinkClassName(item)}>
+                  <Link
+                    to={item.to}
+                    className={getLinkClassName(item)}
+                    title={item.label}
+                    aria-label={item.label}
+                  >
                     <item.icon className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -178,7 +183,14 @@ export function AppHeader(props: AppHeaderProps) {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <NotificationDropdown />
-              <Button variant="ghost" size="sm" onClick={() => { void logout() }} className="min-h-[44px]">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { void logout() }}
+                className="min-h-[44px]"
+                title="로그아웃"
+                aria-label="로그아웃"
+              >
                 <LogOut className="h-4 w-4" />
               </Button>
             </div>
@@ -186,7 +198,14 @@ export function AppHeader(props: AppHeaderProps) {
 
           <div className="flex md:hidden items-center gap-1">
             <NotificationDropdown />
-            <Button variant="ghost" size="sm" onClick={() => { void logout() }} className="min-h-[44px] min-w-[44px]">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { void logout() }}
+              className="min-h-[44px] min-w-[44px]"
+              title="로그아웃"
+              aria-label="로그아웃"
+            >
               <LogOut className="h-4 w-4" />
             </Button>
             <Button
@@ -195,6 +214,7 @@ export function AppHeader(props: AppHeaderProps) {
               onClick={() => setIsMobileMenuOpen(prev => !prev)}
               aria-expanded={isMobileMenuOpen}
               aria-label={isMobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기'}
+              title={isMobileMenuOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기'}
               className="min-h-[44px] min-w-[44px]"
             >
               {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
