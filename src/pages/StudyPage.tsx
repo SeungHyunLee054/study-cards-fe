@@ -25,6 +25,87 @@ interface StudyPageProps {
   hideModeSelector?: boolean
 }
 
+const AI_REVIEW_ELIGIBILITY_CACHE_TTL_MS = 30_000
+const AI_REVIEW_DATA_CACHE_TTL_MS = 30_000
+
+type AiReviewData = {
+  recommendations: AiRecommendationResponse
+  categoryAccuracy: CategoryAccuracyResponse[]
+}
+
+const aiReviewEligibilityCache = new Map<string, { value: boolean; expiresAt: number }>()
+const aiReviewEligibilityInFlight = new Map<string, Promise<boolean>>()
+const aiReviewDataCache = new Map<string, { value: AiReviewData; expiresAt: number }>()
+const aiReviewDataInFlight = new Map<string, Promise<AiReviewData>>()
+
+function getAuthCacheKey(): string {
+  return localStorage.getItem('accessToken') ?? 'guest'
+}
+
+async function getAiReviewEligibility(cacheKey: string): Promise<boolean> {
+  const now = Date.now()
+  const cached = aiReviewEligibilityCache.get(cacheKey)
+  if (cached && cached.expiresAt > now) {
+    return cached.value
+  }
+
+  const inFlight = aiReviewEligibilityInFlight.get(cacheKey)
+  if (inFlight) {
+    return inFlight
+  }
+
+  const request = fetchMySubscription()
+    .then((subscription) => !!subscription?.canUseAiRecommendations)
+    .catch(() => false)
+    .then((value) => {
+      aiReviewEligibilityCache.set(cacheKey, {
+        value,
+        expiresAt: Date.now() + AI_REVIEW_ELIGIBILITY_CACHE_TTL_MS,
+      })
+      return value
+    })
+    .finally(() => {
+      aiReviewEligibilityInFlight.delete(cacheKey)
+    })
+
+  aiReviewEligibilityInFlight.set(cacheKey, request)
+  return request
+}
+
+async function getAiReviewData(cacheKey: string, force = false): Promise<AiReviewData> {
+  if (!force) {
+    const now = Date.now()
+    const cached = aiReviewDataCache.get(cacheKey)
+    if (cached && cached.expiresAt > now) {
+      return cached.value
+    }
+
+    const inFlight = aiReviewDataInFlight.get(cacheKey)
+    if (inFlight) {
+      return inFlight
+    }
+  }
+
+  const request = Promise.all([
+    fetchAiRecommendations(20),
+    fetchCategoryAccuracy().catch(() => [] as CategoryAccuracyResponse[]),
+  ])
+    .then(([recommendations, categoryAccuracy]) => {
+      const value: AiReviewData = { recommendations, categoryAccuracy }
+      aiReviewDataCache.set(cacheKey, {
+        value,
+        expiresAt: Date.now() + AI_REVIEW_DATA_CACHE_TTL_MS,
+      })
+      return value
+    })
+    .finally(() => {
+      aiReviewDataInFlight.delete(cacheKey)
+    })
+
+  aiReviewDataInFlight.set(cacheKey, request)
+  return request
+}
+
 function formatQuotaResetAt(value: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
@@ -71,10 +152,11 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     let isCancelled = false
     setIsAiReviewEligibilityLoading(true)
 
-    fetchMySubscription()
-      .then((subscription) => {
+    const cacheKey = getAuthCacheKey()
+    getAiReviewEligibility(cacheKey)
+      .then((canUseAiRecommendations) => {
         if (isCancelled) return
-        setCanUseAiReview(!!subscription?.canUseAiRecommendations)
+        setCanUseAiReview(canUseAiRecommendations)
       })
       .catch(() => {
         if (isCancelled) return
@@ -97,6 +179,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   const [isRecommendationsLoading, setIsRecommendationsLoading] = useState(false)
   const [recommendationsError, setRecommendationsError] = useState<string | null>(null)
   const [isAiRecommendationLocked, setIsAiRecommendationLocked] = useState(false)
+  const [hasRequestedAiReview, setHasRequestedAiReview] = useState(false)
   const isAiReviewMode = selectedMode === 'review' && canUseAiReview
 
   const {
@@ -114,16 +197,14 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   } = useStudyCards()
 
   // 추천 데이터 로드 함수 (useEffect + retry 버튼에서 공유)
-  const loadRecommendations = useCallback(async () => {
+  const loadRecommendations = useCallback(async (force = false) => {
     try {
       setIsRecommendationsLoading(true)
       setRecommendationsError(null)
       setIsAiRecommendationLocked(false)
 
-      const [recData, accData] = await Promise.all([
-        fetchAiRecommendations(20),
-        fetchCategoryAccuracy().catch(() => [] as CategoryAccuracyResponse[]),
-      ])
+      const cacheKey = getAuthCacheKey()
+      const { recommendations: recData, categoryAccuracy: accData } = await getAiReviewData(cacheKey, force)
 
       setRecommendations(recData)
       setCategoryAccuracy(accData)
@@ -140,11 +221,18 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     }
   }, [])
 
-  // 오늘의 복습(AI 가능 계정) 진입 시 추천 데이터 로드
   useEffect(() => {
-    if (!isAiReviewMode || !isLoggedIn || authLoading || isAiReviewEligibilityLoading) return
-    loadRecommendations()
-  }, [isAiReviewMode, isLoggedIn, authLoading, isAiReviewEligibilityLoading, loadRecommendations])
+    if (!isAiReviewMode) {
+      setHasRequestedAiReview(false)
+      return
+    }
+
+    setHasRequestedAiReview(false)
+    setRecommendations(null)
+    setCategoryAccuracy([])
+    setRecommendationsError(null)
+    setIsAiRecommendationLocked(false)
+  }, [isAiReviewMode])
 
   useEffect(() => {
     if (authLoading || isAiReviewEligibilityLoading) return
@@ -203,10 +291,15 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
 
   const handleRetry = () => {
     if (isAiReviewMode) {
-      loadRecommendations()
+      void loadRecommendations(true)
       return
     }
     loadCards(category, selectedMode, undefined, isLoggedIn)
+  }
+
+  const handleRequestAiReview = () => {
+    setHasRequestedAiReview(true)
+    void loadRecommendations(false)
   }
 
   const handleNewSession = () => {
@@ -310,7 +403,18 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
           </div>
         ) : isAiReviewMode ? (
           <div className="max-w-2xl mx-auto">
-            {isRecommendationsLoading ? (
+            {!hasRequestedAiReview ? (
+              <div className="text-center p-6 md:p-8 rounded-lg bg-secondary/50">
+                <Sparkles className="h-12 w-12 mx-auto mb-4 text-primary" />
+                <h2 className="text-lg md:text-xl font-semibold mb-2">AI 복습 분석을 시작하세요</h2>
+                <p className="text-muted-foreground mb-4 text-sm md:text-base">
+                  요청 시점에만 AI 추천 카드, 취약 개념, 복습 전략을 불러옵니다.
+                </p>
+                <Button onClick={handleRequestAiReview} className="min-h-[44px]">
+                  AI 복습 분석 요청
+                </Button>
+              </div>
+            ) : isRecommendationsLoading ? (
               <div className="flex flex-col items-center justify-center h-64 gap-3">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 <p className="text-muted-foreground">추천 카드를 분석하는 중...</p>
@@ -329,7 +433,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
             ) : recommendationsError ? (
               <div className="flex flex-col items-center justify-center h-64">
                 <p className="text-destructive mb-4">{recommendationsError}</p>
-                <Button onClick={loadRecommendations} className="min-h-[44px]">
+                <Button onClick={() => void loadRecommendations(true)} className="min-h-[44px]">
                   다시 시도
                 </Button>
               </div>
