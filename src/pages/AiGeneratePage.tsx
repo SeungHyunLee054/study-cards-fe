@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Sparkles,
@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Type,
   FileUp,
+  X,
 } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
@@ -25,6 +26,7 @@ type GenerateInputMode = 'text' | 'file'
 
 const MIN_CARD_COUNT = 1
 const MAX_CARD_COUNT = 20
+const MAX_UPLOAD_FILE_SIZE_BYTES = 5 * 1024 * 1024
 const ACCEPTED_FILE_TYPES = '.pdf,.txt,.md,.markdown,text/plain,text/markdown,application/pdf'
 const ALLOWED_FILE_EXTENSIONS = ['.pdf', '.txt', '.md', '.markdown']
 
@@ -56,6 +58,7 @@ export function AiGeneratePage() {
   const [error, setError] = useState<string | null>(null)
   const [limitInfo, setLimitInfo] = useState<AiLimitResponse | null>(null)
   const [isLoadingLimit, setIsLoadingLimit] = useState(true)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const categoryOptions = useMemo(() => flattenLeafCategoriesForSelect(categories), [categories])
 
   useEffect(() => {
@@ -101,9 +104,21 @@ export function AiGeneratePage() {
       setError('지원하지 않는 파일 형식입니다. PDF, TXT, MD 파일을 업로드해주세요.')
       return
     }
+    if (nextFile.size > MAX_UPLOAD_FILE_SIZE_BYTES) {
+      setUploadFile(null)
+      setError(`파일 크기는 ${formatFileSize(MAX_UPLOAD_FILE_SIZE_BYTES)} 이하만 업로드할 수 있습니다.`)
+      return
+    }
 
     setUploadFile(nextFile)
     setError(null)
+  }
+
+  function clearUploadFile() {
+    setUploadFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   async function handleGenerate() {
@@ -311,6 +326,7 @@ export function AiGeneratePage() {
             <div>
               <label className="block text-sm font-medium mb-2">학습 자료 파일</label>
               <Input
+                ref={fileInputRef}
                 type="file"
                 accept={ACCEPTED_FILE_TYPES}
                 onChange={handleFileChange}
@@ -318,12 +334,25 @@ export function AiGeneratePage() {
                 disabled={!canGenerate || isGenerating}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                지원 형식: PDF, TXT, MD, MARKDOWN
+                지원 형식: PDF, TXT, MD, MARKDOWN · 최대 {formatFileSize(MAX_UPLOAD_FILE_SIZE_BYTES)}
               </p>
               {uploadFile && (
-                <p className="mt-2 text-sm text-foreground">
-                  선택한 파일: <strong>{uploadFile.name}</strong> ({formatFileSize(uploadFile.size)})
-                </p>
+                <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
+                  <p className="text-sm text-foreground min-w-0 truncate">
+                    선택한 파일: <strong>{uploadFile.name}</strong> ({formatFileSize(uploadFile.size)})
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 shrink-0"
+                    onClick={clearUploadFile}
+                    disabled={isGenerating}
+                    aria-label="선택한 파일 제거"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
             </div>
           )}
