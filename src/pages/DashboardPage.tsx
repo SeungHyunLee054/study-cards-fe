@@ -24,16 +24,6 @@ import type {
   RecommendationType,
 } from '@/types/dashboard'
 
-const RECOMMENDATION_CONFIG: Record<
-  RecommendationType,
-  { buttonText: string; disabled: boolean; variant: 'default' | 'outline' }
-> = {
-  REVIEW: { buttonText: '복습 시작', disabled: false, variant: 'default' },
-  STREAK_KEEP: { buttonText: '스트릭 유지하기', disabled: false, variant: 'default' },
-  NEW: { buttonText: '새 카드 학습', disabled: false, variant: 'default' },
-  COMPLETE: { buttonText: '오늘 학습 완료!', disabled: true, variant: 'outline' },
-}
-
 function formatPercent(value: number): string {
   return `${Math.round(value * 100)}%`
 }
@@ -76,10 +66,12 @@ export function DashboardPage() {
     loadDashboard()
   }, [])
 
-  function handleRecommendationClick() {
-    if (dashboard?.recommendation.type !== 'COMPLETE') {
-      navigate(REVIEW_PATH)
-    }
+  function handleReviewClick() {
+    navigate(REVIEW_PATH)
+  }
+
+  function handleNewStudyClick() {
+    navigate('/study')
   }
 
   if (isLoading) {
@@ -98,7 +90,8 @@ export function DashboardPage() {
     recommendation: { message: '', recommendedCategory: null, cardsToStudy: 0, type: 'NEW' as RecommendationType },
   }
 
-  const recommendConfig = RECOMMENDATION_CONFIG[recommendation.type]
+  const isReviewRecommended = recommendation.type === 'REVIEW' || recommendation.type === 'STREAK_KEEP'
+  const isNewRecommended = recommendation.type === 'NEW'
   const last7Days = recentActivity.slice(0, 7).reverse()
   const maxStudied = Math.max(...last7Days.map((d) => d.studied), 1)
 
@@ -129,15 +122,24 @@ export function DashboardPage() {
               )}
             </div>
           </div>
-          <Button
-            size="lg"
-            variant={recommendConfig.variant}
-            disabled={recommendConfig.disabled}
-            onClick={handleRecommendationClick}
-            className="w-full sm:w-auto shrink-0"
-          >
-            {recommendConfig.buttonText}
-          </Button>
+          <div className="w-full sm:w-auto shrink-0 grid grid-cols-2 gap-2">
+            <Button
+              size="lg"
+              variant={isReviewRecommended ? 'default' : 'outline'}
+              onClick={handleReviewClick}
+              className="w-full"
+            >
+              오늘의 복습
+            </Button>
+            <Button
+              size="lg"
+              variant={isNewRecommended ? 'default' : 'outline'}
+              onClick={handleNewStudyClick}
+              className="w-full"
+            >
+              새 카드 학습
+            </Button>
+          </div>
         </div>
 
         {/* AI Generate CTA */}
