@@ -811,9 +811,6 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                             {item.success ? '성공' : isFallbackRecord ? `폴백 · ${historyFallbackLabel ?? '알고리즘'}` : '실패'}
                           </span>
                           <span className="text-muted-foreground">{formatHistoryCreatedAt(item.createdAt)}</span>
-                          {item.model && (
-                            <span className="text-muted-foreground">모델: {item.model}</span>
-                          )}
                         </div>
 
                         {strategy ? (
