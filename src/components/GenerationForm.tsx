@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { X, Loader2, Sparkles, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,7 +22,7 @@ interface GenerationFormProps {
 type SourceMode = 'random' | 'manual'
 
 const MAX_SOURCE_CARDS = 20
-const SOURCE_CARD_PAGE_SIZE = 100
+const SOURCE_CARD_PAGE_SIZE = 20
 
 export function GenerationForm({
   isOpen,
@@ -38,11 +38,16 @@ export function GenerationForm({
   const debouncedSourceKeyword = useDebounce(sourceKeyword, SEARCH_DEBOUNCE_MS)
   const [sourceCards, setSourceCards] = useState<AdminCardResponse[]>([])
   const [selectedSourceCardIds, setSelectedSourceCardIds] = useState<number[]>([])
+  const [sourceCardsPage, setSourceCardsPage] = useState(0)
+  const [sourceCardsHasMore, setSourceCardsHasMore] = useState(false)
+  const [sourceCardsTotalElements, setSourceCardsTotalElements] = useState(0)
   const [isSourceCardsLoading, setIsSourceCardsLoading] = useState(false)
+  const [isSourceCardsLoadingMore, setIsSourceCardsLoadingMore] = useState(false)
   const [sourceCardsError, setSourceCardsError] = useState<string | null>(null)
-  const [sourceCardsRefreshToken, setSourceCardsRefreshToken] = useState(0)
+  const [sourceCardsLoadMoreError, setSourceCardsLoadMoreError] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const categoryOptions = useMemo(() => flattenLeafCategoriesForSelect(categories), [categories])
+  const sourceCardsRequestIdRef = useRef(0)
 
   // 폼 초기화
   useEffect(() => {
@@ -53,49 +58,92 @@ export function GenerationForm({
       setSourceKeyword('')
       setSourceCards([])
       setSelectedSourceCardIds([])
+      setSourceCardsPage(0)
+      setSourceCardsHasMore(false)
+      setSourceCardsTotalElements(0)
       setSourceCardsError(null)
-      setSourceCardsRefreshToken(0)
+      setSourceCardsLoadMoreError(null)
       setErrors({})
     }
   }, [isOpen, categoryOptions])
+
+  const loadSourceCards = useCallback(async (page: number, append: boolean) => {
+    if (!isOpen || sourceMode !== 'manual' || !categoryCode) {
+      return
+    }
+
+    const requestId = ++sourceCardsRequestIdRef.current
+
+    if (append) {
+      setIsSourceCardsLoadingMore(true)
+      setSourceCardsLoadMoreError(null)
+    } else {
+      setIsSourceCardsLoading(true)
+      setSourceCardsError(null)
+      setSourceCardsLoadMoreError(null)
+    }
+
+    try {
+      const response = await fetchAdminCards(
+        categoryCode,
+        { page, size: SOURCE_CARD_PAGE_SIZE },
+        debouncedSourceKeyword.trim() || undefined
+      )
+
+      if (requestId !== sourceCardsRequestIdRef.current) return
+
+      setSourceCards((prev) => {
+        if (!append) return response.content
+
+        const existingIds = new Set(prev.map((item) => item.id))
+        const nextItems = response.content.filter((item) => !existingIds.has(item.id))
+        return [...prev, ...nextItems]
+      })
+      setSourceCardsPage(page)
+      setSourceCardsHasMore(!response.last)
+      setSourceCardsTotalElements(response.totalElements)
+    } catch (err) {
+      if (requestId !== sourceCardsRequestIdRef.current) return
+      if (append) {
+        setSourceCardsLoadMoreError(
+          err instanceof Error ? err.message : '원본 카드 추가 조회에 실패했습니다'
+        )
+      } else {
+        setSourceCardsError(err instanceof Error ? err.message : '원본 카드 목록을 불러오는데 실패했습니다')
+        setSourceCards([])
+        setSourceCardsHasMore(false)
+        setSourceCardsTotalElements(0)
+      }
+    } finally {
+      if (requestId === sourceCardsRequestIdRef.current) {
+        if (append) {
+          setIsSourceCardsLoadingMore(false)
+        } else {
+          setIsSourceCardsLoading(false)
+        }
+      }
+    }
+  }, [isOpen, sourceMode, categoryCode, debouncedSourceKeyword])
 
   useEffect(() => {
     if (!isOpen || sourceMode !== 'manual') return
     if (!categoryCode) {
       setSourceCards([])
+      setSourceCardsPage(0)
+      setSourceCardsHasMore(false)
+      setSourceCardsTotalElements(0)
       setSourceCardsError(null)
+      setSourceCardsLoadMoreError(null)
       return
     }
 
-    let isCancelled = false
+    void loadSourceCards(0, false)
+  }, [isOpen, sourceMode, categoryCode, loadSourceCards])
 
-    async function loadSourceCards() {
-      try {
-        setIsSourceCardsLoading(true)
-        setSourceCardsError(null)
-        const response = await fetchAdminCards(
-          categoryCode,
-          { page: 0, size: SOURCE_CARD_PAGE_SIZE },
-          debouncedSourceKeyword.trim() || undefined
-        )
-        if (isCancelled) return
-        setSourceCards(response.content)
-      } catch (err) {
-        if (isCancelled) return
-        setSourceCardsError(err instanceof Error ? err.message : '원본 카드 목록을 불러오는데 실패했습니다')
-      } finally {
-        if (!isCancelled) {
-          setIsSourceCardsLoading(false)
-        }
-      }
-    }
-
-    void loadSourceCards()
-
-    return () => {
-      isCancelled = true
-    }
-  }, [isOpen, sourceMode, categoryCode, debouncedSourceKeyword, sourceCardsRefreshToken])
+  function handleLoadMoreSourceCards() {
+    if (isSourceCardsLoading || isSourceCardsLoadingMore || !sourceCardsHasMore) return
+    void loadSourceCards(sourceCardsPage + 1, true)
+  }
 
   function handleSourceCardToggle(cardId: number, checked: boolean) {
     setSelectedSourceCardIds((prev) => {
@@ -248,9 +296,16 @@ export function GenerationForm({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-sm">원본 카드 선택 (최대 20개)</Label>
-                <span className="text-xs text-gray-500">
-                  선택됨: {selectedSourceCardIds.length}/{MAX_SOURCE_CARDS}
-                </span>
+                <div className="text-right">
+                  <span className="text-xs text-gray-500 block">
+                    선택됨: {selectedSourceCardIds.length}/{MAX_SOURCE_CARDS}
+                  </span>
+                  {sourceCardsTotalElements > 0 && (
+                    <span className="text-[11px] text-gray-400 block">
+                      조회: {sourceCards.length}/{sourceCardsTotalElements}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="relative">
@@ -266,19 +321,19 @@ export function GenerationForm({
               </div>
 
               <div className="max-h-60 overflow-y-auto rounded-lg border border-gray-200 divide-y">
-                {isSourceCardsLoading ? (
+                {isSourceCardsLoading && sourceCards.length === 0 ? (
                   <div className="flex items-center justify-center gap-2 p-6 text-sm text-gray-500">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     원본 카드 로딩 중...
                   </div>
-                ) : sourceCardsError ? (
+                ) : sourceCardsError && sourceCards.length === 0 ? (
                   <div className="p-4 space-y-2">
                     <p className="text-sm text-red-600">{sourceCardsError}</p>
                     <Button
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() => setSourceCardsRefreshToken((prev) => prev + 1)}
+                      onClick={() => void loadSourceCards(0, false)}
                     >
                       다시 시도
                     </Button>
@@ -316,6 +371,35 @@ export function GenerationForm({
                       </label>
                     )
                   })
+                )}
+
+                {sourceCards.length > 0 && (
+                  <div className="p-3 bg-gray-50 space-y-2">
+                    {sourceCardsLoadMoreError && (
+                      <p className="text-xs text-red-600">{sourceCardsLoadMoreError}</p>
+                    )}
+                    {sourceCardsHasMore ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={handleLoadMoreSourceCards}
+                        disabled={isSourceCardsLoadingMore || isLoading}
+                      >
+                        {isSourceCardsLoadingMore ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            불러오는 중...
+                          </>
+                        ) : (
+                          '더 불러오기'
+                        )}
+                      </Button>
+                    ) : (
+                      <p className="text-xs text-gray-500 text-center">조회 가능한 카드를 모두 불러왔습니다.</p>
+                    )}
+                  </div>
                 )}
               </div>
 
