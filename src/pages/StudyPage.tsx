@@ -683,7 +683,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                     {recommendations.algorithmFallback && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2.5 py-1 text-xs font-medium">
                         <AlertTriangle className="h-3.5 w-3.5" />
-                        AI 폴백
+                        대체 안내
                       </span>
                     )}
                   </div>
@@ -808,7 +808,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                             ) : (
                               <XCircle className="h-3.5 w-3.5" />
                             )}
-                            {item.success ? '성공' : isFallbackRecord ? `폴백 · ${historyFallbackLabel ?? '알고리즘'}` : '실패'}
+                            {item.success ? '성공' : isFallbackRecord ? `대체 안내 · ${historyFallbackLabel ?? '알고리즘'}` : '실패'}
                           </span>
                           <span className="text-muted-foreground">{formatHistoryCreatedAt(item.createdAt)}</span>
                         </div>
@@ -817,7 +817,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                           <p className="text-sm text-foreground">{strategy}</p>
                         ) : isFallbackRecord ? (
                           <p className="text-sm text-amber-700">
-                            {historyFallbackMessage || fallbackResponse || 'AI 폴백으로 알고리즘 복습 전략을 제공했습니다.'}
+                            {historyFallbackMessage || fallbackResponse || 'AI 분석 대신 알고리즘 복습 전략을 제공했습니다.'}
                           </p>
                         ) : item.success ? (
                           <p className="text-sm text-muted-foreground">
