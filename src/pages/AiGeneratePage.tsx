@@ -40,7 +40,7 @@ function formatFileSize(bytes: number): string {
 }
 
 export function AiGeneratePage() {
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, isAdmin } = useAuth()
 
   const { categories } = useCategories()
   const [inputMode, setInputMode] = useState<GenerateInputMode>('text')
@@ -74,11 +74,16 @@ export function AiGeneratePage() {
       setIsLoadingLimit(false)
       return
     }
+    if (isAdmin) {
+      setLimitInfo(null)
+      setIsLoadingLimit(false)
+      return
+    }
     fetchAiGenerationLimit()
       .then(setLimitInfo)
       .catch(() => setLimitInfo(null))
       .finally(() => setIsLoadingLimit(false))
-  }, [isLoggedIn])
+  }, [isLoggedIn, isAdmin])
 
   useEffect(() => {
     setError(null)
@@ -104,7 +109,7 @@ export function AiGeneratePage() {
   async function handleGenerate() {
     const parsedCount = Number(countInput)
     const isCountNumber = Number.isInteger(parsedCount)
-    const exceedsRemaining = !!limitInfo && parsedCount > limitInfo.remaining
+    const exceedsRemaining = !isAdmin && !!limitInfo && parsedCount > limitInfo.remaining
     const isCountInRange = isCountNumber && parsedCount >= MIN_CARD_COUNT && parsedCount <= MAX_CARD_COUNT
 
     if (!categoryCode) return
@@ -146,7 +151,7 @@ export function AiGeneratePage() {
         })
 
       setGeneratedCards(result.generatedCards)
-      if (limitInfo) {
+      if (!isAdmin && limitInfo) {
         setLimitInfo({ ...limitInfo, used: limitInfo.used + result.count, remaining: result.remainingLimit })
       }
     } catch (err) {
@@ -156,12 +161,12 @@ export function AiGeneratePage() {
     }
   }
 
-  const canGenerate = limitInfo ? limitInfo.remaining > 0 : false
+  const canGenerate = isAdmin || (limitInfo ? limitInfo.remaining > 0 : false)
   const textLength = sourceText.length
   const parsedCount = Number(countInput)
   const isCountNumber = Number.isInteger(parsedCount)
   const isCountInRange = isCountNumber && parsedCount >= MIN_CARD_COUNT && parsedCount <= MAX_CARD_COUNT
-  const exceedsRemaining = !!limitInfo && parsedCount > limitInfo.remaining
+  const exceedsRemaining = !isAdmin && !!limitInfo && parsedCount > limitInfo.remaining
   const isCountValid = isCountInRange && !exceedsRemaining
   const generateButtonCount = isCountNumber && parsedCount > 0 ? parsedCount : MIN_CARD_COUNT
   const isInputReady = inputMode === 'text' ? sourceText.trim().length > 0 : !!uploadFile
@@ -210,7 +215,7 @@ export function AiGeneratePage() {
           </span>
         )}
         titleClassName="text-lg font-semibold"
-        rightSlot={!isLoadingLimit && limitInfo ? (
+        rightSlot={!isAdmin && !isLoadingLimit && limitInfo ? (
           <div className="text-sm text-muted-foreground">
             {limitInfo.isLifetime ? (
               <span>남은 횟수: <strong className="text-foreground">{limitInfo.remaining}</strong>/{limitInfo.limit}</span>
@@ -224,7 +229,7 @@ export function AiGeneratePage() {
 
       <main className="flex-1 overflow-y-auto pb-32">
         <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-          {!isLoadingLimit && limitInfo && limitInfo.remaining <= 0 && (
+          {!isAdmin && !isLoadingLimit && limitInfo && limitInfo.remaining <= 0 && (
             <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
               <div>
@@ -242,7 +247,7 @@ export function AiGeneratePage() {
             </div>
           )}
 
-          {!isLoadingLimit && limitInfo && limitInfo.isLifetime && limitInfo.remaining > 0 && (
+          {!isAdmin && !isLoadingLimit && limitInfo && limitInfo.isLifetime && limitInfo.remaining > 0 && (
             <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Wand2 className="h-5 w-5 text-primary" />
