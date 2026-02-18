@@ -16,6 +16,7 @@ import { fetchAiRecommendations, fetchAiRecommendationHistory, fetchCategoryAccu
 import { fetchMySubscription } from '@/api/subscriptions'
 import { DASHBOARD_PATH } from '@/constants/routes'
 import type {
+  AiRecommendationFallbackReason,
   AiRecommendationResponse,
   AiRecommendationHistoryResponse,
   AiRecommendationWeakConcept,
@@ -34,6 +35,29 @@ const AI_REVIEW_ELIGIBILITY_CACHE_TTL_MS = 30_000
 const AI_REVIEW_DATA_CACHE_TTL_MS = 30_000
 const AI_REVIEW_HISTORY_CACHE_TTL_MS = 30_000
 const AI_REVIEW_HISTORY_PAGE_SIZE = 5
+const AI_UNLIMITED_QUOTA_THRESHOLD = 2_147_483_647
+
+const AI_FALLBACK_REASON_LABEL: Record<
+  Exclude<AiRecommendationFallbackReason, 'NONE'>,
+  string
+> = {
+  NO_DUE_CARDS: '복습 카드 없음',
+  INSUFFICIENT_STUDY_DATA: '학습 데이터 부족',
+  INSUFFICIENT_RECOMMENDATION_POOL: '추천 카드 부족',
+  QUOTA_EXCEEDED: '월 한도 초과',
+  AI_ERROR: 'AI 일시 오류',
+}
+
+const AI_FALLBACK_REASON_MESSAGE: Record<
+  Exclude<AiRecommendationFallbackReason, 'NONE'>,
+  string
+> = {
+  NO_DUE_CARDS: '오늘 복습할 카드가 없어 AI 분석 대신 준비 가이드를 제공합니다.',
+  INSUFFICIENT_STUDY_DATA: 'AI 분석을 위해 학습 데이터가 더 필요합니다. 카드를 조금 더 학습해 주세요.',
+  INSUFFICIENT_RECOMMENDATION_POOL: 'AI 분석을 위해 추천 가능한 카드 수가 더 필요합니다.',
+  QUOTA_EXCEEDED: '이번 결제 주기의 AI 분석 한도를 모두 사용해 알고리즘 결과를 제공합니다.',
+  AI_ERROR: 'AI 응답 오류로 알고리즘 기반 복습 전략을 제공합니다.',
+}
 
 type AiReviewData = {
   recommendations: AiRecommendationResponse
@@ -46,6 +70,60 @@ const aiReviewDataCache = new Map<string, { value: AiReviewData; expiresAt: numb
 const aiReviewDataInFlight = new Map<string, Promise<AiReviewData>>()
 const aiReviewHistoryCache = new Map<string, { value: AiRecommendationHistoryResponse[]; expiresAt: number }>()
 const aiReviewHistoryInFlight = new Map<string, Promise<AiRecommendationHistoryResponse[]>>()
+
+function isAiFallbackReason(value: unknown): value is AiRecommendationFallbackReason {
+  return (
+    value === 'NONE' ||
+    value === 'NO_DUE_CARDS' ||
+    value === 'INSUFFICIENT_STUDY_DATA' ||
+    value === 'INSUFFICIENT_RECOMMENDATION_POOL' ||
+    value === 'QUOTA_EXCEEDED' ||
+    value === 'AI_ERROR'
+  )
+}
+
+function getAiFallbackMessage(reason: AiRecommendationFallbackReason | null | undefined): string | null {
+  if (!reason || reason === 'NONE') {
+    return null
+  }
+  return AI_FALLBACK_REASON_MESSAGE[reason]
+}
+
+function getAiFallbackLabel(reason: AiRecommendationFallbackReason | null | undefined): string | null {
+  if (!reason || reason === 'NONE') {
+    return null
+  }
+  return AI_FALLBACK_REASON_LABEL[reason]
+}
+
+function extractFallbackReasonFromErrorMessage(errorMessage: string | null): AiRecommendationFallbackReason | null {
+  if (!errorMessage) {
+    return null
+  }
+
+  const trimmed = errorMessage.trim()
+  if (trimmed.startsWith('fallback:')) {
+    const candidate = trimmed.slice('fallback:'.length)
+    return isAiFallbackReason(candidate) ? candidate : null
+  }
+
+  if (trimmed.startsWith('AI_ERROR:')) {
+    return 'AI_ERROR'
+  }
+
+  return null
+}
+
+function isUnlimitedQuota(limit: number): boolean {
+  return limit >= AI_UNLIMITED_QUOTA_THRESHOLD
+}
+
+function formatQuotaValue(value: number): string {
+  if (value >= AI_UNLIMITED_QUOTA_THRESHOLD) {
+    return '무제한'
+  }
+  return value.toLocaleString('ko-KR')
+}
 
 function getAuthCacheKey(): string {
   return localStorage.getItem('accessToken') ?? 'guest'
@@ -167,7 +245,11 @@ function formatHistoryCreatedAt(value: string): string {
   })
 }
 
-function tryParseHistoryPayload(payload: string): { reviewStrategy: string | null; weakConcepts: AiRecommendationWeakConcept[] } | null {
+function tryParseHistoryPayload(payload: string): {
+  reviewStrategy: string | null
+  weakConcepts: AiRecommendationWeakConcept[]
+  fallbackReason: AiRecommendationFallbackReason | null
+} | null {
   const normalized = payload.trim()
   if (!normalized) {
     return null
@@ -209,11 +291,14 @@ function tryParseHistoryPayload(payload: string): { reviewStrategy: string | nul
         })
         .filter((item): item is AiRecommendationWeakConcept => item !== null)
 
-      if (!reviewStrategy && weakConcepts.length === 0) {
+      const fallbackReasonRaw = parsed.fallbackReason
+      const fallbackReason = isAiFallbackReason(fallbackReasonRaw) ? fallbackReasonRaw : null
+
+      if (!reviewStrategy && weakConcepts.length === 0 && !fallbackReason) {
         continue
       }
 
-      return { reviewStrategy, weakConcepts }
+      return { reviewStrategy, weakConcepts, fallbackReason }
     } catch {
       continue
     }
@@ -289,6 +374,9 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   const [isHistoryLoading, setIsHistoryLoading] = useState(false)
   const [historyError, setHistoryError] = useState<string | null>(null)
   const isAiReviewMode = selectedMode === 'review' && canUseAiReview
+  const activeFallbackReason = recommendations?.fallbackReason ?? null
+  const activeFallbackLabel = getAiFallbackLabel(activeFallbackReason)
+  const activeFallbackMessage = getAiFallbackMessage(activeFallbackReason)
 
   const {
     currentCard,
@@ -568,12 +656,30 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
               </div>
             ) : recommendations ? (
               <div className="space-y-6">
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="min-h-[36px]"
+                    onClick={() => void loadRecommendations(true)}
+                    disabled={isRecommendationsLoading}
+                  >
+                    다시 분석
+                  </Button>
+                </div>
+
                 <div className="rounded-xl border bg-card p-4 md:p-5 space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-medium">
                       <Sparkles className="h-3.5 w-3.5" />
                       {recommendations.aiUsed ? 'AI 추천 사용' : '알고리즘 추천 제공'}
                     </span>
+                    {activeFallbackLabel && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2.5 py-1 text-xs font-medium">
+                        <AlertTriangle className="h-3.5 w-3.5" />
+                        {activeFallbackLabel}
+                      </span>
+                    )}
                     {recommendations.algorithmFallback && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2.5 py-1 text-xs font-medium">
                         <AlertTriangle className="h-3.5 w-3.5" />
@@ -584,15 +690,17 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                   <p className="text-sm md:text-base text-foreground">
                     {recommendations.reviewStrategy}
                   </p>
-                  {recommendations.algorithmFallback && (
+                  {(recommendations.algorithmFallback || activeFallbackMessage) && (
                     <p className="text-xs text-amber-700">
-                      AI 한도 또는 일시적 오류로 알고리즘 추천 결과를 제공하고 있습니다.
+                      {activeFallbackMessage || 'AI 한도 또는 일시적 오류로 알고리즘 추천 결과를 제공하고 있습니다.'}
                     </p>
                   )}
                   {recommendations.quota && (
                     <p className="text-xs text-muted-foreground">
-                      AI 추천 사용량 {recommendations.quota.used}/{recommendations.quota.limit}
-                      {' · '}남은 {recommendations.quota.remaining}
+                      {isUnlimitedQuota(recommendations.quota.limit)
+                        ? 'AI 추천 사용량 무제한'
+                        : `AI 추천 사용량 ${formatQuotaValue(recommendations.quota.used)}/${formatQuotaValue(recommendations.quota.limit)}`}
+                      {' · '}남은 {formatQuotaValue(recommendations.quota.remaining)}
                       {' · '}초기화 {formatQuotaResetAt(recommendations.quota.resetAt)}
                     </p>
                   )}
@@ -617,7 +725,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                     <Sparkles className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                     <h2 className="text-lg md:text-xl font-semibold mb-2">추천 카드가 없습니다</h2>
                     <p className="text-muted-foreground text-sm md:text-base">
-                      학습 데이터가 더 쌓이면 AI가 맞춤 카드를 추천해 드립니다.
+                      {activeFallbackMessage || '학습 데이터가 더 쌓이면 AI가 맞춤 카드를 추천해 드립니다.'}
                     </p>
                   </div>
                 ) : (
@@ -672,6 +780,12 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                     const parsedPayload = item.response ? tryParseHistoryPayload(item.response) : null
                     const strategy = parsedPayload?.reviewStrategy ?? null
                     const weakConcepts = parsedPayload?.weakConcepts ?? []
+                    const payloadFallbackReason = parsedPayload?.fallbackReason ?? null
+                    const errorFallbackReason = extractFallbackReasonFromErrorMessage(item.errorMessage)
+                    const historyFallbackReason = payloadFallbackReason ?? errorFallbackReason
+                    const historyFallbackLabel = getAiFallbackLabel(historyFallbackReason)
+                    const historyFallbackMessage = getAiFallbackMessage(historyFallbackReason)
+                    const isFallbackRecord = !item.success && historyFallbackReason !== null && historyFallbackReason !== 'NONE'
                     const fallbackResponse =
                       item.response?.trim().slice(0, 140) ?? ''
 
@@ -682,15 +796,19 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                             className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${
                               item.success
                                 ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
+                                : isFallbackRecord
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-red-100 text-red-700'
                             }`}
                           >
                             {item.success ? (
                               <CheckCircle2 className="h-3.5 w-3.5" />
+                            ) : isFallbackRecord ? (
+                              <AlertTriangle className="h-3.5 w-3.5" />
                             ) : (
                               <XCircle className="h-3.5 w-3.5" />
                             )}
-                            {item.success ? '성공' : '실패'}
+                            {item.success ? '성공' : isFallbackRecord ? `폴백 · ${historyFallbackLabel ?? '알고리즘'}` : '실패'}
                           </span>
                           <span className="text-muted-foreground">{formatHistoryCreatedAt(item.createdAt)}</span>
                           {item.model && (
@@ -700,6 +818,10 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
 
                         {strategy ? (
                           <p className="text-sm text-foreground">{strategy}</p>
+                        ) : isFallbackRecord ? (
+                          <p className="text-sm text-amber-700">
+                            {historyFallbackMessage || fallbackResponse || 'AI 폴백으로 알고리즘 복습 전략을 제공했습니다.'}
+                          </p>
                         ) : item.success ? (
                           <p className="text-sm text-muted-foreground">
                             {fallbackResponse || '응답 전문만 저장되어 전략을 추출하지 못했습니다.'}

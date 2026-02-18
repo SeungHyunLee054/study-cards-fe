@@ -29,6 +29,14 @@ export interface AiRecommendationQuota {
   resetAt: string
 }
 
+export type AiRecommendationFallbackReason =
+  | 'NONE'
+  | 'NO_DUE_CARDS'
+  | 'INSUFFICIENT_STUDY_DATA'
+  | 'INSUFFICIENT_RECOMMENDATION_POOL'
+  | 'QUOTA_EXCEEDED'
+  | 'AI_ERROR'
+
 export interface AiRecommendationResponse {
   recommendations: RecommendedCard[]
   totalCount: number
@@ -36,6 +44,7 @@ export interface AiRecommendationResponse {
   reviewStrategy: string
   aiUsed: boolean
   algorithmFallback: boolean
+  fallbackReason?: AiRecommendationFallbackReason | null
   quota: AiRecommendationQuota | null
 }
 
