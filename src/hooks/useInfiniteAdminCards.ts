@@ -5,6 +5,7 @@ import type { AdminCardResponse } from '@/types/admin'
 
 interface UseInfiniteAdminCardsOptions {
   categoryCode?: string
+  keyword?: string
   pageSize?: number
 }
 
@@ -21,12 +22,12 @@ interface UseInfiniteAdminCardsReturn {
 }
 
 export function useInfiniteAdminCards(options: UseInfiniteAdminCardsOptions = {}): UseInfiniteAdminCardsReturn {
-  const { categoryCode, pageSize = 20 } = options
+  const { categoryCode, keyword, pageSize = 20 } = options
 
   const fetchPage = useCallback(
     ({ page, size }: { page: number; size: number }) =>
-      fetchAdminCards(categoryCode, { page, size }),
-    [categoryCode]
+      fetchAdminCards(categoryCode, { page, size }, keyword),
+    [categoryCode, keyword]
   )
 
   const {

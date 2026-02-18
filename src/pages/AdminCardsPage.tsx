@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, BookOpen, Loader2, Shield, FolderTree, Sparkles, Users, ArrowLeft } from 'lucide-react'
+import { Plus, Pencil, Trash2, BookOpen, Loader2, Shield, FolderTree, Sparkles, Users, ArrowLeft, Search } from 'lucide-react'
 import { AppHeader } from '@/components/AppHeader'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { AdminCardForm } from '@/components/AdminCardForm'
 import { AdminCategoryForm } from '@/components/AdminCategoryForm'
 import { CategoryFilterSection } from '@/components/CategoryFilterSection'
@@ -22,6 +23,8 @@ import type { CategoryResponse, CategoryCreateRequest, CategoryUpdateRequest } f
 import { buildCategoryTreeFromFlat } from '@/lib/categoryHierarchy'
 import type { CategoryTreeNode } from '@/lib/categoryHierarchy'
 import { DASHBOARD_PATH } from '@/constants/routes'
+import { useDebounce } from '@/hooks/useDebounce'
+import { SEARCH_DEBOUNCE_MS } from '@/lib/constants'
 
 type Tab = 'cards' | 'categories'
 
@@ -39,6 +42,8 @@ export function AdminCardsPage() {
 
   // 카드 관리 상태
   const [selectedCategory, setSelectedCategory] = useState('ALL')
+  const [keyword, setKeyword] = useState('')
+  const debouncedKeyword = useDebounce(keyword, SEARCH_DEBOUNCE_MS)
   const [isCardFormOpen, setIsCardFormOpen] = useState(false)
   const [editingCard, setEditingCard] = useState<AdminCardResponse | null>(null)
   const [deleteTargetCard, setDeleteTargetCard] = useState<AdminCardResponse | null>(null)
@@ -59,7 +64,10 @@ export function AdminCardsPage() {
     totalElements,
     refresh: refreshCards,
     observerRef,
-  } = useInfiniteAdminCards({ categoryCode })
+  } = useInfiniteAdminCards({
+    categoryCode,
+    keyword: debouncedKeyword.trim() || undefined,
+  })
 
   // 카테고리 관리 상태
   const [categoriesError, setCategoriesError] = useState<string | null>(null)
@@ -314,6 +322,17 @@ export function AdminCardsPage() {
             )}
 
             {/* Category Filter */}
+            <div className="mb-4 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="질문/답변 키워드 검색"
+                className="pl-9 h-11"
+              />
+            </div>
+
             <CategoryFilterSection
               className="mb-6"
               categories={categories}

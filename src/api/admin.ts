@@ -19,12 +19,14 @@ export interface PageParams {
 
 export async function fetchAdminCards(
   categoryCode?: string,
-  pageParams?: PageParams
+  pageParams?: PageParams,
+  keyword?: string
 ): Promise<PageResponse<AdminCardResponse>> {
   return withApiErrorHandling(async () => {
     const response = await apiClient.get<PageResponse<AdminCardResponse>>('/api/admin/cards', {
       params: {
         ...(categoryCode && { category: categoryCode }),
+        ...(keyword && { keyword }),
         page: pageParams?.page ?? 0,
         size: pageParams?.size ?? 20,
       },
