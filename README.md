@@ -110,7 +110,8 @@ src/
 │   ├── ui/                     # Shadcn/UI 기본 컴포넌트
 │   ├── CardDeck.tsx            # 카드 학습 인터페이스
 │   ├── BookmarkButton.tsx      # 북마크 토글 버튼
-│   ├── CategoryFilterTree.tsx  # 카테고리 필터 트리
+│   ├── CategoryFilterSection.tsx # 카테고리 필터 섹션
+│   ├── CategoryFilterChips.tsx # 카테고리 필터 칩
 │   ├── CategoryProgressTree.tsx # 카테고리 진행률 트리
 │   ├── RecommendedCardList.tsx # 추천 카드 리스트
 │   ├── CategoryAccuracyChart.tsx # 카테고리 정답률 차트
@@ -140,7 +141,7 @@ src/
 │   ├── constants.ts            # 상수 정의
 │   └── utils.ts                # 공통 유틸
 │
-├── pages/                      # 페이지 컴포넌트 (25개)
+├── pages/                      # 페이지 컴포넌트 (26개)
 ├── types/                      # TypeScript 타입 정의 (15개)
 └── App.tsx                     # 라우팅 설정 (코드 스플리팅)
 ```
@@ -186,6 +187,7 @@ src/
 | `/bookmarks` | BookmarksPage | 북마크 목록 |
 | `/ai-generate` | AiGeneratePage | AI 카드 생성 |
 | `/stats` | StatsPage | 학습 통계 |
+| `/review` | TodayReviewPage | 오늘 복습 |
 | `/sessions` | SessionHistoryPage | 세션 이력 |
 | `/mypage#settings` | MyPage | 설정 섹션으로 바로 이동 |
 
