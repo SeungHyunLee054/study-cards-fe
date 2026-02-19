@@ -4,6 +4,7 @@ import { AxiosError } from 'axios'
 import { signIn as apiSignIn, signUp as apiSignUp, signOut as apiSignOut } from '@/api/auth'
 import { fetchUserProfile } from '@/api/users'
 import { AuthContext } from '@/contexts/auth-context'
+import { clearLogoutRedirectToHome, markLogoutRedirectToHome } from '@/lib/authRedirect'
 import type { SignInRequest, SignUpRequest, UserResponse } from '@/types/auth'
 import type { UserProfileResponse } from '@/types/user'
 
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = localStorage.getItem('accessToken')
       if (token) {
         setIsLoggedIn(true)
+        clearLogoutRedirectToHome()
         try {
           const profile = await fetchUserProfile()
           setUser(profile)
@@ -70,9 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 강제 로그아웃 이벤트 리스너 (토큰 갱신 실패 시)
   useEffect(() => {
     const handleLogout = () => {
+      markLogoutRedirectToHome()
       setIsLoggedIn(false)
       setUser(null)
-      navigate('/')
+      navigate('/', { replace: true })
     }
 
     window.addEventListener('auth:logout', handleLogout)
@@ -87,9 +90,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsLoggedIn(true)
           refreshUser()
         } else {
+          markLogoutRedirectToHome()
           setIsLoggedIn(false)
           setUser(null)
-          navigate('/')
+          navigate('/', { replace: true })
         }
       }
     }
@@ -101,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (request: SignInRequest) => {
     const response = await apiSignIn(request)
     localStorage.setItem('accessToken', response.accessToken)
+    clearLogoutRedirectToHome()
     setIsLoggedIn(true)
     // 로그인 후 사용자 정보 로드
     try {
@@ -121,11 +126,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // 로그아웃 API 실패해도 로컬 토큰은 삭제
     }
+    markLogoutRedirectToHome()
     localStorage.removeItem('accessToken')
     setIsLoggedIn(false)
     setUser(null)
     navigate(options?.redirectTo ?? '/', {
-      replace: options?.replace ?? false,
+      replace: options?.replace ?? true,
       state: options?.state,
     })
   }, [navigate])
