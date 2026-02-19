@@ -41,12 +41,24 @@ export interface UserCardResponse {
   createdAt: string
 }
 
-// 학습용 카드 공통 타입 (CardResponse | UserCardResponse)
-export type StudyCard = CardResponse | UserCardResponse
+// 오늘의 학습 카드 응답 (백엔드 StudyCardResponse 기준)
+export interface StudyCardResponse {
+  id: number
+  question: string
+  questionSub: string | null
+  answer: string
+  answerSub: string | null
+  category: CategoryResponse
+  cardType: CardType
+}
+
+// 학습용 카드 공통 타입
+export type StudyCard = CardResponse | UserCardResponse | StudyCardResponse
 
 // 학습 답변 요청 (백엔드 StudyAnswerRequest 기준)
 export interface StudyAnswerRequest {
   cardId: number
+  cardType: CardType
   isCorrect: boolean
 }
 
@@ -56,16 +68,6 @@ export interface StudyResultResponse {
   isCorrect: boolean
   nextReviewDate: string | null
   newEfFactor: number | null
-}
-
-// 오늘의 학습 카드 응답 (백엔드 StudyCardResponse 기준)
-export interface StudyCardResponse {
-  id: number
-  question: string
-  questionSub: string | null
-  answer: string
-  answerSub: string | null
-  category: CategoryResponse
 }
 
 // 사용자 카드 생성 요청

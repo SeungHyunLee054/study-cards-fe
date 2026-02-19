@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { AxiosError } from 'axios'
-import type { StudyCard, StudyCardResponse } from '@/types/card'
+import type { StudyCard } from '@/types/card'
 import {
   fetchStudyCards,
   fetchUserStudyCards,
@@ -57,13 +57,12 @@ export function useStudyCards(): UseStudyCardsReturn {
     setStudyMode(mode)
 
     try {
-      let data: StudyCard[] | StudyCardResponse[]
+      let data: StudyCard[]
 
       if (mode === 'session-review' && cardIds && cardIds.length > 0) {
         // 세션 복습: cardIds로 개별 카드 조회
         const cardPromises = cardIds.map((id) => fetchCard(id))
-        const cards = await Promise.all(cardPromises)
-        data = cards as StudyCard[]
+        data = await Promise.all(cardPromises)
       } else if (mode === 'myCards') {
         // 내 카드만 학습
         data = await fetchUserStudyCards(category)
@@ -77,7 +76,7 @@ export function useStudyCards(): UseStudyCardsReturn {
           : await fetchStudyCards(category)
       }
 
-      setCards(data as StudyCard[])
+      setCards(data)
       setCurrentIndex(0)
       setIsFlipped(false)
       setCompleted(0)
@@ -111,6 +110,7 @@ export function useStudyCards(): UseStudyCardsReturn {
       if (accessToken) {
         submitStudyAnswer({
           cardId: currentCard.id,
+          cardType: currentCard.cardType,
           isCorrect,
         }).catch(() => {
           // 학습 결과 저장 실패해도 UI는 계속 진행
