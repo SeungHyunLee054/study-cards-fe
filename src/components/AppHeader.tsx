@@ -22,6 +22,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
+import { fetchMySubscription } from '@/api/subscriptions'
 import { useAuth } from '@/contexts/useAuth'
 import { DASHBOARD_PATH, MYPAGE_PATH } from '@/constants/routes'
 import { popPreviousPage } from '@/lib/pageHistory'
@@ -100,14 +101,38 @@ function cx(...classes: Array<string | false | null | undefined>) {
 }
 
 export function AppHeader(props: AppHeaderProps) {
-  const { logout, isAdmin, user } = useAuth()
+  const { logout, isAdmin, user, isLoggedIn } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false)
 
   useEffect(() => {
     setIsMobileMenuOpen(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (props.variant !== 'app-nav' || !isLoggedIn) {
+      setIsSubscribed(false)
+      return
+    }
+
+    let isMounted = true
+
+    const loadSubscription = async () => {
+      try {
+        const subscription = await fetchMySubscription()
+        if (!isMounted) return
+        setIsSubscribed(!!subscription?.isActive)
+      } catch {
+        if (!isMounted) return
+        setIsSubscribed(false)
+      }
+    }
+
+    void loadSubscription()
+    return () => { isMounted = false }
+  }, [props.variant, isLoggedIn])
 
   function getLinkClassName(item: NavItem): string {
     const targetPath = item.to.split('#')[0]
@@ -165,9 +190,13 @@ export function AppHeader(props: AppHeaderProps) {
 
           <div className="hidden md:flex items-center gap-2 md:gap-4">
             <div className="flex items-center gap-2">
-              <div className="hidden xl:flex items-center gap-2 text-sm text-gray-600 shrink-0">
-                <User className="h-4 w-4" />
-                {user?.nickname && <span>{user.nickname}</span>}
+              <div className="hidden lg:flex items-center gap-2 text-sm text-gray-600 shrink-0 min-w-0">
+                {isSubscribed && (
+                  <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                    PRO
+                  </span>
+                )}
+                {user?.nickname && <span className="max-w-[120px] truncate">{user.nickname}</span>}
               </div>
               {visibleItems.map((item) => (
                 <Tooltip key={item.to}>
