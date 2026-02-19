@@ -253,7 +253,7 @@ export function AccountSettingsPanel({ className }: AccountSettingsPanelProps) {
       setIsWithdrawSubmitting(true)
       await withdrawMyAccount()
       await logout({
-        redirectTo: '/login',
+        redirectTo: '/',
         replace: true,
         state: { message: '회원 탈퇴가 완료되었습니다.' },
       })

@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const handleLogout = () => {
       setIsLoggedIn(false)
       setUser(null)
-      navigate('/login')
+      navigate('/')
     }
 
     window.addEventListener('auth:logout', handleLogout)
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setIsLoggedIn(false)
           setUser(null)
-          navigate('/login')
+          navigate('/')
         }
       }
     }
