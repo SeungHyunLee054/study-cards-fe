@@ -102,8 +102,9 @@ function extractFallbackReasonFromErrorMessage(errorMessage: string | null): AiR
   }
 
   const trimmed = errorMessage.trim()
-  if (trimmed.startsWith('fallback:')) {
-    const candidate = trimmed.slice('fallback:'.length)
+  const fallbackMatch = trimmed.match(/fallback:\s*([A-Z_]+)/)
+  if (fallbackMatch?.[1]) {
+    const candidate = fallbackMatch[1]
     return isAiFallbackReason(candidate) ? candidate : null
   }
 
@@ -245,10 +246,72 @@ function formatHistoryCreatedAt(value: string): string {
   })
 }
 
+type ParsedHistoryRecommendation = {
+  question: string
+  questionSub: string | null
+  reason: string | null
+  priorityScore: number | null
+  nextReviewDate: string | null
+}
+
+function toNullableString(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
+
+function toNullableNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
+  }
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
+}
+
+function tryParseHistoryRecommendations(value: unknown): ParsedHistoryRecommendation[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== 'object') {
+        return null
+      }
+      const record = item as Record<string, unknown>
+      const question =
+        toNullableString(record.question)
+        ?? toNullableString(record.cardQuestion)
+        ?? toNullableString(record.title)
+
+      if (!question) {
+        return null
+      }
+
+      return {
+        question,
+        questionSub: toNullableString(record.questionSub),
+        reason:
+          toNullableString(record.reason)
+          ?? toNullableString(record.recommendationReason)
+          ?? toNullableString(record.explanation),
+        priorityScore: toNullableNumber(record.priorityScore),
+        nextReviewDate: toNullableString(record.nextReviewDate),
+      }
+    })
+    .filter((item): item is ParsedHistoryRecommendation => item !== null)
+}
+
 function tryParseHistoryPayload(payload: string): {
   reviewStrategy: string | null
   weakConcepts: AiRecommendationWeakConcept[]
   fallbackReason: AiRecommendationFallbackReason | null
+  recommendations: ParsedHistoryRecommendation[]
 } | null {
   const normalized = payload.trim()
   if (!normalized) {
@@ -294,11 +357,15 @@ function tryParseHistoryPayload(payload: string): {
       const fallbackReasonRaw = parsed.fallbackReason
       const fallbackReason = isAiFallbackReason(fallbackReasonRaw) ? fallbackReasonRaw : null
 
-      if (!reviewStrategy && weakConcepts.length === 0 && !fallbackReason) {
+      const recommendations = tryParseHistoryRecommendations(
+        Array.isArray(parsed.recommendations) ? parsed.recommendations : parsed.recommendedCards
+      )
+
+      if (!reviewStrategy && weakConcepts.length === 0 && !fallbackReason && recommendations.length === 0) {
         continue
       }
 
-      return { reviewStrategy, weakConcepts, fallbackReason }
+      return { reviewStrategy, weakConcepts, fallbackReason, recommendations }
     } catch {
       continue
     }
@@ -373,6 +440,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   const [historyItems, setHistoryItems] = useState<AiRecommendationHistoryResponse[]>([])
   const [isHistoryLoading, setIsHistoryLoading] = useState(false)
   const [historyError, setHistoryError] = useState<string | null>(null)
+  const [expandedHistoryIds, setExpandedHistoryIds] = useState<Record<number, boolean>>({})
   const isAiReviewMode = selectedMode === 'review' && canUseAiReview
   const activeFallbackReason = recommendations?.fallbackReason ?? null
   const activeFallbackLabel = getAiFallbackLabel(activeFallbackReason)
@@ -391,6 +459,13 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
     clearRateLimitError,
     progress,
   } = useStudyCards()
+
+  const toggleHistoryExpanded = useCallback((historyId: number) => {
+    setExpandedHistoryIds((prev) => ({
+      ...prev,
+      [historyId]: !prev[historyId],
+    }))
+  }, [])
 
   const loadAiReviewHistory = useCallback(async (force = false) => {
     try {
@@ -436,6 +511,7 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
   useEffect(() => {
     if (!isAiReviewMode) {
       setHasRequestedAiReview(false)
+      setExpandedHistoryIds({})
       return
     }
 
@@ -781,55 +857,71 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                     const strategy = parsedPayload?.reviewStrategy ?? null
                     const weakConcepts = parsedPayload?.weakConcepts ?? []
                     const payloadFallbackReason = parsedPayload?.fallbackReason ?? null
+                    const parsedRecommendations = parsedPayload?.recommendations ?? []
                     const errorFallbackReason = extractFallbackReasonFromErrorMessage(item.errorMessage)
                     const historyFallbackReason = payloadFallbackReason ?? errorFallbackReason
                     const historyFallbackLabel = getAiFallbackLabel(historyFallbackReason)
                     const historyFallbackMessage = getAiFallbackMessage(historyFallbackReason)
                     const isFallbackRecord = !item.success && historyFallbackReason !== null && historyFallbackReason !== 'NONE'
-                    const fallbackResponse =
-                      item.response?.trim().slice(0, 140) ?? ''
+                    const responsePreview = item.response?.trim().slice(0, 140) ?? ''
+                    const historyOutcomeReason = historyFallbackMessage ?? item.errorMessage?.trim() ?? null
+                    const weakConceptReasons = weakConcepts
+                      .map((weakConcept) => weakConcept.reason.trim())
+                      .filter((reason) => reason.length > 0)
+                    const isExpanded = !!expandedHistoryIds[item.id]
 
                     return (
                       <div key={item.id} className="rounded-lg border bg-secondary/30 p-3 space-y-2">
-                        <div className="flex flex-wrap items-center gap-2 text-xs">
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${
-                              item.success
-                                ? 'bg-green-100 text-green-700'
-                                : isFallbackRecord
-                                  ? 'bg-amber-100 text-amber-800'
-                                  : 'bg-red-100 text-red-700'
-                            }`}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${
+                                item.success
+                                  ? 'bg-green-100 text-green-700'
+                                  : isFallbackRecord
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-red-100 text-red-700'
+                              }`}
+                            >
+                              {item.success ? (
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                              ) : isFallbackRecord ? (
+                                <AlertTriangle className="h-3.5 w-3.5" />
+                              ) : (
+                                <XCircle className="h-3.5 w-3.5" />
+                              )}
+                              {item.success ? '성공' : isFallbackRecord ? `대체 안내 · ${historyFallbackLabel ?? '알고리즘'}` : '실패'}
+                            </span>
+                            <span className="text-muted-foreground">{formatHistoryCreatedAt(item.createdAt)}</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => toggleHistoryExpanded(item.id)}
                           >
-                            {item.success ? (
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                            ) : isFallbackRecord ? (
-                              <AlertTriangle className="h-3.5 w-3.5" />
-                            ) : (
-                              <XCircle className="h-3.5 w-3.5" />
-                            )}
-                            {item.success ? '성공' : isFallbackRecord ? `대체 안내 · ${historyFallbackLabel ?? '알고리즘'}` : '실패'}
-                          </span>
-                          <span className="text-muted-foreground">{formatHistoryCreatedAt(item.createdAt)}</span>
+                            {isExpanded ? '상세 접기' : '상세 보기'}
+                          </button>
                         </div>
 
                         {strategy ? (
                           <p className="text-sm text-foreground">{strategy}</p>
-                        ) : isFallbackRecord ? (
-                          <p className="text-sm text-amber-700">
-                            {historyFallbackMessage || fallbackResponse || 'AI 분석 대신 알고리즘 복습 전략을 제공했습니다.'}
-                          </p>
                         ) : item.success ? (
                           <p className="text-sm text-muted-foreground">
-                            {fallbackResponse || '응답 전문만 저장되어 전략을 추출하지 못했습니다.'}
+                            {responsePreview || '응답 전문만 저장되어 전략을 추출하지 못했습니다.'}
                           </p>
-                        ) : (
+                        ) : !historyOutcomeReason ? (
                           <p className="text-sm text-red-700">
-                            {item.errorMessage || 'AI 복습 분석 요청에 실패했습니다.'}
+                            AI 복습 분석 요청에 실패했습니다.
+                          </p>
+                        ) : null}
+
+                        {historyOutcomeReason && (
+                          <p className={`text-xs ${isFallbackRecord ? 'text-amber-700' : item.success ? 'text-muted-foreground' : 'text-red-700'}`}>
+                            {item.success ? '결과 원인' : '실패 원인'}: {historyOutcomeReason}
                           </p>
                         )}
 
-                        {weakConcepts.length > 0 && (
+                        {!isExpanded && weakConcepts.length > 0 && (
                           <div className="flex flex-wrap gap-1.5">
                             {weakConcepts.slice(0, 3).map((weakConcept, index) => (
                               <span
@@ -839,6 +931,76 @@ export function StudyPage({ forcedMode, hideModeSelector = false }: StudyPagePro
                                 {weakConcept.concept}
                               </span>
                             ))}
+                          </div>
+                        )}
+
+                        {!isExpanded && item.success && weakConceptReasons.length > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            취약 근거: {weakConceptReasons[0]}
+                            {weakConceptReasons.length > 1 && ` 외 ${weakConceptReasons.length - 1}건`}
+                          </p>
+                        )}
+
+                        {isExpanded && (
+                          <div className="space-y-3 pt-1">
+                            {parsedRecommendations.length > 0 ? (
+                              <div className="space-y-2">
+                                <p className="text-xs font-semibold text-muted-foreground">
+                                  추천 카드 {parsedRecommendations.length}개
+                                </p>
+                                <div className="space-y-2">
+                                  {parsedRecommendations.map((recommended, index) => (
+                                    <div
+                                      key={`${item.id}-rec-${index}`}
+                                      className="rounded-md border bg-background/70 p-2.5 space-y-1.5"
+                                    >
+                                      <p className="text-sm font-medium text-foreground">{recommended.question}</p>
+                                      {recommended.questionSub && (
+                                        <p className="text-xs text-muted-foreground">{recommended.questionSub}</p>
+                                      )}
+                                      <div className="flex flex-wrap gap-1.5 text-xs text-muted-foreground">
+                                        {recommended.priorityScore !== null && (
+                                          <span className="inline-flex rounded-full bg-secondary px-2 py-0.5">
+                                            우선순위 {recommended.priorityScore.toFixed(2)}
+                                          </span>
+                                        )}
+                                        {recommended.nextReviewDate && (
+                                          <span className="inline-flex rounded-full bg-secondary px-2 py-0.5">
+                                            다음 복습 {recommended.nextReviewDate}
+                                          </span>
+                                        )}
+                                      </div>
+                                      {recommended.reason && (
+                                        <p className="text-xs text-muted-foreground">{recommended.reason}</p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : item.success ? (
+                              <p className="text-xs text-muted-foreground">
+                                이 히스토리에는 추천 카드 상세 데이터가 저장되지 않았습니다.
+                              </p>
+                            ) : null}
+
+                            {weakConcepts.length > 0 && (
+                              <div className="space-y-2">
+                                <p className="text-xs font-semibold text-muted-foreground">취약 개념</p>
+                                <div className="space-y-1.5">
+                                  {weakConcepts.map((weakConcept, index) => (
+                                    <div
+                                      key={`${item.id}-weak-${weakConcept.concept}-${index}`}
+                                      className="rounded-md bg-primary/5 p-2"
+                                    >
+                                      <p className="text-xs font-medium text-foreground">{weakConcept.concept}</p>
+                                      {weakConcept.reason && (
+                                        <p className="text-xs text-muted-foreground mt-1">{weakConcept.reason}</p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
